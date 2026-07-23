@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint-and-jest:
+    name: Lint, format check, and LWC Jest tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint (LWC)
+        run: npm run lint
+
+      - name: Prettier format check
+        run: npm run format:check
+
+      - name: LWC Jest tests
+        run: npm run test:unit:coverage
+
+  apex:
+    name: Deploy to scratch org and run Apex tests
+    runs-on: ubuntu-latest
+    # Only runs once SFDX_AUTH_URL_DEVHUB is configured as a repository secret (see README §10
+    # "Continuous Integration"). Until then this job is skipped rather than failing the workflow,
+    # so lint-and-jest still gates pull requests on its own. Secrets are unavailable to
+    # pull_request workflows from forks, so this also safely skips for external contributors.
+    if: ${{ secrets.SFDX_AUTH_URL_DEVHUB != '' }}
+    needs: lint-and-jest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Authenticate to Dev Hub
+        env:
+          SFDX_AUTH_URL_DEVHUB: ${{ secrets.SFDX_AUTH_URL_DEVHUB }}
+        run: |
+          echo "$SFDX_AUTH_URL_DEVHUB" > ./DEVHUB_SFDX_URL.txt
+          sf org login sfdx-url --sfdx-url-file ./DEVHUB_SFDX_URL.txt --alias devhub --set-default-dev-hub
+          rm ./DEVHUB_SFDX_URL.txt
+
+      - name: Create scratch org
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias ci-scratch --duration-days 1 --target-dev-hub devhub --wait 10
+
+      - name: Deploy source
+        run: sf project deploy start --source-dir force-app --target-org ci-scratch
+
+      - name: Run Apex tests
+        run: sf apex run test --target-org ci-scratch --test-level RunLocalTests --code-coverage --result-format human --wait 20
+
+      - name: Delete scratch org
+        if: always()
+        run: sf org delete scratch --target-org ci-scratch --no-prompt

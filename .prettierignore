@@ -1,0 +1,10 @@
+.sfdx/
+.sf/
+.localdevserver/
+.vscode/
+coverage/
+node_modules/
+package-lock.json
+manifest/**/*.xml
+force-app/**/*-meta.xml
+force-app/**/*.xml

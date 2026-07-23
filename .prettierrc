@@ -1,0 +1,20 @@
+{
+    "trailingComma": "none",
+    "tabWidth": 4,
+    "singleQuote": true,
+    "plugins": ["prettier-plugin-apex"],
+    "overrides": [
+        {
+            "files": "**/lwc/**/*.html",
+            "options": { "parser": "lwc" }
+        },
+        {
+            "files": "**/aura/**/*.cmp",
+            "options": { "parser": "html" }
+        },
+        {
+            "files": "**/*.{cls,trigger}",
+            "options": { "printWidth": 120, "apexInsertFinalNewline": true }
+        }
+    ]
+}

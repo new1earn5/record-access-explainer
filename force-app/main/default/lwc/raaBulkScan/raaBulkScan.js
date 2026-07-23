@@ -4,15 +4,34 @@ import startBulkAnalysis from '@salesforce/apex/RAA_RecordAccessExplainerControl
 import getBatchRunStatus from '@salesforce/apex/RAA_RecordAccessExplainerController.getBatchRunStatus';
 
 const POLL_INTERVAL_MS = 4000;
-const TERMINAL_STATUSES = ['Completed', 'Completed with Warnings', 'Failed', 'Cancelled'];
+const TERMINAL_STATUSES = [
+    'Completed',
+    'Completed with Warnings',
+    'Failed',
+    'Cancelled'
+];
 
 const COLUMNS = [
-    { label: 'Record', fieldName: 'recordDisplayName', type: 'text', sortable: true },
+    {
+        label: 'Record',
+        fieldName: 'recordDisplayName',
+        type: 'text',
+        sortable: true
+    },
     { label: 'Status', fieldName: 'status', type: 'text', sortable: true },
-    { label: 'Users With Access', fieldName: 'usersWithAccess', type: 'number', sortable: true },
+    {
+        label: 'Users With Access',
+        fieldName: 'usersWithAccess',
+        type: 'number',
+        sortable: true
+    },
     {
         type: 'button',
-        typeAttributes: { label: 'View Details', name: 'view_analysis', variant: 'brand-outline' }
+        typeAttributes: {
+            label: 'View Details',
+            name: 'view_analysis',
+            variant: 'brand-outline'
+        }
     }
 ];
 
@@ -44,14 +63,22 @@ export default class RaaBulkScan extends LightningElement {
     }
 
     get isTerminal() {
-        return this.batchRun && TERMINAL_STATUSES.includes(this.batchRun.status);
+        return (
+            this.batchRun && TERMINAL_STATUSES.includes(this.batchRun.status)
+        );
     }
 
     get progressPercent() {
         if (!this.batchRun || !this.batchRun.totalRecords) {
             return 0;
         }
-        return Math.min(100, Math.round((this.batchRun.completedRecords / this.batchRun.totalRecords) * 100));
+        return Math.min(
+            100,
+            Math.round(
+                (this.batchRun.completedRecords / this.batchRun.totalRecords) *
+                    100
+            )
+        );
     }
 
     get progressBarStyle() {
@@ -74,12 +101,17 @@ export default class RaaBulkScan extends LightningElement {
     handleStart() {
         const ids = this.parseRecordIds(this.recordIdsInput);
         if (ids.length === 0) {
-            this.validationMessage = 'Enter at least one record ID, one per line or separated by commas.';
+            this.validationMessage =
+                'Enter at least one record ID, one per line or separated by commas.';
             return;
         }
 
         this.isStarting = true;
-        startBulkAnalysis({ recordIds: ids, includeExternalUsers: this.includeExternalUsers, includeInactiveUsers: this.includeInactiveUsers })
+        startBulkAnalysis({
+            recordIds: ids,
+            includeExternalUsers: this.includeExternalUsers,
+            includeInactiveUsers: this.includeInactiveUsers
+        })
             .then((result) => {
                 this.batchRun = result;
                 this.startPolling();
@@ -101,7 +133,13 @@ export default class RaaBulkScan extends LightningElement {
 
     startPolling() {
         this.stopPolling();
-        this.pollingHandle = setInterval(() => this.refreshStatus(), POLL_INTERVAL_MS);
+        // Cleared in stopPolling(), called from both disconnectedCallback() and every
+        // terminal-status transition, so this interval never outlives the component.
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.pollingHandle = setInterval(
+            () => this.refreshStatus(),
+            POLL_INTERVAL_MS
+        );
     }
 
     stopPolling() {
@@ -130,7 +168,11 @@ export default class RaaBulkScan extends LightningElement {
 
     handleRowAction(event) {
         if (event.detail.action.name === 'view_analysis') {
-            this.dispatchEvent(new CustomEvent('viewanalysis', { detail: { analysisId: event.detail.row.analysisId } }));
+            this.dispatchEvent(
+                new CustomEvent('viewanalysis', {
+                    detail: { analysisId: event.detail.row.analysisId }
+                })
+            );
         }
     }
 
@@ -141,7 +183,12 @@ export default class RaaBulkScan extends LightningElement {
     }
 
     showError(error) {
-        const message = error && error.body && error.body.message ? error.body.message : 'An unexpected error occurred.';
-        this.dispatchEvent(new ShowToastEvent({ title: 'Error', message, variant: 'error' }));
+        const message =
+            error && error.body && error.body.message
+                ? error.body.message
+                : 'An unexpected error occurred.';
+        this.dispatchEvent(
+            new ShowToastEvent({ title: 'Error', message, variant: 'error' })
+        );
     }
 }

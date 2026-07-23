@@ -11,7 +11,12 @@ import exportResultsCsv from '@salesforce/apex/RAA_RecordAccessExplainerControll
 import exportReasonsCsv from '@salesforce/apex/RAA_RecordAccessExplainerController.exportReasonsCsv';
 
 const POLL_INTERVAL_MS = 3000;
-const TERMINAL_STATUSES = ['Completed', 'Completed with Warnings', 'Failed', 'Cancelled'];
+const TERMINAL_STATUSES = [
+    'Completed',
+    'Completed with Warnings',
+    'Failed',
+    'Cancelled'
+];
 const PAGE_SIZE = 10;
 
 const COLUMNS = [
@@ -19,15 +24,60 @@ const COLUMNS = [
     { label: 'Username', fieldName: 'username', type: 'text', sortable: true },
     { label: 'Active', fieldName: 'isActive', type: 'boolean', sortable: true },
     { label: 'User Type', fieldName: 'userType', type: 'text', sortable: true },
-    { label: 'Profile', fieldName: 'profileName', type: 'text', sortable: true },
-    { label: 'Max Access', fieldName: 'maxAccessLevel', type: 'text', sortable: true },
-    { label: 'Read', fieldName: 'hasReadAccess', type: 'boolean', sortable: true },
-    { label: 'Edit', fieldName: 'hasEditAccess', type: 'boolean', sortable: true },
-    { label: 'Delete', fieldName: 'hasDeleteAccess', type: 'boolean', sortable: true },
-    { label: 'Transfer', fieldName: 'hasTransferAccess', type: 'boolean', sortable: true },
-    { label: 'All Access', fieldName: 'hasAllAccess', type: 'boolean', sortable: true },
-    { label: 'Reason Summary', fieldName: 'reasonSummary', type: 'text', wrapText: true },
-    { label: 'Confidence', fieldName: 'overallConfidence', type: 'text', sortable: true },
+    {
+        label: 'Profile',
+        fieldName: 'profileName',
+        type: 'text',
+        sortable: true
+    },
+    {
+        label: 'Max Access',
+        fieldName: 'maxAccessLevel',
+        type: 'text',
+        sortable: true
+    },
+    {
+        label: 'Read',
+        fieldName: 'hasReadAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'Edit',
+        fieldName: 'hasEditAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'Delete',
+        fieldName: 'hasDeleteAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'Transfer',
+        fieldName: 'hasTransferAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'All Access',
+        fieldName: 'hasAllAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'Reason Summary',
+        fieldName: 'reasonSummary',
+        type: 'text',
+        wrapText: true
+    },
+    {
+        label: 'Confidence',
+        fieldName: 'overallConfidence',
+        type: 'text',
+        sortable: true
+    },
     {
         type: 'action',
         typeAttributes: {
@@ -99,8 +149,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
         getDefaultSettings()
             .then((settings) => {
-                this.includeExternalUsers = settings.defaultIncludeExternalUsers;
-                this.includeInactiveUsers = settings.defaultIncludeInactiveUsers;
+                this.includeExternalUsers =
+                    settings.defaultIncludeExternalUsers;
+                this.includeInactiveUsers =
+                    settings.defaultIncludeInactiveUsers;
             })
             .catch(() => {
                 // Defaults simply stay at their initial values if this call is not permitted.
@@ -153,7 +205,12 @@ export default class RaaRecordAccessExplainer extends LightningElement {
         if (!this.summary || !this.summary.totalUsers) {
             return 0;
         }
-        return Math.min(100, Math.round((this.summary.processedUsers / this.summary.totalUsers) * 100));
+        return Math.min(
+            100,
+            Math.round(
+                (this.summary.processedUsers / this.summary.totalUsers) * 100
+            )
+        );
     }
 
     get progressBarStyle() {
@@ -163,9 +220,11 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     get statusExplanation() {
         const explanations = {
             Queued: 'The scan has been accepted and is waiting for a batch execution slot.',
-            Running: 'The scan is actively evaluating the user population in the background.',
+            Running:
+                'The scan is actively evaluating the user population in the background.',
             Completed: 'The scan finished with no warnings.',
-            'Completed with Warnings': 'The scan finished, but some access reasons could not be fully resolved, or a platform limitation was hit. See the warning banner below.',
+            'Completed with Warnings':
+                'The scan finished, but some access reasons could not be fully resolved, or a platform limitation was hit. See the warning banner below.',
             Failed: 'The scan could not complete. See the error details below.',
             Cancelled: 'The scan was cancelled before it finished.'
         };
@@ -173,14 +232,20 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     }
 
     get showWarningBanner() {
-        return this.summary && (this.summary.potentiallyIncomplete || this.summary.status === 'Failed');
+        return (
+            this.summary &&
+            (this.summary.potentiallyIncomplete ||
+                this.summary.status === 'Failed')
+        );
     }
 
     get warningText() {
         if (!this.summary) {
             return '';
         }
-        return this.summary.status === 'Failed' ? this.summary.errorDetails : this.summary.warnings;
+        return this.summary.status === 'Failed'
+            ? this.summary.errorDetails
+            : this.summary.warnings;
     }
 
     get canCancel() {
@@ -215,14 +280,22 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
         if (term) {
             rows = rows.filter(
-                (r) => (r.userFullName || '').toLowerCase().includes(term) || (r.username || '').toLowerCase().includes(term)
+                (r) =>
+                    (r.userFullName || '').toLowerCase().includes(term) ||
+                    (r.username || '').toLowerCase().includes(term)
             );
         }
         if (this.accessLevelFilter) {
-            rows = rows.filter((r) => r.maxAccessLevel === this.accessLevelFilter);
+            rows = rows.filter(
+                (r) => r.maxAccessLevel === this.accessLevelFilter
+            );
         }
         if (this.categoryFilter) {
-            rows = rows.filter((r) => (r.reasons || []).some((reason) => reason.category === this.categoryFilter));
+            rows = rows.filter((r) =>
+                (r.reasons || []).some(
+                    (reason) => reason.category === this.categoryFilter
+                )
+            );
         }
         if (this.profileFilter) {
             rows = rows.filter((r) => r.profileName === this.profileFilter);
@@ -236,7 +309,9 @@ export default class RaaRecordAccessExplainer extends LightningElement {
             rows = rows.filter((r) => !r.isActive);
         }
         if (this.confidenceFilter) {
-            rows = rows.filter((r) => r.overallConfidence === this.confidenceFilter);
+            rows = rows.filter(
+                (r) => r.overallConfidence === this.confidenceFilter
+            );
         }
         if (this.unresolvedOnly) {
             rows = rows.filter((r) => r.hasUnresolvedReason);
@@ -309,8 +384,15 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     get categoryOptions() {
         const values = new Set();
-        this.results.forEach((r) => (r.reasons || []).forEach((reason) => reason.category && values.add(reason.category)));
-        return [{ label: 'All Categories', value: '' }, ...[...values].sort().map((v) => ({ label: v, value: v }))];
+        this.results.forEach((r) =>
+            (r.reasons || []).forEach(
+                (reason) => reason.category && values.add(reason.category)
+            )
+        );
+        return [
+            { label: 'All Categories', value: '' },
+            ...[...values].sort().map((v) => ({ label: v, value: v }))
+        ];
     }
 
     buildPicklistOptions(accessor) {
@@ -321,7 +403,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
                 values.add(v);
             }
         });
-        return [{ label: 'All', value: '' }, ...[...values].sort().map((v) => ({ label: v, value: v }))];
+        return [
+            { label: 'All', value: '' },
+            ...[...values].sort().map((v) => ({ label: v, value: v }))
+        ];
     }
 
     // ---- Event handlers: scan input ----
@@ -354,7 +439,8 @@ export default class RaaRecordAccessExplainer extends LightningElement {
             return;
         }
         if (!/^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$/.test(trimmed)) {
-            this.validationMessage = 'That does not look like a valid 15 or 18 character Salesforce record ID.';
+            this.validationMessage =
+                'That does not look like a valid 15 or 18 character Salesforce record ID.';
             return;
         }
         this.validationMessage = '';
@@ -389,8 +475,11 @@ export default class RaaRecordAccessExplainer extends LightningElement {
             })
             .catch((error) => {
                 const message = this.reduceError(error);
-                if (message.includes('already') && message.includes('Confirm')) {
-                    // eslint-disable-next-line no-alert
+                if (
+                    message.includes('already') &&
+                    message.includes('Confirm')
+                ) {
+                    // eslint-disable-next-line no-restricted-globals, no-alert
                     if (confirm(message + '\n\nStart a new scan anyway?')) {
                         this.startScan(true);
                         return;
@@ -414,7 +503,13 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     startPolling() {
         this.stopPolling();
-        this.pollingHandle = setInterval(() => this.refreshStatus(), POLL_INTERVAL_MS);
+        // Cleared in stopPolling(), called from both disconnectedCallback() and every
+        // terminal-status transition, so this interval never outlives the component.
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.pollingHandle = setInterval(
+            () => this.refreshStatus(),
+            POLL_INTERVAL_MS
+        );
     }
 
     stopPolling() {
@@ -597,7 +692,11 @@ export default class RaaRecordAccessExplainer extends LightningElement {
         }
         deleteAnalysis({ analysisId: this.analysisId })
             .then(() => {
-                this.showToast('Success', 'The analysis was deleted.', 'success');
+                this.showToast(
+                    'Success',
+                    'The analysis was deleted.',
+                    'success'
+                );
                 this.handleNewAnalysis();
             })
             .catch((error) => this.showError(this.reduceError(error)));
@@ -621,17 +720,25 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     }
 
     handleExportResults() {
-        this.downloadCsv(exportResultsCsv, `record-access-results-${this.analysisId}.csv`);
+        this.downloadCsv(
+            exportResultsCsv,
+            `record-access-results-${this.analysisId}.csv`
+        );
     }
 
     handleExportReasons() {
-        this.downloadCsv(exportReasonsCsv, `record-access-reasons-${this.analysisId}.csv`);
+        this.downloadCsv(
+            exportReasonsCsv,
+            `record-access-reasons-${this.analysisId}.csv`
+        );
     }
 
     downloadCsv(apexMethod, fileName) {
         apexMethod({ analysisId: this.analysisId })
             .then((csv) => {
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob([csv], {
+                    type: 'text/csv;charset=utf-8;'
+                });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;

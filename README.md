@@ -67,7 +67,7 @@ Key design decisions, all verified empirically against a live org rather than as
   has no `getSharingModel()` method, `Schema.SharingModel` is not a real Apex type, and
   `EntityDefinition` (queried through plain SOQL) has no `SharingModel` column. `RAA_OrgWideDefaultAnalyzer`
   reports this honestly (Low confidence, "could not be conclusively retrieved") instead of guessing.
-- **"Controlled by Parent" *is* reliably detectable**, just not through a sharing-model enum:
+- **"Controlled by Parent" _is_ reliably detectable**, just not through a sharing-model enum:
   `DescribeFieldResult.isCascadeDelete()` is true only for master-detail fields, and Salesforce
   enforces Controlled-By-Parent sharing unconditionally for any object that has one.
   `RAA_ContextBuilder` uses this to locate the controlling parent field for `RAA_ParentControlledAnalyzer`.
@@ -86,31 +86,31 @@ Key design decisions, all verified empirically against a live org rather than as
 
 ### Apex components
 
-| Layer | Class | Responsibility |
-|---|---|---|
-| Controller | `RAA_RecordAccessExplainerController` | Sole `@AuraEnabled` surface. `with sharing`. Permission + visibility gate. |
-| Orchestration | `RAA_AnalysisOrchestratorService` | Elevated (`without sharing`) service boundary; never Aura-enabled. |
-| Async | `RAA_AccessScanBatch` | `Database.Batchable<Id>, Database.Stateful`. One chunk = one bulk pass. |
-| Scheduling | `RAA_CleanupScheduler` | Optional `Schedulable` retention cleanup. |
-| Effective access | `RAA_IEffectiveAccessProvider` / `RAA_UserRecordAccessProvider` | `UserRecordAccess` wrapper, swappable in tests. |
-| Context | `RAA_ContextBuilder` / `RAA_AnalysisContext` | Bulk-loads record, owner, share object, share rows once. |
-| Metadata | `RAA_RecordMetadataResolver`, `RAA_ShareObjectResolver` | Dynamic object/share-table discovery via `Schema`. |
-| Reason engine | `RAA_IReasonAnalyzer` + 8 implementations | Strategy pattern; see §4. |
-| Aggregation | `RAA_ReasonAggregator` | Confirms effective access, fans out to analyzers, dedupes, sorts. |
-| Groups | `RAA_GroupGraphResolver` | Bulk BFS over `Group`/`GroupMember`, cycle-safe. |
-| Persistence | `RAA_AnalysisRepository` | All DML/SOQL against the RAA data model; idempotent upserts. |
-| Population | `RAA_UserPopulationBuilder` | Dynamic SOQL for the scan's candidate users. |
-| Export | `RAA_CsvExportService` | RFC 4180 CSV formatting. |
-| Settings | `RAA_SettingsService` | `RAA_Settings__mdt` reader with safe fallbacks. |
-| Security | `RAA_PermissionChecker`, `RAA_IdValidationUtil` | Custom permission wrapper (test-overridable), ID validation. |
-| DTOs | `RAA_Analysis*DTO`, `RAA_AccessResultDTO`, `RAA_AccessReasonDTO`, `RAA_SettingsDTO`, `RAA_GroupPathDTO`, `RAA_FieldAccessDTO`, `RAA_UserRecordAccessSummaryDTO`, `RAA_BatchRunSummaryDTO`, `RAA_SubscriptionDTO`, `RAA_UserAccessChangeDTO` | No raw SObjects cross the Aura boundary. |
-| Test support | `RAA_TestDataFactory`, `RAA_FakeEffectiveAccessProvider`, `RAA_FakeReasonAnalyzer` | `@IsTest` fakes for dependency injection. |
-| Bulk scan | `RAA_BulkScanQueueable` | Governor-safe 5-at-a-time fan-out over `Database.executeBatch`, self-chained; see §8. |
-| By-user scan | `RAA_UserAccessExplorerService` | Reverse-mode bulk `UserRecordAccess` query (`UserId = single, RecordId IN list`); see §8. |
-| Field access | `RAA_FieldAccessService`, `RAA_PermissionSetLookup` | Permissive-union FLS computation across a user's assigned permission sets and profile; see §8. |
-| Diffing | `RAA_AnalysisDiffService` | Compares two completed analyses of the same record; see §8. |
-| Live warnings | `RAA_SharingRecalculationChecker`, `RAA_RestrictionRuleChecker` | Best-effort, defensively-guarded scan-time signals; see §8. |
-| Recurring scans | `RAA_RecurringScanScheduler`, `RAA_SubscriptionScanQueueable`, `RAA_SubscriptionRepository` | Optional two-phase scheduled re-scan + email change alert; see §8, §19. |
+| Layer            | Class                                                                                                                                                                                                                                       | Responsibility                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Controller       | `RAA_RecordAccessExplainerController`                                                                                                                                                                                                       | Sole `@AuraEnabled` surface. `with sharing`. Permission + visibility gate.                     |
+| Orchestration    | `RAA_AnalysisOrchestratorService`                                                                                                                                                                                                           | Elevated (`without sharing`) service boundary; never Aura-enabled.                             |
+| Async            | `RAA_AccessScanBatch`                                                                                                                                                                                                                       | `Database.Batchable<Id>, Database.Stateful`. One chunk = one bulk pass.                        |
+| Scheduling       | `RAA_CleanupScheduler`                                                                                                                                                                                                                      | Optional `Schedulable` retention cleanup.                                                      |
+| Effective access | `RAA_IEffectiveAccessProvider` / `RAA_UserRecordAccessProvider`                                                                                                                                                                             | `UserRecordAccess` wrapper, swappable in tests.                                                |
+| Context          | `RAA_ContextBuilder` / `RAA_AnalysisContext`                                                                                                                                                                                                | Bulk-loads record, owner, share object, share rows once.                                       |
+| Metadata         | `RAA_RecordMetadataResolver`, `RAA_ShareObjectResolver`                                                                                                                                                                                     | Dynamic object/share-table discovery via `Schema`.                                             |
+| Reason engine    | `RAA_IReasonAnalyzer` + 8 implementations                                                                                                                                                                                                   | Strategy pattern; see §4.                                                                      |
+| Aggregation      | `RAA_ReasonAggregator`                                                                                                                                                                                                                      | Confirms effective access, fans out to analyzers, dedupes, sorts.                              |
+| Groups           | `RAA_GroupGraphResolver`                                                                                                                                                                                                                    | Bulk BFS over `Group`/`GroupMember`, cycle-safe.                                               |
+| Persistence      | `RAA_AnalysisRepository`                                                                                                                                                                                                                    | All DML/SOQL against the RAA data model; idempotent upserts.                                   |
+| Population       | `RAA_UserPopulationBuilder`                                                                                                                                                                                                                 | Dynamic SOQL for the scan's candidate users.                                                   |
+| Export           | `RAA_CsvExportService`                                                                                                                                                                                                                      | RFC 4180 CSV formatting.                                                                       |
+| Settings         | `RAA_SettingsService`                                                                                                                                                                                                                       | `RAA_Settings__mdt` reader with safe fallbacks.                                                |
+| Security         | `RAA_PermissionChecker`, `RAA_IdValidationUtil`                                                                                                                                                                                             | Custom permission wrapper (test-overridable), ID validation.                                   |
+| DTOs             | `RAA_Analysis*DTO`, `RAA_AccessResultDTO`, `RAA_AccessReasonDTO`, `RAA_SettingsDTO`, `RAA_GroupPathDTO`, `RAA_FieldAccessDTO`, `RAA_UserRecordAccessSummaryDTO`, `RAA_BatchRunSummaryDTO`, `RAA_SubscriptionDTO`, `RAA_UserAccessChangeDTO` | No raw SObjects cross the Aura boundary.                                                       |
+| Test support     | `RAA_TestDataFactory`, `RAA_FakeEffectiveAccessProvider`, `RAA_FakeReasonAnalyzer`                                                                                                                                                          | `@IsTest` fakes for dependency injection.                                                      |
+| Bulk scan        | `RAA_BulkScanQueueable`                                                                                                                                                                                                                     | Governor-safe 5-at-a-time fan-out over `Database.executeBatch`, self-chained; see §8.          |
+| By-user scan     | `RAA_UserAccessExplorerService`                                                                                                                                                                                                             | Reverse-mode bulk `UserRecordAccess` query (`UserId = single, RecordId IN list`); see §8.      |
+| Field access     | `RAA_FieldAccessService`, `RAA_PermissionSetLookup`                                                                                                                                                                                         | Permissive-union FLS computation across a user's assigned permission sets and profile; see §8. |
+| Diffing          | `RAA_AnalysisDiffService`                                                                                                                                                                                                                   | Compares two completed analyses of the same record; see §8.                                    |
+| Live warnings    | `RAA_SharingRecalculationChecker`, `RAA_RestrictionRuleChecker`                                                                                                                                                                             | Best-effort, defensively-guarded scan-time signals; see §8.                                    |
+| Recurring scans  | `RAA_RecurringScanScheduler`, `RAA_SubscriptionScanQueueable`, `RAA_SubscriptionRepository`                                                                                                                                                 | Optional two-phase scheduled re-scan + email change alert; see §8, §19.                        |
 
 ---
 
@@ -120,6 +120,7 @@ All five objects are package-owned, **organization-wide default: Private**, and 
 be seen by ordinary users.
 
 ### `RAA_Analysis__c` (one row per scan)
+
 Auto-number `RAA-{0000}`. Fields: `RAA_Record_Id__c`, `RAA_Object_API_Name__c`,
 `RAA_Record_Display_Name__c`, `RAA_Status__c` (picklist: Queued / Running / Completed / Completed
 with Warnings / Failed / Cancelled), `RAA_Requested_By__c` (lookup User), `RAA_Requested_At__c`,
@@ -128,7 +129,8 @@ with Warnings / Failed / Cancelled), `RAA_Requested_By__c` (lookup User), `RAA_R
 `RAA_Include_Inactive_Users__c`, `RAA_Warnings__c`, `RAA_Error_Details__c`, `RAA_Is_Complete__c`.
 
 ### `RAA_Access_Result__c` (one row per user per analysis)
-Master-detail to `RAA_Analysis__c` (sharing follows the parent — this is *why* the object has no
+
+Master-detail to `RAA_Analysis__c` (sharing follows the parent — this is _why_ the object has no
 generated `RAA_Access_Result__Share` table, verified against a live org). Fields:
 `RAA_User__c`, `RAA_User_Name__c`, `RAA_Username__c`, `RAA_User_Type__c`, `RAA_Profile_Name__c`,
 `RAA_Is_Active__c`, `RAA_Max_Access_Level__c`, `RAA_Has_Read_Access__c`, `RAA_Has_Edit_Access__c`,
@@ -138,6 +140,7 @@ generated `RAA_Access_Result__Share` table, verified against a live org). Fields
 batch upserts against, so a retried chunk can never create a duplicate result for the same user.
 
 ### `RAA_Access_Reason__c` (one row per detected access path)
+
 Master-detail to `RAA_Access_Result__c`. Fields: `RAA_Category__c` (Ownership / Role Hierarchy /
 Direct Share / Group Share / Sharing Rule / Permission / Team / Territory / Implicit / Parent
 Controlled / Organization-Wide Default / Unresolved), `RAA_Access_Level__c`, `RAA_Confidence__c`
@@ -146,6 +149,7 @@ Controlled / Organization-Wide Default / Unresolved), `RAA_Access_Level__c`, `RA
 `RAA_Grant_Path__c`, `RAA_Explanation__c`, `RAA_Evidence__c`.
 
 ### `RAA_Batch_Run__c` (one row per bulk scan submission — §8)
+
 Fields: `RAA_Requested_By__c` (lookup User), `RAA_Requested_At__c`, `RAA_Object_API_Name__c`,
 `RAA_Total_Records__c`, `RAA_Status__c` (picklist: Queued / Running / Completed / Completed with
 Warnings / Failed / Cancelled — computed from the status of its child analyses, not stored
@@ -154,14 +158,16 @@ independently), `RAA_Include_External_Users__c`, `RAA_Include_Inactive_Users__c`
 scan is a normal `RAA_Analysis__c` row, linked back via `RAA_Analysis__c.RAA_Batch_Run__c`.
 
 ### `RAA_Scan_Subscription__c` (one row per "watch this record" subscription — §8)
+
 Fields: `RAA_Record_Id__c`, `RAA_Object_API_Name__c`, `RAA_Record_Display_Name__c`,
 `RAA_Subscriber__c` (lookup User), `RAA_Is_Active__c` (default true),
 `RAA_Include_External_Users__c`, `RAA_Include_Inactive_Users__c`, `RAA_Last_Analysis__c` (lookup
 `RAA_Analysis__c` — the baseline used for diffing), `RAA_Last_Run_At__c`,
 `RAA_Notify_On_Change__c` (default true), `RAA_Pending_Analysis__c` (lookup `RAA_Analysis__c` —
-the scan started this cycle, diffed against the baseline on the *next* scheduler firing).
+the scan started this cycle, diffed against the baseline on the _next_ scheduler firing).
 
 ### `RAA_Settings__mdt` (custom metadata type, one packaged record: `RAA_Default`)
+
 `RAA_Default_Batch_Scope__c` (20), `RAA_Max_Group_Depth__c` (6), `RAA_Max_Parent_Depth__c` (5),
 `RAA_Retention_Days__c` (90), `RAA_Default_Include_External__c` (false),
 `RAA_Default_Include_Inactive__c` (false), `RAA_Max_Users_Per_Scan__c` (0 = unlimited),
@@ -208,22 +214,22 @@ the scan started this cycle, diffed against the baseline on the *next* scheduler
 
 ## 4. Supported Access Reasons
 
-| Category | Mechanism | Confidence |
-|---|---|---|
-| Ownership | Direct user ownership | High |
-| Ownership | Queue ownership + queue membership (via group graph) | High |
-| Role Hierarchy | User's role is above the owner's role | **High on standard objects** (hierarchy grant cannot be disabled there), **Medium on custom objects** (the "Grant Access Using Hierarchies" checkbox state is not exposed by any supported API) |
-| Direct Share | Manual (or other non-rule, non-team) share row directly to a user | High |
-| Group Share | Share row to a public group/queue/role group the user belongs to, including nested groups | High |
-| Sharing Rule | Share row with `RowCause = 'Rule'` | High that access is real; the exact rule name is **never claimed** — the reason literally says "exact rule name unavailable from the share row" per the platform's own limitation |
-| Implicit | Share row with `RowCause = 'ImplicitChild'/'ImplicitParent'` | Medium |
-| Permission | View All Data / Modify All Data (profile or permission set) | High |
-| Permission | View All Records / Modify All Records on the specific object | High |
-| Team | Account Team / Opportunity Team / Case Team membership, with role | High |
-| Territory | Direct or ancestor (subordinate) territory assignment via `UserTerritory2Association` | High (direct) / Medium (via subordinate territory) |
-| Parent Controlled | Recursive re-analysis of the controlling master-detail parent (Ownership, Role Hierarchy, Share Row, Team, Territory only — not Permission, which was already evaluated once against the child's own object type) | Inherited from the underlying reason |
-| Organization-Wide Default | Always Low, honest disclaimer — see §1 | Low |
-| Unresolved | `UserRecordAccess` confirms access but nothing above explains it | Low |
+| Category                  | Mechanism                                                                                                                                                                                                         | Confidence                                                                                                                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ownership                 | Direct user ownership                                                                                                                                                                                             | High                                                                                                                                                                                            |
+| Ownership                 | Queue ownership + queue membership (via group graph)                                                                                                                                                              | High                                                                                                                                                                                            |
+| Role Hierarchy            | User's role is above the owner's role                                                                                                                                                                             | **High on standard objects** (hierarchy grant cannot be disabled there), **Medium on custom objects** (the "Grant Access Using Hierarchies" checkbox state is not exposed by any supported API) |
+| Direct Share              | Manual (or other non-rule, non-team) share row directly to a user                                                                                                                                                 | High                                                                                                                                                                                            |
+| Group Share               | Share row to a public group/queue/role group the user belongs to, including nested groups                                                                                                                         | High                                                                                                                                                                                            |
+| Sharing Rule              | Share row with `RowCause = 'Rule'`                                                                                                                                                                                | High that access is real; the exact rule name is **never claimed** — the reason literally says "exact rule name unavailable from the share row" per the platform's own limitation               |
+| Implicit                  | Share row with `RowCause = 'ImplicitChild'/'ImplicitParent'`                                                                                                                                                      | Medium                                                                                                                                                                                          |
+| Permission                | View All Data / Modify All Data (profile or permission set)                                                                                                                                                       | High                                                                                                                                                                                            |
+| Permission                | View All Records / Modify All Records on the specific object                                                                                                                                                      | High                                                                                                                                                                                            |
+| Team                      | Account Team / Opportunity Team / Case Team membership, with role                                                                                                                                                 | High                                                                                                                                                                                            |
+| Territory                 | Direct or ancestor (subordinate) territory assignment via `UserTerritory2Association`                                                                                                                             | High (direct) / Medium (via subordinate territory)                                                                                                                                              |
+| Parent Controlled         | Recursive re-analysis of the controlling master-detail parent (Ownership, Role Hierarchy, Share Row, Team, Territory only — not Permission, which was already evaluated once against the child's own object type) | Inherited from the underlying reason                                                                                                                                                            |
+| Organization-Wide Default | Always Low, honest disclaimer — see §1                                                                                                                                                                            | Low                                                                                                                                                                                             |
+| Unresolved                | `UserRecordAccess` confirms access but nothing above explains it                                                                                                                                                  | Low                                                                                                                                                                                             |
 
 **The golden rule, enforced in code (`RAA_ReasonAggregator`): a reason is only ever attached to a
 user who `UserRecordAccess` has already confirmed has effective access.** Analyzer output for any
@@ -244,7 +250,7 @@ and each such reason's explanation states in the record itself whether it bypass
 
 1. **Restriction rules are not evaluated by `UserRecordAccess`.** It reflects the record-level
    sharing model but does not account for restriction rules, which can further narrow what a user
-   actually sees. `RAA_RestrictionRuleChecker` (§8) best-effort detects *whether any are active* on
+   actually sees. `RAA_RestrictionRuleChecker` (§8) best-effort detects _whether any are active_ on
    the scanned object and surfaces a count-aware warning when it can determine one — but this is a
    presence check, not an evaluation of which specific users are restricted, and it degrades to
    silence (not an error) in any org/API context where `RestrictionRule` isn't queryable via plain
@@ -300,7 +306,7 @@ All Data, or View Setup and Configuration** just to use the app.
 **Effective access** (Read / Edit / Delete / Transfer / All Access / Max Access Level) is
 Salesforce's own computed answer, read from `UserRecordAccess` — authoritative and never guessed.
 
-**Reason attribution** is this package's best-effort explanation of *why* that access exists,
+**Reason attribution** is this package's best-effort explanation of _why_ that access exists,
 built by correlating share rows, groups, roles, permission sets, teams, territories, and parent
 chains after the fact. It is inherently an approximation of the sharing engine's internal logic,
 not the sharing engine itself. The UI and every reason record distinguish the two clearly, and a
@@ -314,7 +320,8 @@ Seven further capabilities, all built on the same effective-access/reason-attrib
 the core single-record scan described above.
 
 ### Bulk / list scan mode
-Paste any number of record IDs of the *same* object type and submit them as one batch
+
+Paste any number of record IDs of the _same_ object type and submit them as one batch
 (`RAA_Batch_Run__c`, `raaBulkScan`). Each record still runs through the exact same single-record
 pipeline (`RAA_AccessScanBatch`) unchanged — this mode only orchestrates submitting the list and
 reporting aggregate progress. Because a single Apex transaction can call `Database.executeBatch` at
@@ -324,6 +331,7 @@ failure (deleted record, unsupported object) is caught and recorded as a `Failed
 without aborting the rest of the run. Capped by `RAA_Max_Records_Per_Bulk_Run__c` (§14).
 
 ### Reverse "by user" mode
+
 Given one user and a candidate set of records of the same object (explicit IDs, or the first N
 records if none are given), reports that user's effective access to each one in a single scan
 (`RAA_UserAccessExplorerService`, `raaUserAccessExplorer`). This is the mirror image of the normal
@@ -335,13 +343,15 @@ hundred candidate records. Capped by `RAA_Max_Records_Per_User_Scan__c` (§14) w
 record list is supplied.
 
 ### Analysis history / diffing
+
 Every completed scan of a record can be compared to the most recent earlier completed scan of that
-*same* record (`RAA_AnalysisDiffService`, `raaAnalysisDiff`), reporting which users gained access,
+_same_ record (`RAA_AnalysisDiffService`, `raaAnalysisDiff`), reporting which users gained access,
 lost access, or had their max access level or reason summary change. "Compare to Previous Scan" is
 available from any completed single-record analysis; the first scan of a record naturally has
 nothing to compare against and says so plainly rather than erroring.
 
 ### Field-level security tracing
+
 For any user in a scan's results, "View Field Access" (`RAA_FieldAccessService`, `raaFieldAccess`)
 shows a permissive union of that user's field-level readable/editable state across every assigned
 permission set and their profile — any single grant makes a field accessible, matching how
@@ -349,12 +359,14 @@ Salesforce itself resolves FLS. This is deliberately independent of the record-l
 user can have record access and still be denied specific fields, or vice versa.
 
 ### Live sharing-recalculation warning
+
 `RAA_SharingRecalculationChecker` queries `AsyncApexJob WHERE JobType = 'SharingRecalculation' AND
 Status IN (...)` at the top of every scan. If Salesforce's own asynchronous sharing recalculation is
 currently in flight for the org, the scan surfaces a warning that its results may not yet reflect a
 very recent role, group, or sharing-rule change.
 
 ### Restriction Rule detection
+
 `RAA_RestrictionRuleChecker` best-effort probes for active Restriction Rules on the scanned object.
 `RestrictionRule` is a Tooling/Metadata API type that is not guaranteed queryable through plain Apex
 SOQL in every org or API context; the class checks `Schema.getGlobalDescribe()` first and wraps the
@@ -368,20 +380,22 @@ only ever narrow access, never grant it, so a detected count is always surfaced 
 warning, never as an access reason.
 
 ### Scheduled recurring scans with change alerts
+
 An admin (or the requesting user) can subscribe to a record (`RAA_Scan_Subscription__c`,
 `raaSubscriptions`) so that, once `RAA_RecurringScanScheduler` is scheduled (§19), it is
 periodically re-scanned automatically and the subscriber is emailed a summary if anything changed
 since the last cycle. Each firing does two things in one pass: (1) for any subscription whose
-*previous* cycle's scan has now completed, diffs it against the prior baseline and emails a change
+_previous_ cycle's scan has now completed, diffs it against the prior baseline and emails a change
 summary if `RAA_Notify_On_Change__c` is set and something actually changed; (2) starts a new scan
 for every active subscription that isn't already waiting on one. A notification is therefore sent on
-the firing *after* the one that started the scan, once that scan has had time to complete — a
+the firing _after_ the one that started the scan, once that scan has had time to complete — a
 deliberate two-cycle design so the scheduler never blocks on a long-running scan.
 `RAA_Scan_Subscription__c.RAA_Pending_Analysis__c` tracks the in-flight scan between cycles;
 `RAA_Last_Analysis__c` is the baseline. Notification uses native `Messaging.SingleEmailMessage`
 (not a callout).
 
 ### Visual grant-path rendering
+
 The reason detail modal renders each reason's grant path (for example `Owner -> Manager -> VP of
 Sales`) as a sequence of chips with directional arrows between them, instead of a single text blob —
 purely a presentational change (`raaReasonDetail`), with no effect on the underlying data.
@@ -412,7 +426,7 @@ verification pass documented in §15.
 
 ---
 
-## 10. Test Execution Instructions
+## 10. Test, Lint, and Format Execution Instructions
 
 ```bash
 # Apex tests
@@ -421,15 +435,41 @@ sf apex run test --target-org my-org --test-level RunLocalTests --code-coverage 
 # LWC Jest tests (from the project root, after `npm install`)
 npm install
 npm run test:unit
+
+# ESLint over every LWC bundle (config: .eslintrc.json at the root and under force-app/main/default/lwc)
+npm run lint
+
+# Prettier, including Apex via prettier-plugin-apex (config: .prettierrc) — requires a Java
+# runtime on PATH, since the Apex formatter shells out to a Java-based parser
+npm run format:check   # verify only, exits non-zero on drift
+npm run format          # rewrite in place
 ```
 
 At last verification: **144/144 Apex tests passing, 84% org-wide coverage; 42/42 LWC Jest tests
-passing across 7 component suites.** Every class directly involved in the request/response path,
-persistence, and reason logic is at or above 85%; the exceptions (`RAA_TerritoryAnalyzer`,
-`RAA_TeamAnalyzer` — explained in §5; `RAA_RestrictionRuleChecker`,
-`RAA_RecurringScanScheduler`) reflect branches that require a platform feature or a second
-scheduler firing that this particular org/test run could not exercise, not untested logic paths —
-see §8's per-feature notes for exactly which branch is affected in each case.
+passing across 7 component suites; zero ESLint errors; the full tree Prettier-clean.** Every class
+directly involved in the request/response path, persistence, and reason logic is at or above 85%;
+the exceptions (`RAA_TerritoryAnalyzer`, `RAA_TeamAnalyzer` — explained in §5;
+`RAA_RestrictionRuleChecker`, `RAA_RecurringScanScheduler`) reflect branches that require a
+platform feature or a second scheduler firing that this particular org/test run could not
+exercise, not untested logic paths — see §8's per-feature notes for exactly which branch is
+affected in each case.
+
+### Continuous Integration
+
+`.github/workflows/ci.yml` runs on every push and pull request against `master`:
+
+- **`lint-and-jest`** (always runs, no Salesforce org required): `npm ci`, ESLint, Prettier check,
+  and the full Jest suite with coverage.
+- **`apex`** (deploy to a fresh scratch org and run the full Apex suite): gated behind a
+  repository secret named `SFDX_AUTH_URL_DEVHUB` and skipped entirely until it's configured, so
+  the workflow never hard-fails for a fork or a clone that hasn't set it up yet. To enable it:
+    1. From an org already authenticated as your Dev Hub locally, run
+       `sf org display --target-org YourDevHubAlias --verbose --json` and copy the
+       `result.sfdxAuthUrl` value — treat it exactly like a password; it's a long-lived refresh
+       token for that Dev Hub.
+    2. In the GitHub repo, add it as **Settings → Secrets and variables → Actions → New repository
+       secret**, named `SFDX_AUTH_URL_DEVHUB`.
+    3. The next push or pull request will pick it up automatically; no workflow file changes needed.
 
 ---
 
@@ -481,17 +521,17 @@ version has been uploaded from inside a real Salesforce packaging org. To create
 Setup → Custom Metadata Types → RAA Settings → Manage Records → **RAA_Default**. All fields are
 editable in place; no deployment is required to change them:
 
-| Field | Default | Purpose |
-|---|---|---|
-| Default Batch Scope | 20 | Users processed per `execute()` chunk |
-| Max Group Depth | 6 | Nested public-group traversal limit |
-| Max Parent Depth | 5 | Controlled-by-parent recursion limit |
-| Retention Days | 90 | Age (days) after which `RAA_CleanupScheduler` deletes a completed analysis; 0 disables cleanup |
-| Default Include External | false | Pre-fills the "Include external users" checkbox |
-| Default Include Inactive | false | Pre-fills the "Include inactive users" checkbox |
-| Max Users Per Scan | 0 (unlimited) | Scans that would exceed this are rejected before any batch job starts |
-| Max Records Per Bulk Run | 200 | A bulk scan submission (§8) larger than this is rejected before any queueable job starts |
-| Max Records Per User Scan | 200 | Reverse "by user" mode's (§8) implicit record-limit ceiling when no explicit record ID list is given |
+| Field                     | Default       | Purpose                                                                                              |
+| ------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
+| Default Batch Scope       | 20            | Users processed per `execute()` chunk                                                                |
+| Max Group Depth           | 6             | Nested public-group traversal limit                                                                  |
+| Max Parent Depth          | 5             | Controlled-by-parent recursion limit                                                                 |
+| Retention Days            | 90            | Age (days) after which `RAA_CleanupScheduler` deletes a completed analysis; 0 disables cleanup       |
+| Default Include External  | false         | Pre-fills the "Include external users" checkbox                                                      |
+| Default Include Inactive  | false         | Pre-fills the "Include inactive users" checkbox                                                      |
+| Max Users Per Scan        | 0 (unlimited) | Scans that would exceed this are rejected before any batch job starts                                |
+| Max Records Per Bulk Run  | 200           | A bulk scan submission (§8) larger than this is rejected before any queueable job starts             |
+| Max Records Per User Scan | 200           | Reverse "by user" mode's (§8) implicit record-limit ceiling when no explicit record ID list is given |
 
 ---
 
@@ -516,29 +556,29 @@ editable in place; no deployment is required to change them:
 
 ## 16. Troubleshooting Guidance
 
-| Symptom | Likely cause | What to check |
-|---|---|---|
-| "You do not have permission to use Record Access Explainer" | Custom permission not assigned | Assign `RAA_Record_Access_Auditor` (§11) |
-| "The requested analysis could not be found, or you do not have access to it" | Either the ID is wrong, or (correctly) it belongs to another user under Private OWD | Confirm you are the original requester, or have it shared/an admin can see it |
-| Scan finishes as "Completed with Warnings" | One or more analyzers hit a platform limitation (unsupported group type, feature not enabled, chunk failure) | Read `RAA_Warnings__c` on the analysis, or the warning banner in the UI |
-| Scan status stays "Queued" for a long time | Org's async Apex queue is busy | Check **Setup → Apex Jobs**; this package does not control platform-wide async concurrency |
-| "This scan would include more than N users..." | `RAA_Max_Users_Per_Scan__c` ceiling hit | Narrow filters, or raise/clear the ceiling in `RAA_Settings__mdt` |
-| Object not supported | `UserRecordAccess` does not expose data for that object type | Confirmed via a live probe query in `RAA_RecordMetadataResolver.supportsUserRecordAccess` before a scan is even started |
-| "Enter a record ID for each line" / bulk scan rejects the whole list | One or more pasted IDs don't share the same object type as the rest | Bulk scan (§8) requires every record to be the same object; split mixed lists into separate submissions |
-| A subscription never sends an email | `RAA_RecurringScanScheduler` isn't scheduled, or `RAA_Notify_On_Change__c` is off, or nothing actually changed between cycles | See §19; check **Setup → Scheduled Jobs** for the job, and that the subscription's `RAA_Last_Analysis__c` is advancing between firings |
+| Symptom                                                                      | Likely cause                                                                                                                  | What to check                                                                                                                          |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| "You do not have permission to use Record Access Explainer"                  | Custom permission not assigned                                                                                                | Assign `RAA_Record_Access_Auditor` (§11)                                                                                               |
+| "The requested analysis could not be found, or you do not have access to it" | Either the ID is wrong, or (correctly) it belongs to another user under Private OWD                                           | Confirm you are the original requester, or have it shared/an admin can see it                                                          |
+| Scan finishes as "Completed with Warnings"                                   | One or more analyzers hit a platform limitation (unsupported group type, feature not enabled, chunk failure)                  | Read `RAA_Warnings__c` on the analysis, or the warning banner in the UI                                                                |
+| Scan status stays "Queued" for a long time                                   | Org's async Apex queue is busy                                                                                                | Check **Setup → Apex Jobs**; this package does not control platform-wide async concurrency                                             |
+| "This scan would include more than N users..."                               | `RAA_Max_Users_Per_Scan__c` ceiling hit                                                                                       | Narrow filters, or raise/clear the ceiling in `RAA_Settings__mdt`                                                                      |
+| Object not supported                                                         | `UserRecordAccess` does not expose data for that object type                                                                  | Confirmed via a live probe query in `RAA_RecordMetadataResolver.supportsUserRecordAccess` before a scan is even started                |
+| "Enter a record ID for each line" / bulk scan rejects the whole list         | One or more pasted IDs don't share the same object type as the rest                                                           | Bulk scan (§8) requires every record to be the same object; split mixed lists into separate submissions                                |
+| A subscription never sends an email                                          | `RAA_RecurringScanScheduler` isn't scheduled, or `RAA_Notify_On_Change__c` is off, or nothing actually changed between cycles | See §19; check **Setup → Scheduled Jobs** for the job, and that the subscription's `RAA_Last_Analysis__c` is advancing between firings |
 
 ---
 
 ## 17. Scan Status Reference
 
-| Status | Meaning |
-|---|---|
-| **Queued** | Accepted; waiting for a batch execution slot. |
-| **Running** | Actively evaluating the user population. |
-| **Completed** | Finished with no warnings. |
-| **Completed with Warnings** | Finished, but see §16 — some reasons may be incomplete. |
-| **Failed** | Could not complete (see `RAA_Error_Details__c`, sanitized). |
-| **Cancelled** | Cancelled by the requester before/while running; the batch will not overwrite this status even if it was already mid-flight. |
+| Status                      | Meaning                                                                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Queued**                  | Accepted; waiting for a batch execution slot.                                                                                |
+| **Running**                 | Actively evaluating the user population.                                                                                     |
+| **Completed**               | Finished with no warnings.                                                                                                   |
+| **Completed with Warnings** | Finished, but see §16 — some reasons may be incomplete.                                                                      |
+| **Failed**                  | Could not complete (see `RAA_Error_Details__c`, sanitized).                                                                  |
+| **Cancelled**               | Cancelled by the requester before/while running; the batch will not overwrite this status even if it was already mid-flight. |
 
 `RAA_Batch_Run__c.RAA_Status__c` (§8 bulk scan mode) uses this same set of values, computed from
 the aggregate status of its child `RAA_Analysis__c` rows rather than stored independently.
