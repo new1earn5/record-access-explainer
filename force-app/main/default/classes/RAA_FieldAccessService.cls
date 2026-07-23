@@ -10,7 +10,6 @@
  * computed live, on demand, for a single user at a time.
  */
 public without sharing class RAA_FieldAccessService {
-
     private final RAA_PermissionSetLookup permissionSetLookup;
 
     public RAA_FieldAccessService() {
@@ -39,8 +38,7 @@ public without sharing class RAA_FieldAccessService {
             for (FieldPermissions fp : [
                 SELECT Field, PermissionsRead, PermissionsEdit
                 FROM FieldPermissions
-                WHERE ParentId IN :permissionSetIds
-                AND SobjectType = :objectApiName
+                WHERE ParentId IN :permissionSetIds AND SobjectType = :objectApiName
             ]) {
                 String fieldApiName = fp.Field.contains('.') ? fp.Field.substringAfter('.') : fp.Field;
                 if (fp.PermissionsRead) {

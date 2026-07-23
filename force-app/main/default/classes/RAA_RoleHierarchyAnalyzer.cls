@@ -9,7 +9,6 @@
  * owners are handled by RAA_OwnershipAnalyzer instead.
  */
 public without sharing class RAA_RoleHierarchyAnalyzer implements RAA_IReasonAnalyzer {
-
     public String getAnalyzerName() {
         return 'Role Hierarchy';
     }
@@ -52,10 +51,14 @@ public without sharing class RAA_RoleHierarchyAnalyzer implements RAA_IReasonAna
         Boolean isStandardObject = context.objectApiName != null && !context.objectApiName.endsWith('__c');
         String confidence = isStandardObject ? 'High' : 'Medium';
         String caveat = isStandardObject
-                ? 'Grant Access Using Hierarchies cannot be disabled for standard objects, so this hierarchy access is enforced by the platform.'
-                : 'This is a custom object; whether "Grant Access Using Hierarchies" is enabled cannot be confirmed through a supported Apex, Schema, or SOQL API, so this reason is reported at Medium confidence.';
+            ? 'Grant Access Using Hierarchies cannot be disabled for standard objects, so this hierarchy access is enforced by the platform.'
+            : 'This is a custom object; whether "Grant Access Using Hierarchies" is enabled cannot be confirmed through a supported Apex, Schema, or SOQL API, so this reason is reported at Medium confidence.';
 
-        for (User candidate : [SELECT Id, UserRoleId, UserRole.Name FROM User WHERE Id IN :userIds AND UserRoleId IN :ancestorRoleIds]) {
+        for (User candidate : [
+            SELECT Id, UserRoleId, UserRole.Name
+            FROM User
+            WHERE Id IN :userIds AND UserRoleId IN :ancestorRoleIds
+        ]) {
             RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
             reason.category = 'Role Hierarchy';
             reason.accessLevel = 'Inherited from owner';
@@ -67,12 +70,23 @@ public without sharing class RAA_RoleHierarchyAnalyzer implements RAA_IReasonAna
             reason.principalId = candidate.UserRoleId;
             reason.principalType = 'RoleAndSubordinates';
             reason.rowCause = null;
-            reason.grantPath = context.prefixedPath('Role Hierarchy: ' + candidate.UserRole.Name
-                    + ' (above owner role ' + ownerRoleName + ') -> User');
-            reason.explanation = 'The user\'s role (' + candidate.UserRole.Name + ') is above the record owner\'s role ('
-                    + ownerRoleName + ') in the role hierarchy. ' + caveat;
-            reason.evidence = 'Owner role: ' + ownerRoleId + '; user role: ' + candidate.UserRoleId
-                    + '; ancestor role chain size: ' + ancestorRoleIds.size();
+            reason.grantPath = context.prefixedPath(
+                'Role Hierarchy: ' + candidate.UserRole.Name + ' (above owner role ' + ownerRoleName + ') -> User'
+            );
+            reason.explanation =
+                'The user\'s role (' +
+                candidate.UserRole.Name +
+                ') is above the record owner\'s role (' +
+                ownerRoleName +
+                ') in the role hierarchy. ' +
+                caveat;
+            reason.evidence =
+                'Owner role: ' +
+                ownerRoleId +
+                '; user role: ' +
+                candidate.UserRoleId +
+                '; ancestor role chain size: ' +
+                ancestorRoleIds.size();
 
             List<RAA_AccessReasonDTO> reasonList = results.get(candidate.Id);
             if (reasonList == null) {

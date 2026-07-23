@@ -7,7 +7,6 @@
  * firing, once it has had time to complete.
  */
 public without sharing class RAA_SubscriptionScanQueueable implements Queueable {
-
     @TestVisible
     private static final Integer CHUNK_SIZE = 5;
 
@@ -30,15 +29,23 @@ public without sharing class RAA_SubscriptionScanQueueable implements Queueable 
                 continue;
             }
             try {
-                Id analysisId = analysisRepo.createAnalysis(subscription.RAA_Record_Id__c, subscription.RAA_Object_API_Name__c,
-                        subscription.RAA_Record_Display_Name__c, subscription.RAA_Subscriber__c,
-                        subscription.RAA_Include_External_Users__c, subscription.RAA_Include_Inactive_Users__c);
+                Id analysisId = analysisRepo.createAnalysis(
+                    subscription.RAA_Record_Id__c,
+                    subscription.RAA_Object_API_Name__c,
+                    subscription.RAA_Record_Display_Name__c,
+                    subscription.RAA_Subscriber__c,
+                    subscription.RAA_Include_External_Users__c,
+                    subscription.RAA_Include_Inactive_Users__c
+                );
 
                 RAA_UserPopulationBuilder.PopulationFilter filter = new RAA_UserPopulationBuilder.PopulationFilter();
                 filter.includeExternalUsers = subscription.RAA_Include_External_Users__c;
                 filter.includeInactiveUsers = subscription.RAA_Include_Inactive_Users__c;
 
-                Database.executeBatch(new RAA_AccessScanBatch(analysisId, subscription.RAA_Record_Id__c, filter), settings.defaultBatchScope);
+                Database.executeBatch(
+                    new RAA_AccessScanBatch(analysisId, subscription.RAA_Record_Id__c, filter),
+                    settings.defaultBatchScope
+                );
                 subscriptionRepo.setPendingAnalysis(subscriptionId, analysisId);
             } catch (Exception e) {
                 // A single subscription's failure should not block the rest of the cycle; it will

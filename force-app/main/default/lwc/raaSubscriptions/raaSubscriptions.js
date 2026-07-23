@@ -6,8 +6,18 @@ import setSubscriptionActive from '@salesforce/apex/RAA_RecordAccessExplainerCon
 import deleteSubscription from '@salesforce/apex/RAA_RecordAccessExplainerController.deleteSubscription';
 
 const COLUMNS = [
-    { label: 'Record', fieldName: 'recordDisplayName', type: 'text', sortable: true },
-    { label: 'Object', fieldName: 'objectApiName', type: 'text', sortable: true },
+    {
+        label: 'Record',
+        fieldName: 'recordDisplayName',
+        type: 'text',
+        sortable: true
+    },
+    {
+        label: 'Object',
+        fieldName: 'objectApiName',
+        type: 'text',
+        sortable: true
+    },
     { label: 'Active', fieldName: 'isActive', type: 'boolean', sortable: true },
     { label: 'Notify On Change', fieldName: 'notifyOnChange', type: 'boolean' },
     { label: 'Last Run', fieldName: 'lastRunAt', type: 'date', sortable: true },
@@ -79,7 +89,8 @@ export default class RaaSubscriptions extends LightningElement {
     handleCreate() {
         const recordId = (this.recordIdInput || '').trim();
         if (!/^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$/.test(recordId)) {
-            this.validationMessage = 'Enter a valid 15 or 18 character record ID.';
+            this.validationMessage =
+                'Enter a valid 15 or 18 character record ID.';
             return;
         }
         this.validationMessage = '';
@@ -133,7 +144,10 @@ export default class RaaSubscriptions extends LightningElement {
     }
 
     showError(error) {
-        const message = error && error.body && error.body.message ? error.body.message : 'An unexpected error occurred.';
+        const message =
+            error && error.body && error.body.message
+                ? error.body.message
+                : 'An unexpected error occurred.';
         this.showToast('Error', message, 'error');
     }
 }

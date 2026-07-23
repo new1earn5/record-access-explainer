@@ -9,7 +9,6 @@
  * the no-argument constructor, which reads RAA_Settings__mdt.
  */
 public without sharing class RAA_CleanupScheduler implements Schedulable {
-
     @TestVisible
     private static final Integer MAX_ROWS_PER_RUN = 200;
 
@@ -25,7 +24,9 @@ public without sharing class RAA_CleanupScheduler implements Schedulable {
     }
 
     public void execute(SchedulableContext sc) {
-        Integer retentionDays = retentionDaysOverride != null ? retentionDaysOverride : new RAA_SettingsService().retentionDays;
+        Integer retentionDays = retentionDaysOverride != null
+            ? retentionDaysOverride
+            : new RAA_SettingsService().retentionDays;
         if (retentionDays <= 0) {
             return;
         }

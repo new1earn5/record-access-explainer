@@ -17,7 +17,6 @@
  * every previously saved result on each execute() call.
  */
 public without sharing class RAA_AccessScanBatch implements Database.Batchable<Id>, Database.Stateful {
-
     private final Id analysisId;
     private final Id recordId;
     private final RAA_UserPopulationBuilder.PopulationFilter filter;
@@ -68,11 +67,13 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
             return;
         }
 
-        Map<Id, User> userInfoMap = new Map<Id, User>([
-            SELECT Id, Name, Username, UserType, IsActive, Profile.Name
-            FROM User
-            WHERE Id IN :userIds
-        ]);
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [
+                SELECT Id, Name, Username, UserType, IsActive, Profile.Name
+                FROM User
+                WHERE Id IN :userIds
+            ]
+        );
 
         RAA_AnalysisRepository.SaveOutcome outcome = repository.saveResults(analysisId, aggregated, userInfoMap);
         usersWithAccessCount += outcome.usersWithAccessSaved;
@@ -95,7 +96,11 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
         }
 
         Boolean hasWarnings = !warnings.isEmpty() || jobErrorCount > 0;
-        repository.markCompleted(analysisId, hasWarnings, String.join(new List<String>(new Set<String>(warnings)), '\n'));
+        repository.markCompleted(
+            analysisId,
+            hasWarnings,
+            String.join(new List<String>(new Set<String>(warnings)), '\n')
+        );
     }
 
     private String sanitize(String message) {

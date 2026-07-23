@@ -10,7 +10,6 @@
  * the results may overstate access for some users.
  */
 public without sharing class RAA_RestrictionRuleChecker {
-
     /** Returns the count of active restriction rules on the object, or null if it could not be determined. */
     public Integer countActiveRestrictionRules(String objectApiName) {
         if (!Schema.getGlobalDescribe().containsKey('RestrictionRule')) {
@@ -18,7 +17,8 @@ public without sharing class RAA_RestrictionRuleChecker {
         }
         try {
             List<SObject> rows = Database.query(
-                    'SELECT Id FROM RestrictionRule WHERE EntityDefinitionId = :objectApiName AND Active = true');
+                'SELECT Id FROM RestrictionRule WHERE EntityDefinitionId = :objectApiName AND Active = true'
+            );
             return rows.size();
         } catch (System.QueryException e) {
             return null;

@@ -32,7 +32,10 @@ export default class RaaAnalysisDiff extends LightningElement {
                 };
             })
             .catch((error) => {
-                this.errorMessage = error && error.body && error.body.message ? error.body.message : 'Unable to load comparison.';
+                this.errorMessage =
+                    error && error.body && error.body.message
+                        ? error.body.message
+                        : 'Unable to load comparison.';
             })
             .finally(() => {
                 this.isLoading = false;
@@ -54,7 +57,9 @@ export default class RaaAnalysisDiff extends LightningElement {
     }
 
     get hasNoChanges() {
-        return this.diff && (!this.diff.changes || this.diff.changes.length === 0);
+        return (
+            this.diff && (!this.diff.changes || this.diff.changes.length === 0)
+        );
     }
 
     handleClose() {

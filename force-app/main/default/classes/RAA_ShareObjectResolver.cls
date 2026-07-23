@@ -6,7 +6,6 @@
  * the generic "AccessLevel" field), and gracefully reports when no share object exists.
  */
 public without sharing class RAA_ShareObjectResolver {
-
     public class ShareObjectInfo {
         public String shareObjectApiName;
         public String parentField;
@@ -19,8 +18,8 @@ public without sharing class RAA_ShareObjectResolver {
     public ShareObjectInfo resolve(Schema.DescribeSObjectResult objectDescribe) {
         String objectName = objectDescribe.getName();
         String candidateName = objectName.endsWithIgnoreCase('__c')
-                ? objectName.substring(0, objectName.length() - 3) + '__Share'
-                : objectName + 'Share';
+            ? objectName.substring(0, objectName.length() - 3) + '__Share'
+            : objectName + 'Share';
 
         Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
         if (!globalDescribe.containsKey(candidateName)) {

@@ -40,11 +40,15 @@ const SAMPLE_SUBSCRIPTION = {
 };
 
 function recordIdInput(element) {
-    return [...element.shadowRoot.querySelectorAll('lightning-input')].find((el) => el.label === 'Record ID');
+    return [...element.shadowRoot.querySelectorAll('lightning-input')].find(
+        (el) => el.label === 'Record ID'
+    );
 }
 
 function createButton(element) {
-    return [...element.shadowRoot.querySelectorAll('lightning-button')].find((el) => el.label === 'Create Subscription');
+    return [...element.shadowRoot.querySelectorAll('lightning-button')].find(
+        (el) => el.label === 'Create Subscription'
+    );
 }
 
 describe('c-raa-subscriptions', () => {
@@ -57,7 +61,9 @@ describe('c-raa-subscriptions', () => {
 
     function createComponent() {
         listMySubscriptions.mockResolvedValue([]);
-        const element = createElement('c-raa-subscriptions', { is: RaaSubscriptions });
+        const element = createElement('c-raa-subscriptions', {
+            is: RaaSubscriptions
+        });
         document.body.appendChild(element);
         return element;
     }
@@ -67,16 +73,22 @@ describe('c-raa-subscriptions', () => {
         await flushPromises();
 
         expect(listMySubscriptions).toHaveBeenCalled();
-        expect(element.shadowRoot.textContent).toContain('You have no subscriptions yet.');
+        expect(element.shadowRoot.textContent).toContain(
+            'You have no subscriptions yet.'
+        );
     });
 
     it('renders subscriptions in the datatable when present', async () => {
         listMySubscriptions.mockResolvedValue([SAMPLE_SUBSCRIPTION]);
-        const element = createElement('c-raa-subscriptions', { is: RaaSubscriptions });
+        const element = createElement('c-raa-subscriptions', {
+            is: RaaSubscriptions
+        });
         document.body.appendChild(element);
         await flushPromises();
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
         expect(datatable).not.toBeNull();
         expect(datatable.data).toHaveLength(1);
     });
@@ -88,7 +100,9 @@ describe('c-raa-subscriptions', () => {
         createButton(element).click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Enter a valid 15 or 18 character record ID');
+        expect(element.shadowRoot.textContent).toContain(
+            'Enter a valid 15 or 18 character record ID'
+        );
         expect(createSubscription).not.toHaveBeenCalled();
     });
 
@@ -117,32 +131,49 @@ describe('c-raa-subscriptions', () => {
     it('pauses a subscription via row action', async () => {
         listMySubscriptions.mockResolvedValue([SAMPLE_SUBSCRIPTION]);
         setSubscriptionActive.mockResolvedValue();
-        const element = createElement('c-raa-subscriptions', { is: RaaSubscriptions });
+        const element = createElement('c-raa-subscriptions', {
+            is: RaaSubscriptions
+        });
         document.body.appendChild(element);
         await flushPromises();
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
-        datatable.dispatchEvent(new CustomEvent('rowaction', {
-            detail: { action: { name: 'pause' }, row: SAMPLE_SUBSCRIPTION }
-        }));
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
+        datatable.dispatchEvent(
+            new CustomEvent('rowaction', {
+                detail: { action: { name: 'pause' }, row: SAMPLE_SUBSCRIPTION }
+            })
+        );
         await flushPromises();
 
-        expect(setSubscriptionActive).toHaveBeenCalledWith({ subscriptionId: 's00000000000001', isActive: false });
+        expect(setSubscriptionActive).toHaveBeenCalledWith({
+            subscriptionId: 's00000000000001',
+            isActive: false
+        });
     });
 
     it('deletes a subscription via row action', async () => {
         listMySubscriptions.mockResolvedValue([SAMPLE_SUBSCRIPTION]);
         deleteSubscription.mockResolvedValue();
-        const element = createElement('c-raa-subscriptions', { is: RaaSubscriptions });
+        const element = createElement('c-raa-subscriptions', {
+            is: RaaSubscriptions
+        });
         document.body.appendChild(element);
         await flushPromises();
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
-        datatable.dispatchEvent(new CustomEvent('rowaction', {
-            detail: { action: { name: 'delete' }, row: SAMPLE_SUBSCRIPTION }
-        }));
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
+        datatable.dispatchEvent(
+            new CustomEvent('rowaction', {
+                detail: { action: { name: 'delete' }, row: SAMPLE_SUBSCRIPTION }
+            })
+        );
         await flushPromises();
 
-        expect(deleteSubscription).toHaveBeenCalledWith({ subscriptionId: 's00000000000001' });
+        expect(deleteSubscription).toHaveBeenCalledWith({
+            subscriptionId: 's00000000000001'
+        });
     });
 });

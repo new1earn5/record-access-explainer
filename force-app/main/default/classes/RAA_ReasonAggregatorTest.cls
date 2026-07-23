@@ -1,7 +1,9 @@
 @IsTest
 private class RAA_ReasonAggregatorTest {
-
-    private static RAA_ReasonAggregator buildAggregator(RAA_IEffectiveAccessProvider provider, List<RAA_IReasonAnalyzer> analyzers) {
+    private static RAA_ReasonAggregator buildAggregator(
+        RAA_IEffectiveAccessProvider provider,
+        List<RAA_IReasonAnalyzer> analyzers
+    ) {
         return new RAA_ReasonAggregator(provider, analyzers, new RAA_ContextBuilder(), new RAA_SettingsService());
     }
 
@@ -14,14 +16,20 @@ private class RAA_ReasonAggregatorTest {
         User noAccess = RAA_TestDataFactory.createUser('Agg', 'NoAccess');
 
         Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{
-                hasAccess.Id => RAA_TestDataFactory.readOnlyAccess(hasAccess.Id),
-                noAccess.Id => RAA_TestDataFactory.noAccess(noAccess.Id)
+            hasAccess.Id => RAA_TestDataFactory.readOnlyAccess(hasAccess.Id),
+            noAccess.Id => RAA_TestDataFactory.noAccess(noAccess.Id)
         };
-        RAA_ReasonAggregator aggregator = buildAggregator(new RAA_FakeEffectiveAccessProvider(canned), new List<RAA_IReasonAnalyzer>());
+        RAA_ReasonAggregator aggregator = buildAggregator(
+            new RAA_FakeEffectiveAccessProvider(canned),
+            new List<RAA_IReasonAnalyzer>()
+        );
 
         Test.startTest();
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
-                acct.Id, new Set<Id>{ hasAccess.Id, noAccess.Id }, new List<String>());
+            acct.Id,
+            new Set<Id>{ hasAccess.Id, noAccess.Id },
+            new List<String>()
+        );
         Test.stopTest();
 
         System.assertEquals(1, output.size(), 'Only the user with confirmed effective access should be included.');
@@ -34,20 +42,29 @@ private class RAA_ReasonAggregatorTest {
         insert acct;
         User u = RAA_TestDataFactory.createUser('Agg', 'Multi');
 
-        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{ u.Id => RAA_TestDataFactory.fullAccess(u.Id) };
+        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{
+            u.Id => RAA_TestDataFactory.fullAccess(u.Id)
+        };
         Map<Id, List<RAA_AccessReasonDTO>> ownershipReasons = new Map<Id, List<RAA_AccessReasonDTO>>{
-                u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
+            u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
         };
         Map<Id, List<RAA_AccessReasonDTO>> permissionReasons = new Map<Id, List<RAA_AccessReasonDTO>>{
-                u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Permission', 'High') }
+            u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Permission', 'High') }
         };
 
-        RAA_ReasonAggregator aggregator = buildAggregator(new RAA_FakeEffectiveAccessProvider(canned), new List<RAA_IReasonAnalyzer>{
+        RAA_ReasonAggregator aggregator = buildAggregator(
+            new RAA_FakeEffectiveAccessProvider(canned),
+            new List<RAA_IReasonAnalyzer>{
                 new RAA_FakeReasonAnalyzer('FakeOwnership', ownershipReasons),
                 new RAA_FakeReasonAnalyzer('FakePermission', permissionReasons)
-        });
+            }
+        );
 
-        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(acct.Id, new Set<Id>{ u.Id }, new List<String>());
+        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
+            acct.Id,
+            new Set<Id>{ u.Id },
+            new List<String>()
+        );
 
         System.assertEquals(1, output.size());
         System.assertEquals(2, output[0].reasons.size(), 'Both analyzers\' reasons should be present.');
@@ -59,14 +76,21 @@ private class RAA_ReasonAggregatorTest {
         insert acct;
         User u = RAA_TestDataFactory.createUser('Agg', 'Unresolved');
 
-        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{ u.Id => RAA_TestDataFactory.readOnlyAccess(u.Id) };
+        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{
+            u.Id => RAA_TestDataFactory.readOnlyAccess(u.Id)
+        };
         Map<Id, List<RAA_AccessReasonDTO>> emptyReasons = new Map<Id, List<RAA_AccessReasonDTO>>();
 
-        RAA_ReasonAggregator aggregator = buildAggregator(new RAA_FakeEffectiveAccessProvider(canned), new List<RAA_IReasonAnalyzer>{
-                new RAA_FakeReasonAnalyzer('FakeEmpty', emptyReasons)
-        });
+        RAA_ReasonAggregator aggregator = buildAggregator(
+            new RAA_FakeEffectiveAccessProvider(canned),
+            new List<RAA_IReasonAnalyzer>{ new RAA_FakeReasonAnalyzer('FakeEmpty', emptyReasons) }
+        );
 
-        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(acct.Id, new Set<Id>{ u.Id }, new List<String>());
+        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
+            acct.Id,
+            new Set<Id>{ u.Id },
+            new List<String>()
+        );
 
         System.assertEquals(1, output.size());
         System.assertEquals(1, output[0].reasons.size());
@@ -80,18 +104,27 @@ private class RAA_ReasonAggregatorTest {
         insert acct;
         User u = RAA_TestDataFactory.createUser('Agg', 'Partial');
 
-        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{ u.Id => RAA_TestDataFactory.fullAccess(u.Id) };
+        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{
+            u.Id => RAA_TestDataFactory.fullAccess(u.Id)
+        };
         Map<Id, List<RAA_AccessReasonDTO>> workingReasons = new Map<Id, List<RAA_AccessReasonDTO>>{
-                u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
+            u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
         };
 
-        RAA_ReasonAggregator aggregator = buildAggregator(new RAA_FakeEffectiveAccessProvider(canned), new List<RAA_IReasonAnalyzer>{
+        RAA_ReasonAggregator aggregator = buildAggregator(
+            new RAA_FakeEffectiveAccessProvider(canned),
+            new List<RAA_IReasonAnalyzer>{
                 new RAA_FakeReasonAnalyzer('FakeFailing', new Map<Id, List<RAA_AccessReasonDTO>>(), true),
                 new RAA_FakeReasonAnalyzer('FakeWorking', workingReasons)
-        });
+            }
+        );
 
         List<String> warnings = new List<String>();
-        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(acct.Id, new Set<Id>{ u.Id }, warnings);
+        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
+            acct.Id,
+            new Set<Id>{ u.Id },
+            warnings
+        );
 
         System.assertEquals(1, output.size());
         System.assertEquals(1, output[0].reasons.size(), 'The working analyzer\'s reason should still be present.');
@@ -104,27 +137,46 @@ private class RAA_ReasonAggregatorTest {
         insert acct;
         User u = RAA_TestDataFactory.createUser('Agg', 'Dedupe');
 
-        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{ u.Id => RAA_TestDataFactory.fullAccess(u.Id) };
+        Map<Id, RAA_EffectiveAccessResult> canned = new Map<Id, RAA_EffectiveAccessResult>{
+            u.Id => RAA_TestDataFactory.fullAccess(u.Id)
+        };
         Map<Id, List<RAA_AccessReasonDTO>> duplicateReasons = new Map<Id, List<RAA_AccessReasonDTO>>{
-                u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
+            u.Id => new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') }
         };
 
-        RAA_ReasonAggregator aggregator = buildAggregator(new RAA_FakeEffectiveAccessProvider(canned), new List<RAA_IReasonAnalyzer>{
+        RAA_ReasonAggregator aggregator = buildAggregator(
+            new RAA_FakeEffectiveAccessProvider(canned),
+            new List<RAA_IReasonAnalyzer>{
                 new RAA_FakeReasonAnalyzer('FakeOne', duplicateReasons),
                 new RAA_FakeReasonAnalyzer('FakeTwo', duplicateReasons)
-        });
+            }
+        );
 
-        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(acct.Id, new Set<Id>{ u.Id }, new List<String>());
+        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
+            acct.Id,
+            new Set<Id>{ u.Id },
+            new List<String>()
+        );
 
         System.assertEquals(1, output.size());
-        System.assertEquals(1, output[0].reasons.size(), 'Identical reasons from two analyzers should be deduplicated to one.');
+        System.assertEquals(
+            1,
+            output[0].reasons.size(),
+            'Identical reasons from two analyzers should be deduplicated to one.'
+        );
     }
 
     @IsTest
     static void returnsEmptyListForEmptyUserSet() {
         RAA_ReasonAggregator aggregator = buildAggregator(
-                new RAA_FakeEffectiveAccessProvider(new Map<Id, RAA_EffectiveAccessResult>()), new List<RAA_IReasonAnalyzer>());
-        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(UserInfo.getUserId(), new Set<Id>(), new List<String>());
+            new RAA_FakeEffectiveAccessProvider(new Map<Id, RAA_EffectiveAccessResult>()),
+            new List<RAA_IReasonAnalyzer>()
+        );
+        List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
+            UserInfo.getUserId(),
+            new Set<Id>(),
+            new List<String>()
+        );
         System.assertEquals(0, output.size());
     }
 }

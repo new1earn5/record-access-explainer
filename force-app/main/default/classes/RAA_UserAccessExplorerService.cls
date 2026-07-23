@@ -11,10 +11,13 @@
  * synchronous and fast in the first place.
  */
 public without sharing class RAA_UserAccessExplorerService {
-
     private static final Integer CHUNK_SIZE = 200;
 
-    public List<RAA_UserRecordAccessSummaryDTO> scanUserAcrossRecords(Id userId, String objectApiName, List<Id> candidateRecordIds) {
+    public List<RAA_UserRecordAccessSummaryDTO> scanUserAcrossRecords(
+        Id userId,
+        String objectApiName,
+        List<Id> candidateRecordIds
+    ) {
         List<RAA_UserRecordAccessSummaryDTO> results = new List<RAA_UserRecordAccessSummaryDTO>();
         if (candidateRecordIds == null || candidateRecordIds.isEmpty()) {
             return results;
@@ -26,7 +29,9 @@ public without sharing class RAA_UserAccessExplorerService {
         }
         for (Id recordId : candidateRecordIds) {
             if (recordId.getSObjectType() != sObjectType) {
-                throw new RAA_AppException('All candidate records must belong to the same object (' + objectApiName + ').');
+                throw new RAA_AppException(
+                    'All candidate records must belong to the same object (' + objectApiName + ').'
+                );
             }
         }
 
@@ -40,10 +45,16 @@ public without sharing class RAA_UserAccessExplorerService {
                 chunk.add(candidateRecordIds[i]);
             }
             for (UserRecordAccess access : [
-                SELECT RecordId, HasReadAccess, HasEditAccess, HasDeleteAccess, HasTransferAccess, HasAllAccess, MaxAccessLevel
+                SELECT
+                    RecordId,
+                    HasReadAccess,
+                    HasEditAccess,
+                    HasDeleteAccess,
+                    HasTransferAccess,
+                    HasAllAccess,
+                    MaxAccessLevel
                 FROM UserRecordAccess
-                WHERE UserId = :userId
-                AND RecordId IN :chunk
+                WHERE UserId = :userId AND RecordId IN :chunk
             ]) {
                 accessByRecord.put(access.RecordId, access);
             }
@@ -53,14 +64,21 @@ public without sharing class RAA_UserAccessExplorerService {
             UserRecordAccess access = accessByRecord.get(recordId);
             RAA_UserRecordAccessSummaryDTO dto = new RAA_UserRecordAccessSummaryDTO();
             dto.recordId = recordId;
-            dto.recordDisplayName = displayNames.containsKey(recordId) ? displayNames.get(recordId) : String.valueOf(recordId);
+            dto.recordDisplayName = displayNames.containsKey(recordId)
+                ? displayNames.get(recordId)
+                : String.valueOf(recordId);
             dto.hasReadAccess = access != null && access.HasReadAccess;
             dto.hasEditAccess = access != null && access.HasEditAccess;
             dto.hasDeleteAccess = access != null && access.HasDeleteAccess;
             dto.hasTransferAccess = access != null && access.HasTransferAccess;
             dto.hasAllAccess = access != null && access.HasAllAccess;
             dto.maxAccessLevel = access != null ? access.MaxAccessLevel : 'None';
-            dto.hasAnyAccess = dto.hasReadAccess || dto.hasEditAccess || dto.hasDeleteAccess || dto.hasTransferAccess || dto.hasAllAccess;
+            dto.hasAnyAccess =
+                dto.hasReadAccess ||
+                dto.hasEditAccess ||
+                dto.hasDeleteAccess ||
+                dto.hasTransferAccess ||
+                dto.hasAllAccess;
             results.add(dto);
         }
 
@@ -72,7 +90,11 @@ public without sharing class RAA_UserAccessExplorerService {
     public List<RAA_AccessReasonDTO> getAccessReasons(Id userId, Id recordId) {
         RAA_ReasonAggregator aggregator = new RAA_ReasonAggregator();
         List<String> warnings = new List<String>();
-        List<RAA_ReasonAggregator.AggregatedUserResult> results = aggregator.analyzeBatch(recordId, new Set<Id>{ userId }, warnings);
+        List<RAA_ReasonAggregator.AggregatedUserResult> results = aggregator.analyzeBatch(
+            recordId,
+            new Set<Id>{ userId },
+            warnings
+        );
         if (results.isEmpty()) {
             return new List<RAA_AccessReasonDTO>();
         }
@@ -105,7 +127,12 @@ public without sharing class RAA_UserAccessExplorerService {
             for (Integer i = start; i < stop; i++) {
                 chunk.add(recordIds[i]);
             }
-            String query = 'SELECT Id, ' + nameField + ' FROM ' + String.escapeSingleQuotes(describe.getName()) + ' WHERE Id IN :chunk';
+            String query =
+                'SELECT Id, ' +
+                nameField +
+                ' FROM ' +
+                String.escapeSingleQuotes(describe.getName()) +
+                ' WHERE Id IN :chunk';
             for (SObject record : Database.query(query)) {
                 Object nameValue = record.get(nameField);
                 names.put(record.Id, nameValue != null ? String.valueOf(nameValue) : String.valueOf(record.Id));

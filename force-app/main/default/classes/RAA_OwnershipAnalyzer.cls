@@ -4,7 +4,6 @@
  * are directly queryable facts.
  */
 public without sharing class RAA_OwnershipAnalyzer implements RAA_IReasonAnalyzer {
-
     private final RAA_GroupGraphResolver groupResolver;
 
     public RAA_OwnershipAnalyzer() {
@@ -29,10 +28,22 @@ public without sharing class RAA_OwnershipAnalyzer implements RAA_IReasonAnalyze
 
         if (ownerType == User.SObjectType) {
             if (userIds.contains(context.ownerId)) {
-                addReason(results, context.ownerId, buildReason(context, 'Full Access', true,
-                        'User', context.ownerId, 'User', context.ownerId, 'User',
+                addReason(
+                    results,
+                    context.ownerId,
+                    buildReason(
+                        context,
+                        'Full Access',
+                        true,
+                        'User',
+                        context.ownerId,
+                        'User',
+                        context.ownerId,
+                        'User',
                         'User directly owns this record.',
-                        context.prefixedPath('Owner -> User')));
+                        context.prefixedPath('Owner -> User')
+                    )
+                );
             }
             return results;
         }
@@ -44,15 +55,30 @@ public without sharing class RAA_OwnershipAnalyzer implements RAA_IReasonAnalyze
             }
             Group queue = queues[0];
             Map<Id, List<RAA_GroupPathDTO>> paths = groupResolver.resolvePaths(
-                    new Set<Id>{ context.ownerId }, userIds, context.maxGroupDepth);
+                new Set<Id>{ context.ownerId },
+                userIds,
+                context.maxGroupDepth
+            );
 
             for (Id userId : paths.keySet()) {
                 for (RAA_GroupPathDTO path : paths.get(userId)) {
                     String renderedPath = context.prefixedPath('Owner (Queue) -> ' + path.renderPath('User'));
-                    addReason(results, userId, buildReason(context, 'Full Access', path.pathSegments.size() == 1,
-                            'Queue: ' + queue.Name, queue.Id, 'Group', queue.Id, 'Queue',
+                    addReason(
+                        results,
+                        userId,
+                        buildReason(
+                            context,
+                            'Full Access',
+                            path.pathSegments.size() == 1,
+                            'Queue: ' + queue.Name,
+                            queue.Id,
+                            'Group',
+                            queue.Id,
+                            'Queue',
                             'Record is owned by queue "' + queue.Name + '", and the user belongs to that queue.',
-                            renderedPath));
+                            renderedPath
+                        )
+                    );
                 }
             }
             return results;
@@ -62,9 +88,18 @@ public without sharing class RAA_OwnershipAnalyzer implements RAA_IReasonAnalyze
         return results;
     }
 
-    private RAA_AccessReasonDTO buildReason(RAA_AnalysisContext context, String accessLevel, Boolean isDirect,
-            String sourceName, Id sourceId, String sourceObject, Id principalId, String principalType,
-            String explanation, String grantPath) {
+    private RAA_AccessReasonDTO buildReason(
+        RAA_AnalysisContext context,
+        String accessLevel,
+        Boolean isDirect,
+        String sourceName,
+        Id sourceId,
+        String sourceObject,
+        Id principalId,
+        String principalType,
+        String explanation,
+        String grantPath
+    ) {
         RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
         reason.category = 'Ownership';
         reason.accessLevel = accessLevel;

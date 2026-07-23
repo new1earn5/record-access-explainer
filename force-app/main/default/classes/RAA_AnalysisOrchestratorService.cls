@@ -5,7 +5,6 @@
  * already verified the RAA_Run_Record_Access_Analysis custom permission.
  */
 public without sharing class RAA_AnalysisOrchestratorService {
-
     private final RAA_AnalysisRepository repository;
     private final RAA_RecordMetadataResolver metadataResolver;
     private final RAA_SettingsService settings;
@@ -21,28 +20,48 @@ public without sharing class RAA_AnalysisOrchestratorService {
 
         RAA_RecordMetadataResolver.ResolvedRecord resolved = metadataResolver.resolve(recordId);
         if (!metadataResolver.supportsUserRecordAccess(recordId)) {
-            throw new RAA_AppException('Salesforce does not expose UserRecordAccess for ' + resolved.objectApiName
-                    + ' records in this org, so this object is not supported by Record Access Explainer.');
+            throw new RAA_AppException(
+                'Salesforce does not expose UserRecordAccess for ' +
+                    resolved.objectApiName +
+                    ' records in this org, so this object is not supported by Record Access Explainer.'
+            );
         }
 
         RAA_Analysis__c existing = repository.findActiveAnalysisForRecord(recordId);
         if (existing != null && request.confirmDuplicateScan != true) {
-            throw new RAA_AppException('An analysis for this record is already ' + existing.RAA_Status__c.toLowerCase()
-                    + ' (requested ' + existing.RAA_Requested_At__c.format() + '). Confirm to start a new scan anyway.');
+            throw new RAA_AppException(
+                'An analysis for this record is already ' +
+                    existing.RAA_Status__c.toLowerCase() +
+                    ' (requested ' +
+                    existing.RAA_Requested_At__c.format() +
+                    '). Confirm to start a new scan anyway.'
+            );
         }
 
-        Boolean includeExternal = request.includeExternalUsers != null ? request.includeExternalUsers : settings.defaultIncludeExternal;
-        Boolean includeInactive = request.includeInactiveUsers != null ? request.includeInactiveUsers : settings.defaultIncludeInactive;
+        Boolean includeExternal = request.includeExternalUsers != null
+            ? request.includeExternalUsers
+            : settings.defaultIncludeExternal;
+        Boolean includeInactive = request.includeInactiveUsers != null
+            ? request.includeInactiveUsers
+            : settings.defaultIncludeInactive;
 
-        Id analysisId = repository.createAnalysis(recordId, resolved.objectApiName, resolved.displayName,
-                requestingUserId, includeExternal, includeInactive);
+        Id analysisId = repository.createAnalysis(
+            recordId,
+            resolved.objectApiName,
+            resolved.displayName,
+            requestingUserId,
+            includeExternal,
+            includeInactive
+        );
 
         RAA_UserPopulationBuilder.PopulationFilter filter = new RAA_UserPopulationBuilder.PopulationFilter();
         filter.includeExternalUsers = includeExternal;
         filter.includeInactiveUsers = includeInactive;
         filter.profileNames = request.profileNames != null ? request.profileNames : new List<String>();
         filter.userTypes = request.userTypes != null ? request.userTypes : new List<String>();
-        filter.permissionSetNames = request.permissionSetNames != null ? request.permissionSetNames : new List<String>();
+        filter.permissionSetNames = request.permissionSetNames != null
+            ? request.permissionSetNames
+            : new List<String>();
 
         RAA_AccessScanBatch batch = new RAA_AccessScanBatch(analysisId, recordId, filter);
         Database.executeBatch(batch, settings.defaultBatchScope);
@@ -105,8 +124,12 @@ public without sharing class RAA_AnalysisOrchestratorService {
     }
 
     /** Feature: bulk scan mode. Starts one scan per record, all of the same object type. */
-    public RAA_BatchRunSummaryDTO startBulkAnalysis(List<String> rawRecordIds, Boolean includeExternalUsers,
-            Boolean includeInactiveUsers, Id requestingUserId) {
+    public RAA_BatchRunSummaryDTO startBulkAnalysis(
+        List<String> rawRecordIds,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers,
+        Id requestingUserId
+    ) {
         if (rawRecordIds == null || rawRecordIds.isEmpty()) {
             throw new RAA_AppException('Enter at least one record ID for a bulk scan.');
         }
@@ -124,18 +147,32 @@ public without sharing class RAA_AnalysisOrchestratorService {
         }
 
         if (recordIds.size() > settings.maxRecordsPerBulkRun && settings.maxRecordsPerBulkRun > 0) {
-            throw new RAA_AppException('This bulk scan would include ' + recordIds.size() + ' records, which exceeds the '
-                    + 'configured maximum of ' + settings.maxRecordsPerBulkRun + ' in RAA Settings.');
+            throw new RAA_AppException(
+                'This bulk scan would include ' +
+                    recordIds.size() +
+                    ' records, which exceeds the ' +
+                    'configured maximum of ' +
+                    settings.maxRecordsPerBulkRun +
+                    ' in RAA Settings.'
+            );
         }
 
         Boolean includeExternal = includeExternalUsers != null ? includeExternalUsers : settings.defaultIncludeExternal;
         Boolean includeInactive = includeInactiveUsers != null ? includeInactiveUsers : settings.defaultIncludeInactive;
 
         String objectApiName = sharedType.getDescribe().getName();
-        Id batchRunId = repository.createBatchRun(objectApiName, recordIds.size(), String.join(rawRecordIds, '\n'),
-                requestingUserId, includeExternal, includeInactive);
+        Id batchRunId = repository.createBatchRun(
+            objectApiName,
+            recordIds.size(),
+            String.join(rawRecordIds, '\n'),
+            requestingUserId,
+            includeExternal,
+            includeInactive
+        );
 
-        System.enqueueJob(new RAA_BulkScanQueueable(recordIds, batchRunId, requestingUserId, includeExternal, includeInactive));
+        System.enqueueJob(
+            new RAA_BulkScanQueueable(recordIds, batchRunId, requestingUserId, includeExternal, includeInactive)
+        );
 
         return new RAA_BatchRunSummaryDTO(repository.getBatchRun(batchRunId), new List<RAA_Analysis__c>());
     }
@@ -154,7 +191,12 @@ public without sharing class RAA_AnalysisOrchestratorService {
     }
 
     /** Feature: reverse mode ("by user") - effective access for one user across a candidate set of records. */
-    public List<RAA_UserRecordAccessSummaryDTO> scanUserAccess(Id userId, String objectApiName, List<String> rawRecordIds, Integer limitCount) {
+    public List<RAA_UserRecordAccessSummaryDTO> scanUserAccess(
+        Id userId,
+        String objectApiName,
+        List<String> rawRecordIds,
+        Integer limitCount
+    ) {
         RAA_UserAccessExplorerService explorer = new RAA_UserAccessExplorerService();
         List<Id> candidateIds = resolveCandidateRecordIds(objectApiName, rawRecordIds, limitCount);
         return explorer.scanUserAcrossRecords(userId, objectApiName, candidateIds);
@@ -176,31 +218,58 @@ public without sharing class RAA_AnalysisOrchestratorService {
                 throw new RAA_AppException('"' + objectApiName + '" is not a recognized object.');
             }
             Integer effectiveLimit = limitCount != null && limitCount > 0 ? limitCount : settings.maxRecordsPerUserScan;
-            for (SObject record : Database.query(
-                    'SELECT Id FROM ' + String.escapeSingleQuotes(sObjectType.getDescribe().getName()) + ' LIMIT :effectiveLimit')) {
+            for (
+                SObject record : Database.query(
+                    'SELECT Id FROM ' +
+                        String.escapeSingleQuotes(sObjectType.getDescribe().getName()) +
+                        ' LIMIT :effectiveLimit'
+                )
+            ) {
                 candidateIds.add(record.Id);
             }
         }
 
         if (settings.maxRecordsPerUserScan > 0 && candidateIds.size() > settings.maxRecordsPerUserScan) {
-            throw new RAA_AppException('This scan would check ' + candidateIds.size() + ' records, which exceeds the '
-                    + 'configured maximum of ' + settings.maxRecordsPerUserScan + ' in RAA Settings.');
+            throw new RAA_AppException(
+                'This scan would check ' +
+                    candidateIds.size() +
+                    ' records, which exceeds the ' +
+                    'configured maximum of ' +
+                    settings.maxRecordsPerUserScan +
+                    ' in RAA Settings.'
+            );
         }
         return candidateIds;
     }
 
     /** Feature: recurring scans / change alerts. */
-    public Id createSubscription(String rawRecordId, Boolean includeExternalUsers, Boolean includeInactiveUsers,
-            Boolean notifyOnChange, Id subscriberId) {
+    public Id createSubscription(
+        String rawRecordId,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers,
+        Boolean notifyOnChange,
+        Id subscriberId
+    ) {
         Id recordId = RAA_IdValidationUtil.normalizeRecordId(rawRecordId);
         RAA_RecordMetadataResolver.ResolvedRecord resolved = metadataResolver.resolve(recordId);
-        return new RAA_SubscriptionRepository().createSubscription(recordId, resolved.objectApiName, resolved.displayName,
-                subscriberId, includeExternalUsers == true, includeInactiveUsers == true, notifyOnChange != false);
+        return new RAA_SubscriptionRepository()
+            .createSubscription(
+                recordId,
+                resolved.objectApiName,
+                resolved.displayName,
+                subscriberId,
+                includeExternalUsers == true,
+                includeInactiveUsers == true,
+                notifyOnChange != false
+            );
     }
 
     public List<RAA_SubscriptionDTO> listMySubscriptions(Id subscriberId) {
         List<RAA_SubscriptionDTO> dtos = new List<RAA_SubscriptionDTO>();
-        for (RAA_Scan_Subscription__c subscription : new RAA_SubscriptionRepository().getSubscriptionsForUser(subscriberId)) {
+        for (
+            RAA_Scan_Subscription__c subscription : new RAA_SubscriptionRepository()
+                .getSubscriptionsForUser(subscriberId)
+        ) {
             dtos.add(new RAA_SubscriptionDTO(subscription));
         }
         return dtos;

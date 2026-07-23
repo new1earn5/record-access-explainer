@@ -4,20 +4,34 @@
  * or deduplicating them.
  */
 public class RAA_AccessReasonDTO implements Comparable {
-    @AuraEnabled public String recordId;
-    @AuraEnabled public String category;
-    @AuraEnabled public String accessLevel;
-    @AuraEnabled public String confidence;
-    @AuraEnabled public Boolean isDirect;
-    @AuraEnabled public String sourceName;
-    @AuraEnabled public String sourceId;
-    @AuraEnabled public String sourceObject;
-    @AuraEnabled public String principalId;
-    @AuraEnabled public String principalType;
-    @AuraEnabled public String rowCause;
-    @AuraEnabled public String grantPath;
-    @AuraEnabled public String explanation;
-    @AuraEnabled public String evidence;
+    @AuraEnabled
+    public String recordId;
+    @AuraEnabled
+    public String category;
+    @AuraEnabled
+    public String accessLevel;
+    @AuraEnabled
+    public String confidence;
+    @AuraEnabled
+    public Boolean isDirect;
+    @AuraEnabled
+    public String sourceName;
+    @AuraEnabled
+    public String sourceId;
+    @AuraEnabled
+    public String sourceObject;
+    @AuraEnabled
+    public String principalId;
+    @AuraEnabled
+    public String principalType;
+    @AuraEnabled
+    public String rowCause;
+    @AuraEnabled
+    public String grantPath;
+    @AuraEnabled
+    public String explanation;
+    @AuraEnabled
+    public String evidence;
 
     public RAA_AccessReasonDTO() {
     }
@@ -40,10 +54,13 @@ public class RAA_AccessReasonDTO implements Comparable {
     }
 
     public String sortKey() {
-        return (category == null ? '' : category) + '|'
-                + (grantPath == null ? '' : grantPath) + '|'
-                + (sourceName == null ? '' : sourceName) + '|'
-                + (rowCause == null ? '' : rowCause);
+        return (category == null ? '' : category) +
+            '|' +
+            (grantPath == null ? '' : grantPath) +
+            '|' +
+            (sourceName == null ? '' : sourceName) +
+            '|' +
+            (rowCause == null ? '' : rowCause);
     }
 
     public String dedupeKey() {

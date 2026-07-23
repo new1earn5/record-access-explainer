@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_PermissionCheckerTest {
-
     @IsTest
     static void overrideForcesResultInTests() {
         RAA_PermissionChecker.testOverride = true;

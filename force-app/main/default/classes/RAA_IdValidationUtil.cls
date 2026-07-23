@@ -3,14 +3,15 @@
  * Every entry point that accepts an ID from the LWC layer must route it through here first.
  */
 public with sharing class RAA_IdValidationUtil {
-
     public static Id normalizeRecordId(String rawValue) {
         if (String.isBlank(rawValue)) {
             throw new RAA_AppException('Please enter a record ID.');
         }
         String trimmed = rawValue.trim();
         if (!Pattern.matches('^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$', trimmed)) {
-            throw new RAA_AppException('"' + trimmed + '" is not a valid Salesforce record ID. IDs must be 15 or 18 alphanumeric characters.');
+            throw new RAA_AppException(
+                '"' + trimmed + '" is not a valid Salesforce record ID. IDs must be 15 or 18 alphanumeric characters.'
+            );
         }
         try {
             return Id.valueOf(trimmed);

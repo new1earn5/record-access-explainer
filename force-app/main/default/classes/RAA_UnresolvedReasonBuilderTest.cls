@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_UnresolvedReasonBuilderTest {
-
     @IsTest
     static void buildsLowConfidenceUnresolvedReason() {
         RAA_AnalysisContext context = new RAA_AnalysisContext();
@@ -8,7 +7,8 @@ private class RAA_UnresolvedReasonBuilderTest {
         context.shareRows = new List<SObject>();
 
         Test.startTest();
-        RAA_AccessReasonDTO reason = new RAA_UnresolvedReasonBuilder().build(context, new List<String>{ 'Ownership', 'Permissions' });
+        RAA_AccessReasonDTO reason = new RAA_UnresolvedReasonBuilder()
+            .build(context, new List<String>{ 'Ownership', 'Permissions' });
         Test.stopTest();
 
         System.assertEquals('Unresolved', reason.category);

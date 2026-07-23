@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_PermissionSetLookupTest {
-
     @IsTest
     static void returnsEmptyForNullOrEmptyInput() {
         RAA_PermissionSetLookup lookup = new RAA_PermissionSetLookup();
@@ -11,7 +10,8 @@ private class RAA_PermissionSetLookupTest {
     @IsTest
     static void returnsProfileOwnedAssignmentForARealUser() {
         Test.startTest();
-        List<PermissionSetAssignment> assignments = new RAA_PermissionSetLookup().getAssignments(new Set<Id>{ UserInfo.getUserId() });
+        List<PermissionSetAssignment> assignments = new RAA_PermissionSetLookup()
+            .getAssignments(new Set<Id>{ UserInfo.getUserId() });
         Test.stopTest();
 
         System.assert(!assignments.isEmpty(), 'Every user has at least their profile-owned permission set assignment.');
@@ -19,7 +19,8 @@ private class RAA_PermissionSetLookupTest {
 
     @IsTest
     static void permissionSetIdsExtractsUniqueIds() {
-        List<PermissionSetAssignment> assignments = new RAA_PermissionSetLookup().getAssignments(new Set<Id>{ UserInfo.getUserId() });
+        List<PermissionSetAssignment> assignments = new RAA_PermissionSetLookup()
+            .getAssignments(new Set<Id>{ UserInfo.getUserId() });
         Set<Id> ids = new RAA_PermissionSetLookup().permissionSetIds(assignments);
         System.assertEquals(assignments.size(), ids.size());
     }

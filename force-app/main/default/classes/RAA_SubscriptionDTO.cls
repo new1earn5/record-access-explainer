@@ -2,15 +2,24 @@
  * Aura-enabled representation of an RAA_Scan_Subscription__c row.
  */
 public class RAA_SubscriptionDTO {
-    @AuraEnabled public String subscriptionId;
-    @AuraEnabled public String recordId;
-    @AuraEnabled public String objectApiName;
-    @AuraEnabled public String recordDisplayName;
-    @AuraEnabled public Boolean isActive;
-    @AuraEnabled public Boolean includeExternalUsers;
-    @AuraEnabled public Boolean includeInactiveUsers;
-    @AuraEnabled public Boolean notifyOnChange;
-    @AuraEnabled public Datetime lastRunAt;
+    @AuraEnabled
+    public String subscriptionId;
+    @AuraEnabled
+    public String recordId;
+    @AuraEnabled
+    public String objectApiName;
+    @AuraEnabled
+    public String recordDisplayName;
+    @AuraEnabled
+    public Boolean isActive;
+    @AuraEnabled
+    public Boolean includeExternalUsers;
+    @AuraEnabled
+    public Boolean includeInactiveUsers;
+    @AuraEnabled
+    public Boolean notifyOnChange;
+    @AuraEnabled
+    public Datetime lastRunAt;
 
     public RAA_SubscriptionDTO(RAA_Scan_Subscription__c subscription) {
         this.subscriptionId = subscription.Id;

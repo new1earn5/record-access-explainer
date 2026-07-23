@@ -43,7 +43,9 @@ describe('c-raa-user-access-explorer', () => {
     });
 
     function createComponent() {
-        const element = createElement('c-raa-user-access-explorer', { is: RaaUserAccessExplorer });
+        const element = createElement('c-raa-user-access-explorer', {
+            is: RaaUserAccessExplorer
+        });
         document.body.appendChild(element);
         return element;
     }
@@ -51,24 +53,34 @@ describe('c-raa-user-access-explorer', () => {
     it('shows a validation message for an invalid user ID', async () => {
         const element = createComponent();
 
-        element.shadowRoot.querySelector('[data-id="user-scan-button"]').click();
+        element.shadowRoot
+            .querySelector('[data-id="user-scan-button"]')
+            .click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Enter a valid 15 or 18 character User ID');
+        expect(element.shadowRoot.textContent).toContain(
+            'Enter a valid 15 or 18 character User ID'
+        );
         expect(scanUserAccess).not.toHaveBeenCalled();
     });
 
     it('shows a validation message when the object API name is blank', async () => {
         const element = createComponent();
 
-        const userIdInput = element.shadowRoot.querySelector('[data-id="user-id-input"]');
+        const userIdInput = element.shadowRoot.querySelector(
+            '[data-id="user-id-input"]'
+        );
         userIdInput.value = VALID_USER_ID;
         userIdInput.dispatchEvent(new CustomEvent('change'));
 
-        element.shadowRoot.querySelector('[data-id="user-scan-button"]').click();
+        element.shadowRoot
+            .querySelector('[data-id="user-scan-button"]')
+            .click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Enter the object API name');
+        expect(element.shadowRoot.textContent).toContain(
+            'Enter the object API name'
+        );
         expect(scanUserAccess).not.toHaveBeenCalled();
     });
 
@@ -76,12 +88,16 @@ describe('c-raa-user-access-explorer', () => {
         scanUserAccess.mockResolvedValue(SAMPLE_RESULTS);
         const element = createComponent();
 
-        const userIdInput = element.shadowRoot.querySelector('[data-id="user-id-input"]');
+        const userIdInput = element.shadowRoot.querySelector(
+            '[data-id="user-id-input"]'
+        );
         userIdInput.value = VALID_USER_ID;
         userIdInput.dispatchEvent(new CustomEvent('change'));
 
         const inputs = element.shadowRoot.querySelectorAll('lightning-input');
-        const objectInput = [...inputs].find((el) => el.label === 'Object API Name');
+        const objectInput = [...inputs].find(
+            (el) => el.label === 'Object API Name'
+        );
         objectInput.value = 'Account';
         objectInput.dispatchEvent(new CustomEvent('change'));
 
@@ -89,7 +105,9 @@ describe('c-raa-user-access-explorer', () => {
         textarea.value = '001000000000001AAA,001000000000002AAA';
         textarea.dispatchEvent(new CustomEvent('change'));
 
-        element.shadowRoot.querySelector('[data-id="user-scan-button"]').click();
+        element.shadowRoot
+            .querySelector('[data-id="user-scan-button"]')
+            .click();
         await flushPromises();
 
         expect(scanUserAccess).toHaveBeenCalledWith({
@@ -99,7 +117,9 @@ describe('c-raa-user-access-explorer', () => {
             limitCount: null
         });
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
         expect(datatable.data).toHaveLength(1);
     });
 
@@ -107,16 +127,22 @@ describe('c-raa-user-access-explorer', () => {
         scanUserAccess.mockResolvedValue(SAMPLE_RESULTS);
         const element = createComponent();
 
-        const userIdInput = element.shadowRoot.querySelector('[data-id="user-id-input"]');
+        const userIdInput = element.shadowRoot.querySelector(
+            '[data-id="user-id-input"]'
+        );
         userIdInput.value = VALID_USER_ID;
         userIdInput.dispatchEvent(new CustomEvent('change'));
 
         const inputs = element.shadowRoot.querySelectorAll('lightning-input');
-        const objectInput = [...inputs].find((el) => el.label === 'Object API Name');
+        const objectInput = [...inputs].find(
+            (el) => el.label === 'Object API Name'
+        );
         objectInput.value = 'Account';
         objectInput.dispatchEvent(new CustomEvent('change'));
 
-        element.shadowRoot.querySelector('[data-id="user-scan-button"]').click();
+        element.shadowRoot
+            .querySelector('[data-id="user-scan-button"]')
+            .click();
         await flushPromises();
 
         expect(scanUserAccess).toHaveBeenCalledWith({
@@ -130,26 +156,49 @@ describe('c-raa-user-access-explorer', () => {
     it('lazily loads reasons for a row and opens the reason detail modal', async () => {
         scanUserAccess.mockResolvedValue(SAMPLE_RESULTS);
         getUserAccessReasons.mockResolvedValue([
-            { category: 'Ownership', accessLevel: 'Full Access', confidence: 'High', isDirect: true, grantPath: 'Owner -> User', explanation: 'Owns the record.' }
+            {
+                category: 'Ownership',
+                accessLevel: 'Full Access',
+                confidence: 'High',
+                isDirect: true,
+                grantPath: 'Owner -> User',
+                explanation: 'Owns the record.'
+            }
         ]);
 
         const element = createComponent();
-        const userIdInput = element.shadowRoot.querySelector('[data-id="user-id-input"]');
+        const userIdInput = element.shadowRoot.querySelector(
+            '[data-id="user-id-input"]'
+        );
         userIdInput.value = VALID_USER_ID;
         userIdInput.dispatchEvent(new CustomEvent('change'));
-        const objectInput = [...element.shadowRoot.querySelectorAll('lightning-input')].find((el) => el.label === 'Object API Name');
+        const objectInput = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Object API Name');
         objectInput.value = 'Account';
         objectInput.dispatchEvent(new CustomEvent('change'));
-        element.shadowRoot.querySelector('[data-id="user-scan-button"]').click();
+        element.shadowRoot
+            .querySelector('[data-id="user-scan-button"]')
+            .click();
         await flushPromises();
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
-        datatable.dispatchEvent(new CustomEvent('rowaction', {
-            detail: { action: { name: 'view_reasons' }, row: SAMPLE_RESULTS[0] }
-        }));
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
+        datatable.dispatchEvent(
+            new CustomEvent('rowaction', {
+                detail: {
+                    action: { name: 'view_reasons' },
+                    row: SAMPLE_RESULTS[0]
+                }
+            })
+        );
         await flushPromises();
 
-        expect(getUserAccessReasons).toHaveBeenCalledWith({ userId: VALID_USER_ID, recordId: '001000000000001AAA' });
+        expect(getUserAccessReasons).toHaveBeenCalledWith({
+            userId: VALID_USER_ID,
+            recordId: '001000000000001AAA'
+        });
         const detail = element.shadowRoot.querySelector('c-raa-reason-detail');
         expect(detail).not.toBeNull();
         expect(detail.reasons).toHaveLength(1);

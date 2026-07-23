@@ -8,7 +8,6 @@
  * and recorded on that record's own analysis without aborting the rest of the run.
  */
 public without sharing class RAA_BulkScanQueueable implements Queueable {
-
     @TestVisible
     private static final Integer CHUNK_SIZE = 5;
 
@@ -18,8 +17,13 @@ public without sharing class RAA_BulkScanQueueable implements Queueable {
     private final Boolean includeExternalUsers;
     private final Boolean includeInactiveUsers;
 
-    public RAA_BulkScanQueueable(List<Id> remainingRecordIds, Id batchRunId, Id requestingUserId,
-            Boolean includeExternalUsers, Boolean includeInactiveUsers) {
+    public RAA_BulkScanQueueable(
+        List<Id> remainingRecordIds,
+        Id batchRunId,
+        Id requestingUserId,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers
+    ) {
         this.remainingRecordIds = remainingRecordIds;
         this.batchRunId = batchRunId;
         this.requestingUserId = requestingUserId;
@@ -37,17 +41,34 @@ public without sharing class RAA_BulkScanQueueable implements Queueable {
             Id recordId = remainingRecordIds[i];
             try {
                 RAA_RecordMetadataResolver.ResolvedRecord resolved = resolver.resolve(recordId);
-                Id analysisId = repository.createAnalysis(recordId, resolved.objectApiName, resolved.displayName,
-                        requestingUserId, includeExternalUsers, includeInactiveUsers, batchRunId);
+                Id analysisId = repository.createAnalysis(
+                    recordId,
+                    resolved.objectApiName,
+                    resolved.displayName,
+                    requestingUserId,
+                    includeExternalUsers,
+                    includeInactiveUsers,
+                    batchRunId
+                );
 
                 RAA_UserPopulationBuilder.PopulationFilter filter = new RAA_UserPopulationBuilder.PopulationFilter();
                 filter.includeExternalUsers = includeExternalUsers;
                 filter.includeInactiveUsers = includeInactiveUsers;
 
-                Database.executeBatch(new RAA_AccessScanBatch(analysisId, recordId, filter), settings.defaultBatchScope);
+                Database.executeBatch(
+                    new RAA_AccessScanBatch(analysisId, recordId, filter),
+                    settings.defaultBatchScope
+                );
             } catch (Exception e) {
-                Id stubAnalysisId = repository.createAnalysis(recordId, 'Unknown', String.valueOf(recordId),
-                        requestingUserId, includeExternalUsers, includeInactiveUsers, batchRunId);
+                Id stubAnalysisId = repository.createAnalysis(
+                    recordId,
+                    'Unknown',
+                    String.valueOf(recordId),
+                    requestingUserId,
+                    includeExternalUsers,
+                    includeInactiveUsers,
+                    batchRunId
+                );
                 repository.markFailed(stubAnalysisId, sanitize(e.getMessage()));
             }
         }
@@ -62,7 +83,15 @@ public without sharing class RAA_BulkScanQueueable implements Queueable {
         // synchronously inside a test's Test.stopTest() flush - so tests simulate the
         // remaining chunk by enqueueing it directly instead of relying on this chain.
         if (!stillRemaining.isEmpty() && !Test.isRunningTest()) {
-            System.enqueueJob(new RAA_BulkScanQueueable(stillRemaining, batchRunId, requestingUserId, includeExternalUsers, includeInactiveUsers));
+            System.enqueueJob(
+                new RAA_BulkScanQueueable(
+                    stillRemaining,
+                    batchRunId,
+                    requestingUserId,
+                    includeExternalUsers,
+                    includeInactiveUsers
+                )
+            );
         }
     }
 

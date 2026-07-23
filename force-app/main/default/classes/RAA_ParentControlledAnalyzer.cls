@@ -13,7 +13,6 @@
  * child record's own object type, by RAA_PermissionAnalyzer at the top of the pipeline.
  */
 public without sharing class RAA_ParentControlledAnalyzer implements RAA_IReasonAnalyzer {
-
     private final RAA_ContextBuilder contextBuilder;
     private final RAA_OwnershipAnalyzer ownershipAnalyzer;
     private final RAA_RoleHierarchyAnalyzer roleHierarchyAnalyzer;
@@ -43,7 +42,9 @@ public without sharing class RAA_ParentControlledAnalyzer implements RAA_IReason
             return results;
         }
         if (context.remainingParentDepth == null || context.remainingParentDepth <= 0) {
-            context.warnings.add('Maximum controlled-by-parent recursion depth reached while analyzing ' + context.objectApiName + '.');
+            context.warnings.add(
+                'Maximum controlled-by-parent recursion depth reached while analyzing ' + context.objectApiName + '.'
+            );
             return results;
         }
 
@@ -52,7 +53,9 @@ public without sharing class RAA_ParentControlledAnalyzer implements RAA_IReason
             return results;
         }
         if (context.visitedParentRecordIds.contains(parentRecordId)) {
-            context.warnings.add('A cycle was detected in the controlled-by-parent chain at ' + context.objectApiName + '.');
+            context.warnings.add(
+                'A cycle was detected in the controlled-by-parent chain at ' + context.objectApiName + '.'
+            );
             return results;
         }
 
@@ -60,7 +63,9 @@ public without sharing class RAA_ParentControlledAnalyzer implements RAA_IReason
         try {
             parentContext = contextBuilder.buildParentContext(parentRecordId, context, new RAA_SettingsService());
         } catch (RAA_AppException e) {
-            context.warnings.add('Could not analyze the controlling parent record for ' + context.objectApiName + ': ' + e.getMessage());
+            context.warnings.add(
+                'Could not analyze the controlling parent record for ' + context.objectApiName + ': ' + e.getMessage()
+            );
             return results;
         }
 
@@ -80,8 +85,12 @@ public without sharing class RAA_ParentControlledAnalyzer implements RAA_IReason
         Id recordId = context.recordId;
         String fieldName = context.controllingParentFieldApiName;
         List<SObject> rows = Database.query(
-                'SELECT ' + String.escapeSingleQuotes(fieldName) + ' FROM ' + String.escapeSingleQuotes(context.objectApiName)
-                        + ' WHERE Id = :recordId LIMIT 1');
+            'SELECT ' +
+                String.escapeSingleQuotes(fieldName) +
+                ' FROM ' +
+                String.escapeSingleQuotes(context.objectApiName) +
+                ' WHERE Id = :recordId LIMIT 1'
+        );
         if (rows.isEmpty() || rows[0].get(fieldName) == null) {
             return null;
         }

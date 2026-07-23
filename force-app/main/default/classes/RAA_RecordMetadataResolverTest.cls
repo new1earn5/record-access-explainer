@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_RecordMetadataResolverTest {
-
     @IsTest
     static void resolvesStandardObjectRecord() {
         Account acct = new Account(Name = 'RAA Test Account');
@@ -11,7 +10,11 @@ private class RAA_RecordMetadataResolverTest {
         Test.stopTest();
 
         System.assertEquals('Account', resolved.objectApiName, 'Should resolve to the Account object.');
-        System.assertEquals('RAA Test Account', resolved.displayName, 'Should resolve the Name field as the display name.');
+        System.assertEquals(
+            'RAA Test Account',
+            resolved.displayName,
+            'Should resolve the Name field as the display name.'
+        );
         System.assertNotEquals(null, resolved.objectDescribe, 'Describe result should be populated.');
     }
 
@@ -51,7 +54,10 @@ private class RAA_RecordMetadataResolverTest {
             new RAA_RecordMetadataResolver().resolve(deletedId);
             System.assert(false, 'Expected an exception for a record that no longer exists.');
         } catch (RAA_AppException e) {
-            System.assert(e.getMessage().contains('No Account record was found'), 'Message should explain no record was found.');
+            System.assert(
+                e.getMessage().contains('No Account record was found'),
+                'Message should explain no record was found.'
+            );
         }
     }
 }

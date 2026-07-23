@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_AnalysisOrchestratorServiceTest {
-
     private static RAA_AnalysisRequestDTO buildRequest(Id recordId) {
         RAA_AnalysisRequestDTO request = new RAA_AnalysisRequestDTO();
         request.recordId = String.valueOf(recordId);
@@ -22,8 +21,9 @@ private class RAA_AnalysisOrchestratorServiceTest {
 
         RAA_AnalysisSummaryDTO finalStatus = service.getStatus(summary.analysisId);
         System.assert(
-                finalStatus.status == 'Completed' || finalStatus.status == 'Completed with Warnings',
-                'Expected the scan to finish in this synchronous test context, got: ' + finalStatus.status);
+            finalStatus.status == 'Completed' || finalStatus.status == 'Completed with Warnings',
+            'Expected the scan to finish in this synchronous test context, got: ' + finalStatus.status
+        );
 
         List<RAA_AccessResultDTO> results = service.getResults(summary.analysisId);
         Boolean foundOwner = false;
@@ -70,7 +70,14 @@ private class RAA_AnalysisOrchestratorServiceTest {
         insert acct;
 
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(acct.Id, 'Account', 'RAA Cancel Account', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Cancel Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         repo.markBatchStarted(analysisId, '707000000000002AAA', 1);
 
         RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
@@ -86,7 +93,14 @@ private class RAA_AnalysisOrchestratorServiceTest {
     @IsTest
     static void cancelAlreadyCompletedAnalysisThrows() {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Already Done', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Already Done',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         repo.markCompleted(analysisId, false, null);
 
         try {
@@ -100,7 +114,14 @@ private class RAA_AnalysisOrchestratorServiceTest {
     @IsTest
     static void deleteAnalysisRemovesRecord() {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Delete Me', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Delete Me',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
 
         Test.startTest();
         new RAA_AnalysisOrchestratorService().deleteAnalysis(analysisId);
@@ -133,7 +154,11 @@ private class RAA_AnalysisOrchestratorServiceTest {
 
         Test.startTest();
         RAA_BatchRunSummaryDTO summary = service.startBulkAnalysis(
-                new List<String>{ String.valueOf(acctOne.Id), String.valueOf(acctTwo.Id) }, false, false, UserInfo.getUserId());
+            new List<String>{ String.valueOf(acctOne.Id), String.valueOf(acctTwo.Id) },
+            false,
+            false,
+            UserInfo.getUserId()
+        );
         Test.stopTest();
 
         RAA_BatchRunSummaryDTO finalStatus = service.getBatchRunStatus(summary.batchRunId);
@@ -147,8 +172,13 @@ private class RAA_AnalysisOrchestratorServiceTest {
         insert acct;
 
         try {
-            new RAA_AnalysisOrchestratorService().startBulkAnalysis(
-                    new List<String>{ String.valueOf(acct.Id), String.valueOf(UserInfo.getUserId()) }, false, false, UserInfo.getUserId());
+            new RAA_AnalysisOrchestratorService()
+                .startBulkAnalysis(
+                    new List<String>{ String.valueOf(acct.Id), String.valueOf(UserInfo.getUserId()) },
+                    false,
+                    false,
+                    UserInfo.getUserId()
+                );
             System.assert(false, 'Expected an exception for mixed object types.');
         } catch (RAA_AppException e) {
             System.assert(e.getMessage().contains('same object type'));
@@ -178,7 +208,13 @@ private class RAA_AnalysisOrchestratorServiceTest {
         RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
 
         Test.startTest();
-        Id subscriptionId = service.createSubscription(String.valueOf(acct.Id), false, false, true, UserInfo.getUserId());
+        Id subscriptionId = service.createSubscription(
+            String.valueOf(acct.Id),
+            false,
+            false,
+            true,
+            UserInfo.getUserId()
+        );
         Test.stopTest();
 
         List<RAA_SubscriptionDTO> mine = service.listMySubscriptions(UserInfo.getUserId());
@@ -201,7 +237,11 @@ private class RAA_AnalysisOrchestratorServiceTest {
         RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
 
         List<RAA_UserRecordAccessSummaryDTO> accessResults = service.scanUserAccess(
-                UserInfo.getUserId(), 'Account', new List<String>{ String.valueOf(acct.Id) }, null);
+            UserInfo.getUserId(),
+            'Account',
+            new List<String>{ String.valueOf(acct.Id) },
+            null
+        );
         System.assertEquals(1, accessResults.size());
         System.assertEquals(true, accessResults[0].hasAnyAccess);
 

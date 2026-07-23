@@ -4,15 +4,19 @@
  * so the same PermissionSetAssignment query shape exists in exactly one place.
  */
 public without sharing class RAA_PermissionSetLookup {
-
     public List<PermissionSetAssignment> getAssignments(Set<Id> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return new List<PermissionSetAssignment>();
         }
         return [
-            SELECT AssigneeId, PermissionSetId, PermissionSetGroupId,
-                   PermissionSet.Label, PermissionSet.IsOwnedByProfile, PermissionSet.Profile.Name,
-                   PermissionSetGroup.MasterLabel
+            SELECT
+                AssigneeId,
+                PermissionSetId,
+                PermissionSetGroupId,
+                PermissionSet.Label,
+                PermissionSet.IsOwnedByProfile,
+                PermissionSet.Profile.Name,
+                PermissionSetGroup.MasterLabel
             FROM PermissionSetAssignment
             WHERE AssigneeId IN :userIds
         ];

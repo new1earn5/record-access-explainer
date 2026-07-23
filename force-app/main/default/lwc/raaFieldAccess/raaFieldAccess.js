@@ -3,7 +3,12 @@ import getFieldAccess from '@salesforce/apex/RAA_RecordAccessExplainerController
 
 const COLUMNS = [
     { label: 'Field', fieldName: 'fieldLabel', type: 'text', sortable: true },
-    { label: 'API Name', fieldName: 'fieldApiName', type: 'text', sortable: true },
+    {
+        label: 'API Name',
+        fieldName: 'fieldApiName',
+        type: 'text',
+        sortable: true
+    },
     { label: 'Readable', fieldName: 'readable', type: 'boolean' },
     { label: 'Editable', fieldName: 'editable', type: 'boolean' }
 ];
@@ -24,12 +29,18 @@ export default class RaaFieldAccess extends LightningElement {
     columns = COLUMNS;
 
     connectedCallback() {
-        getFieldAccess({ userId: this.userId, objectApiName: this.objectApiName })
+        getFieldAccess({
+            userId: this.userId,
+            objectApiName: this.objectApiName
+        })
             .then((result) => {
                 this.fields = result;
             })
             .catch((error) => {
-                this.errorMessage = error && error.body && error.body.message ? error.body.message : 'Unable to load field access.';
+                this.errorMessage =
+                    error && error.body && error.body.message
+                        ? error.body.message
+                        : 'Unable to load field access.';
             })
             .finally(() => {
                 this.isLoading = false;

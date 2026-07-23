@@ -13,7 +13,9 @@ describe('c-raa-reason-detail', () => {
     });
 
     function createComponent(reasons) {
-        const element = createElement('c-raa-reason-detail', { is: RaaReasonDetail });
+        const element = createElement('c-raa-reason-detail', {
+            is: RaaReasonDetail
+        });
         element.userName = 'Jane Doe';
         element.username = 'jane@example.com';
         element.reasons = reasons;
@@ -25,7 +27,9 @@ describe('c-raa-reason-detail', () => {
         const element = createComponent([]);
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('No detected reasons are available');
+        expect(element.shadowRoot.textContent).toContain(
+            'No detected reasons are available'
+        );
         expect(element.shadowRoot.querySelector('.raa-reason-card')).toBeNull();
     });
 
@@ -70,7 +74,9 @@ describe('c-raa-reason-detail', () => {
         ]);
         await flushPromises();
 
-        expect(element.shadowRoot.querySelectorAll('.raa-path-chip')).toHaveLength(0);
+        expect(
+            element.shadowRoot.querySelectorAll('.raa-path-chip')
+        ).toHaveLength(0);
         expect(element.shadowRoot.querySelector('details')).toBeNull();
     });
 

@@ -1,20 +1,19 @@
 @IsTest
 private class RAA_PermissionAnalyzerTest {
-
     @TestSetup
     static void setup() {
         String uniqueSuffix = String.valueOf(Math.abs(Crypto.getRandomInteger()));
 
         PermissionSet viewAllRecordsSet = new PermissionSet(
-                Name = 'RAA_Test_View_All_Records_' + uniqueSuffix,
-                Label = 'RAA Test View All Records'
+            Name = 'RAA_Test_View_All_Records_' + uniqueSuffix,
+            Label = 'RAA Test View All Records'
         );
         insert viewAllRecordsSet;
         insert new ObjectPermissions(
-                ParentId = viewAllRecordsSet.Id,
-                SobjectType = 'Account',
-                PermissionsRead = true,
-                PermissionsViewAllRecords = true
+            ParentId = viewAllRecordsSet.Id,
+            SobjectType = 'Account',
+            PermissionsRead = true,
+            PermissionsViewAllRecords = true
         );
 
         User secondUser = RAA_TestDataFactory.createUser('Perm', 'Second');
@@ -33,7 +32,8 @@ private class RAA_PermissionAnalyzerTest {
         context.objectApiName = 'Account';
 
         Test.startTest();
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_PermissionAnalyzer().analyze(context, new Set<Id>{ UserInfo.getUserId() });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_PermissionAnalyzer()
+            .analyze(context, new Set<Id>{ UserInfo.getUserId() });
         Test.stopTest();
 
         if (results.containsKey(UserInfo.getUserId())) {
@@ -57,8 +57,14 @@ private class RAA_PermissionAnalyzerTest {
 
         Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_PermissionAnalyzer().analyze(context, new Set<Id>{ u.Id });
 
-        System.assert(results.containsKey(u.Id), 'The user with View All Records on Account should get a Permission reason.');
-        System.assert(results.get(u.Id)[0].explanation.contains('View All Records'), 'Explanation should reference View All Records.');
+        System.assert(
+            results.containsKey(u.Id),
+            'The user with View All Records on Account should get a Permission reason.'
+        );
+        System.assert(
+            results.get(u.Id)[0].explanation.contains('View All Records'),
+            'Explanation should reference View All Records.'
+        );
         System.assert(results.get(u.Id)[0].explanation.contains('Account'), 'Explanation should reference the object.');
     }
 
@@ -69,9 +75,12 @@ private class RAA_PermissionAnalyzerTest {
         RAA_AnalysisContext context = new RAA_AnalysisContext();
         context.objectApiName = 'Account';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_PermissionAnalyzer().analyze(context, new Set<Id>{ plainUser.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_PermissionAnalyzer()
+            .analyze(context, new Set<Id>{ plainUser.Id });
 
-        System.assert(!results.containsKey(plainUser.Id) || results.get(plainUser.Id).isEmpty(),
-                'A user with only their default profile assignment should not get an elevated-permission reason from this fixture.');
+        System.assert(
+            !results.containsKey(plainUser.Id) || results.get(plainUser.Id).isEmpty(),
+            'A user with only their default profile assignment should not get an elevated-permission reason from this fixture.'
+        );
     }
 }

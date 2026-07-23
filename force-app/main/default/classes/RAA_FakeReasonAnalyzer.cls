@@ -4,7 +4,6 @@
  */
 @IsTest
 public class RAA_FakeReasonAnalyzer implements RAA_IReasonAnalyzer {
-
     private final String name;
     private final Map<Id, List<RAA_AccessReasonDTO>> canned;
     private final Boolean shouldThrow;

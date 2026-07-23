@@ -1,16 +1,24 @@
 @IsTest
 private class RAA_AnalysisDiffServiceTest {
-
     @IsTest
     static void comparesTwoAnalysesAndDetectsAddedRemovedAndChangedUsers() {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id fromAnalysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'From', UserInfo.getUserId(), false, false);
+        Id fromAnalysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'From',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         Id toAnalysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'To', UserInfo.getUserId(), false, false);
 
         User userA = RAA_TestDataFactory.createUser('Diff', 'Added');
         User userB = RAA_TestDataFactory.createUser('Diff', 'Removed');
         User userC = RAA_TestDataFactory.createUser('Diff', 'Changed');
-        Map<Id, User> userInfoMap = new Map<Id, User>([SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id IN (:userB.Id, :userC.Id)]);
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id IN (:userB.Id, :userC.Id)]
+        );
 
         RAA_ReasonAggregator.AggregatedUserResult removedResult = new RAA_ReasonAggregator.AggregatedUserResult();
         removedResult.userId = userB.Id;
@@ -20,11 +28,19 @@ private class RAA_AnalysisDiffServiceTest {
         RAA_ReasonAggregator.AggregatedUserResult changedFromResult = new RAA_ReasonAggregator.AggregatedUserResult();
         changedFromResult.userId = userC.Id;
         changedFromResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(userC.Id);
-        changedFromResult.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+        changedFromResult.reasons = new List<RAA_AccessReasonDTO>{
+            RAA_TestDataFactory.buildReason('Ownership', 'High')
+        };
 
-        repo.saveResults(fromAnalysisId, new List<RAA_ReasonAggregator.AggregatedUserResult>{ removedResult, changedFromResult }, userInfoMap);
+        repo.saveResults(
+            fromAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>{ removedResult, changedFromResult },
+            userInfoMap
+        );
 
-        Map<Id, User> userInfoMap2 = new Map<Id, User>([SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id IN (:userA.Id, :userC.Id)]);
+        Map<Id, User> userInfoMap2 = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id IN (:userA.Id, :userC.Id)]
+        );
         RAA_ReasonAggregator.AggregatedUserResult addedResult = new RAA_ReasonAggregator.AggregatedUserResult();
         addedResult.userId = userA.Id;
         addedResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(userA.Id);
@@ -34,11 +50,15 @@ private class RAA_AnalysisDiffServiceTest {
         changedToResult.userId = userC.Id;
         changedToResult.effectiveAccess = RAA_TestDataFactory.fullAccess(userC.Id);
         changedToResult.reasons = new List<RAA_AccessReasonDTO>{
-                RAA_TestDataFactory.buildReason('Ownership', 'High'),
-                RAA_TestDataFactory.buildReason('Permission', 'High')
+            RAA_TestDataFactory.buildReason('Ownership', 'High'),
+            RAA_TestDataFactory.buildReason('Permission', 'High')
         };
 
-        repo.saveResults(toAnalysisId, new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult, changedToResult }, userInfoMap2);
+        repo.saveResults(
+            toAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult, changedToResult },
+            userInfoMap2
+        );
 
         Test.startTest();
         RAA_AnalysisDiffDTO diff = new RAA_AnalysisDiffService().compare(fromAnalysisId, toAnalysisId);
@@ -53,7 +73,14 @@ private class RAA_AnalysisDiffServiceTest {
     @IsTest
     static void returnsNullWhenNoPreviousAnalysisExists() {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Only One', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Only One',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         repo.markCompleted(analysisId, false, null);
 
         RAA_AnalysisDiffDTO diff = new RAA_AnalysisDiffService().compareToPreviousAnalysis(analysisId);

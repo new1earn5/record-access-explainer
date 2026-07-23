@@ -11,7 +11,6 @@
  * without depending on live org sharing recalculation.
  */
 public without sharing class RAA_ReasonAggregator {
-
     public class AggregatedUserResult {
         public Id userId;
         public RAA_EffectiveAccessResult effectiveAccess;
@@ -25,11 +24,20 @@ public without sharing class RAA_ReasonAggregator {
     private final RAA_SettingsService settings;
 
     public RAA_ReasonAggregator() {
-        this(new RAA_UserRecordAccessProvider(), defaultAnalyzers(), new RAA_ContextBuilder(), new RAA_SettingsService());
+        this(
+            new RAA_UserRecordAccessProvider(),
+            defaultAnalyzers(),
+            new RAA_ContextBuilder(),
+            new RAA_SettingsService()
+        );
     }
 
-    public RAA_ReasonAggregator(RAA_IEffectiveAccessProvider effectiveAccessProvider, List<RAA_IReasonAnalyzer> analyzers,
-            RAA_ContextBuilder contextBuilder, RAA_SettingsService settings) {
+    public RAA_ReasonAggregator(
+        RAA_IEffectiveAccessProvider effectiveAccessProvider,
+        List<RAA_IReasonAnalyzer> analyzers,
+        RAA_ContextBuilder contextBuilder,
+        RAA_SettingsService settings
+    ) {
         this.effectiveAccessProvider = effectiveAccessProvider;
         this.analyzers = analyzers;
         this.contextBuilder = contextBuilder;
@@ -39,14 +47,14 @@ public without sharing class RAA_ReasonAggregator {
 
     private static List<RAA_IReasonAnalyzer> defaultAnalyzers() {
         return new List<RAA_IReasonAnalyzer>{
-                new RAA_OwnershipAnalyzer(),
-                new RAA_RoleHierarchyAnalyzer(),
-                new RAA_ShareRowAnalyzer(),
-                new RAA_PermissionAnalyzer(),
-                new RAA_TeamAnalyzer(),
-                new RAA_TerritoryAnalyzer(),
-                new RAA_ParentControlledAnalyzer(),
-                new RAA_OrgWideDefaultAnalyzer()
+            new RAA_OwnershipAnalyzer(),
+            new RAA_RoleHierarchyAnalyzer(),
+            new RAA_ShareRowAnalyzer(),
+            new RAA_PermissionAnalyzer(),
+            new RAA_TeamAnalyzer(),
+            new RAA_TerritoryAnalyzer(),
+            new RAA_ParentControlledAnalyzer(),
+            new RAA_OrgWideDefaultAnalyzer()
         };
     }
 
@@ -58,7 +66,10 @@ public without sharing class RAA_ReasonAggregator {
 
         RAA_AnalysisContext context = contextBuilder.buildTopLevelContext(recordId, settings);
 
-        Map<Id, RAA_EffectiveAccessResult> effectiveAccessMap = effectiveAccessProvider.getEffectiveAccess(recordId, userIds);
+        Map<Id, RAA_EffectiveAccessResult> effectiveAccessMap = effectiveAccessProvider.getEffectiveAccess(
+            recordId,
+            userIds
+        );
         Set<Id> usersWithAccess = new Set<Id>();
         for (Id userId : effectiveAccessMap.keySet()) {
             if (effectiveAccessMap.get(userId).hasAnyAccess()) {

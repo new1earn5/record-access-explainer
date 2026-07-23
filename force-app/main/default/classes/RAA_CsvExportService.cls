@@ -5,15 +5,33 @@
  * embedded double quotes doubled.
  */
 public with sharing class RAA_CsvExportService {
-
     private static final List<String> RESULT_HEADERS = new List<String>{
-            'User', 'Username', 'Active', 'User Type', 'Profile', 'Max Access', 'Read', 'Edit',
-            'Delete', 'Transfer', 'All Access', 'Reason Summary', 'Confidence'
+        'User',
+        'Username',
+        'Active',
+        'User Type',
+        'Profile',
+        'Max Access',
+        'Read',
+        'Edit',
+        'Delete',
+        'Transfer',
+        'All Access',
+        'Reason Summary',
+        'Confidence'
     };
 
     private static final List<String> REASON_HEADERS = new List<String>{
-            'User', 'Username', 'Category', 'Access Level', 'Confidence', 'Direct', 'Source',
-            'Row Cause', 'Grant Path', 'Explanation'
+        'User',
+        'Username',
+        'Category',
+        'Access Level',
+        'Confidence',
+        'Direct',
+        'Source',
+        'Row Cause',
+        'Grant Path',
+        'Explanation'
     };
 
     public String buildResultsCsv(List<RAA_AccessResultDTO> results) {
@@ -21,11 +39,19 @@ public with sharing class RAA_CsvExportService {
         if (results != null) {
             for (RAA_AccessResultDTO result : results) {
                 List<String> row = new List<String>{
-                        escape(result.userFullName), escape(result.username), String.valueOf(result.isActive),
-                        escape(result.userType), escape(result.profileName), escape(result.maxAccessLevel),
-                        String.valueOf(result.hasReadAccess), String.valueOf(result.hasEditAccess),
-                        String.valueOf(result.hasDeleteAccess), String.valueOf(result.hasTransferAccess),
-                        String.valueOf(result.hasAllAccess), escape(result.reasonSummary), escape(result.overallConfidence)
+                    escape(result.userFullName),
+                    escape(result.username),
+                    String.valueOf(result.isActive),
+                    escape(result.userType),
+                    escape(result.profileName),
+                    escape(result.maxAccessLevel),
+                    String.valueOf(result.hasReadAccess),
+                    String.valueOf(result.hasEditAccess),
+                    String.valueOf(result.hasDeleteAccess),
+                    String.valueOf(result.hasTransferAccess),
+                    String.valueOf(result.hasAllAccess),
+                    escape(result.reasonSummary),
+                    escape(result.overallConfidence)
                 };
                 lines.add(String.join(row, ','));
             }
@@ -42,9 +68,16 @@ public with sharing class RAA_CsvExportService {
                 }
                 for (RAA_AccessReasonDTO reason : result.reasons) {
                     List<String> row = new List<String>{
-                            escape(result.userFullName), escape(result.username), escape(reason.category),
-                            escape(reason.accessLevel), escape(reason.confidence), String.valueOf(reason.isDirect),
-                            escape(reason.sourceName), escape(reason.rowCause), escape(reason.grantPath), escape(reason.explanation)
+                        escape(result.userFullName),
+                        escape(result.username),
+                        escape(reason.category),
+                        escape(reason.accessLevel),
+                        escape(reason.confidence),
+                        String.valueOf(reason.isDirect),
+                        escape(reason.sourceName),
+                        escape(reason.rowCause),
+                        escape(reason.grantPath),
+                        escape(reason.explanation)
                     };
                     lines.add(String.join(row, ','));
                 }
@@ -57,7 +90,11 @@ public with sharing class RAA_CsvExportService {
         if (value == null) {
             return '';
         }
-        Boolean needsQuoting = value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r');
+        Boolean needsQuoting =
+            value.contains(',') ||
+            value.contains('"') ||
+            value.contains('\n') ||
+            value.contains('\r');
         String escaped = value.replace('"', '""');
         return needsQuoting ? '"' + escaped + '"' : escaped;
     }

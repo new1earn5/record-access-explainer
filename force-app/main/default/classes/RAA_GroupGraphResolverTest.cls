@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_GroupGraphResolverTest {
-
     @TestSetup
     static void setup() {
         User u = RAA_TestDataFactory.createUser('Nested', 'Member');
@@ -20,8 +19,8 @@ private class RAA_GroupGraphResolverTest {
         Group outerGroup = [SELECT Id, Name FROM Group WHERE Name = 'RAA Outer Group' LIMIT 1];
 
         Test.startTest();
-        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver().resolvePaths(
-                new Set<Id>{ outerGroup.Id }, new Set<Id>{ u.Id }, 6);
+        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver()
+            .resolvePaths(new Set<Id>{ outerGroup.Id }, new Set<Id>{ u.Id }, 6);
         Test.stopTest();
 
         System.assert(paths.containsKey(u.Id), 'The nested member should be reachable from the outer group.');
@@ -37,8 +36,8 @@ private class RAA_GroupGraphResolverTest {
         User u = [SELECT Id FROM User WHERE LastName = 'Member' LIMIT 1];
         Group outerGroup = [SELECT Id FROM Group WHERE Name = 'RAA Outer Group' LIMIT 1];
 
-        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver().resolvePaths(
-                new Set<Id>{ outerGroup.Id }, new Set<Id>{ u.Id }, 1);
+        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver()
+            .resolvePaths(new Set<Id>{ outerGroup.Id }, new Set<Id>{ u.Id }, 1);
 
         System.assert(!paths.containsKey(u.Id), 'A max depth of 1 should not reach a user two levels down.');
     }
@@ -56,22 +55,26 @@ private class RAA_GroupGraphResolverTest {
         insert new List<Group>{ top, left, right, bottom };
 
         insert new List<GroupMember>{
-                new GroupMember(GroupId = top.Id, UserOrGroupId = left.Id),
-                new GroupMember(GroupId = top.Id, UserOrGroupId = right.Id),
-                new GroupMember(GroupId = left.Id, UserOrGroupId = bottom.Id),
-                new GroupMember(GroupId = right.Id, UserOrGroupId = bottom.Id)
+            new GroupMember(GroupId = top.Id, UserOrGroupId = left.Id),
+            new GroupMember(GroupId = top.Id, UserOrGroupId = right.Id),
+            new GroupMember(GroupId = left.Id, UserOrGroupId = bottom.Id),
+            new GroupMember(GroupId = right.Id, UserOrGroupId = bottom.Id)
         };
 
         User u = RAA_TestDataFactory.createUser('Diamond', 'Member');
         insert new GroupMember(GroupId = bottom.Id, UserOrGroupId = u.Id);
 
         Test.startTest();
-        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver().resolvePaths(
-                new Set<Id>{ top.Id }, new Set<Id>{ u.Id }, 10);
+        Map<Id, List<RAA_GroupPathDTO>> paths = new RAA_GroupGraphResolver()
+            .resolvePaths(new Set<Id>{ top.Id }, new Set<Id>{ u.Id }, 10);
         Test.stopTest();
 
         System.assert(paths.containsKey(u.Id), 'The user reachable through the diamond should be found.');
-        System.assertEquals(1, paths.get(u.Id).size(), 'Only one path should be recorded even though the user is reachable via two branches.');
+        System.assertEquals(
+            1,
+            paths.get(u.Id).size(),
+            'Only one path should be recorded even though the user is reachable via two branches.'
+        );
     }
 
     @IsTest

@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_SharingRecalculationCheckerTest {
-
     @IsTest
     static void returnsFalseWhenNoRecalculationJobIsRunning() {
         Test.startTest();

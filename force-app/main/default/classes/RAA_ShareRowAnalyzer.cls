@@ -7,7 +7,6 @@
  * covering every group referenced by any share row, not one call per row.
  */
 public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer {
-
     private final RAA_GroupGraphResolver groupResolver;
 
     public RAA_ShareRowAnalyzer() {
@@ -40,7 +39,11 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
             }
         }
 
-        Map<Id, List<RAA_GroupPathDTO>> groupPaths = groupResolver.resolvePaths(groupPrincipalIds, userIds, context.maxGroupDepth);
+        Map<Id, List<RAA_GroupPathDTO>> groupPaths = groupResolver.resolvePaths(
+            groupPrincipalIds,
+            userIds,
+            context.maxGroupDepth
+        );
         Map<Id, Group> groupInfo = groupResolver.describeGroups(groupPrincipalIds);
 
         for (SObject row : context.shareRows) {
@@ -74,7 +77,11 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
                     if (path.principalId != principalId) {
                         continue;
                     }
-                    addReason(results, userId, buildGroupReason(context, path, accessLevel, rowCause, groupInfo.get(principalId)));
+                    addReason(
+                        results,
+                        userId,
+                        buildGroupReason(context, path, accessLevel, rowCause, groupInfo.get(principalId))
+                    );
                 }
             }
         }
@@ -82,7 +89,12 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
         return results;
     }
 
-    private RAA_AccessReasonDTO buildDirectUserReason(RAA_AnalysisContext context, Id userId, String accessLevel, String rowCause) {
+    private RAA_AccessReasonDTO buildDirectUserReason(
+        RAA_AnalysisContext context,
+        Id userId,
+        String accessLevel,
+        String rowCause
+    ) {
         RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
         reason.category = 'Direct Share';
         reason.accessLevel = accessLevel;
@@ -96,14 +108,25 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
         reason.rowCause = rowCause;
         reason.grantPath = context.prefixedPath('Direct Share -> User');
         reason.explanation = rowCause == 'Manual'
-                ? 'A manual share row grants this user direct access to the record.'
-                : 'A share row (RowCause = "' + rowCause + '") grants this user direct access to the record.';
-        reason.evidence = 'Share object: ' + context.shareObjectApiName + '; RowCause: ' + rowCause + '; AccessLevel: ' + accessLevel;
+            ? 'A manual share row grants this user direct access to the record.'
+            : 'A share row (RowCause = "' + rowCause + '") grants this user direct access to the record.';
+        reason.evidence =
+            'Share object: ' +
+            context.shareObjectApiName +
+            '; RowCause: ' +
+            rowCause +
+            '; AccessLevel: ' +
+            accessLevel;
         return reason;
     }
 
-    private RAA_AccessReasonDTO buildGroupReason(RAA_AnalysisContext context, RAA_GroupPathDTO path, String accessLevel,
-            String rowCause, Group principalGroup) {
+    private RAA_AccessReasonDTO buildGroupReason(
+        RAA_AnalysisContext context,
+        RAA_GroupPathDTO path,
+        String accessLevel,
+        String rowCause,
+        Group principalGroup
+    ) {
         RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
         Boolean isRule = rowCause == 'Rule';
         Boolean isImplicit = rowCause == 'ImplicitChild' || rowCause == 'ImplicitParent';
@@ -121,17 +144,33 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
         reason.grantPath = context.prefixedPath(path.renderPath('User'));
 
         if (isRule) {
-            reason.explanation = 'Sharing rule; exact rule name unavailable from the share row. The rule shares the record '
-                    + 'with "' + path.principalName + '", of which this user is a member (directly or through nested group membership).';
+            reason.explanation =
+                'Sharing rule; exact rule name unavailable from the share row. The rule shares the record ' +
+                'with "' +
+                path.principalName +
+                '", of which this user is a member (directly or through nested group membership).';
         } else if (isImplicit) {
-            reason.explanation = 'An implicit share row (RowCause = "' + rowCause + '") grants access to "' + path.principalName
-                    + '", of which this user is a member. Implicit sharing typically reflects related-record access such as an Account\'s implicit child/parent relationships.';
+            reason.explanation =
+                'An implicit share row (RowCause = "' +
+                rowCause +
+                '") grants access to "' +
+                path.principalName +
+                '", of which this user is a member. Implicit sharing typically reflects related-record access such as an Account\'s implicit child/parent relationships.';
         } else {
-            reason.explanation = 'A share row grants access to "' + path.principalName
-                    + '", of which this user is a member (directly or through nested group membership).';
+            reason.explanation =
+                'A share row grants access to "' +
+                path.principalName +
+                '", of which this user is a member (directly or through nested group membership).';
         }
-        reason.evidence = 'Share object: ' + context.shareObjectApiName + '; RowCause: ' + rowCause
-                + '; AccessLevel: ' + accessLevel + '; Principal: ' + path.principalId;
+        reason.evidence =
+            'Share object: ' +
+            context.shareObjectApiName +
+            '; RowCause: ' +
+            rowCause +
+            '; AccessLevel: ' +
+            accessLevel +
+            '; Principal: ' +
+            path.principalId;
         return reason;
     }
 

@@ -12,8 +12,15 @@ public class RAA_EffectiveAccessResult {
     public Boolean hasAllAccess;
     public String maxAccessLevel;
 
-    public RAA_EffectiveAccessResult(Id userId, Boolean hasReadAccess, Boolean hasEditAccess, Boolean hasDeleteAccess,
-            Boolean hasTransferAccess, Boolean hasAllAccess, String maxAccessLevel) {
+    public RAA_EffectiveAccessResult(
+        Id userId,
+        Boolean hasReadAccess,
+        Boolean hasEditAccess,
+        Boolean hasDeleteAccess,
+        Boolean hasTransferAccess,
+        Boolean hasAllAccess,
+        String maxAccessLevel
+    ) {
         this.userId = userId;
         this.hasReadAccess = hasReadAccess;
         this.hasEditAccess = hasEditAccess;
@@ -24,7 +31,10 @@ public class RAA_EffectiveAccessResult {
     }
 
     public Boolean hasAnyAccess() {
-        return hasReadAccess == true || hasEditAccess == true || hasDeleteAccess == true
-                || hasTransferAccess == true || hasAllAccess == true;
+        return hasReadAccess == true ||
+            hasEditAccess == true ||
+            hasDeleteAccess == true ||
+            hasTransferAccess == true ||
+            hasAllAccess == true;
     }
 }

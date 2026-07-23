@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_UserPopulationBuilderTest {
-
     @TestSetup
     static void setup() {
         User active = RAA_TestDataFactory.createUser('Pop', 'Active');
@@ -31,7 +30,10 @@ private class RAA_UserPopulationBuilderTest {
 
         Set<Id> population = new RAA_UserPopulationBuilder().buildPopulation(filter, 0);
 
-        System.assert(population.contains(inactive.Id), 'Setting includeInactiveUsers should add inactive users back into scope.');
+        System.assert(
+            population.contains(inactive.Id),
+            'Setting includeInactiveUsers should add inactive users back into scope.'
+        );
     }
 
     @IsTest
@@ -43,7 +45,10 @@ private class RAA_UserPopulationBuilderTest {
             new RAA_UserPopulationBuilder().buildPopulation(filter, 1);
             System.assert(false, 'Expected an exception when the population exceeds the configured maximum.');
         } catch (RAA_AppException e) {
-            System.assert(e.getMessage().contains('exceeds the configured maximum'), 'Message should explain the limit was exceeded.');
+            System.assert(
+                e.getMessage().contains('exceeds the configured maximum'),
+                'Message should explain the limit was exceeded.'
+            );
         }
     }
 
@@ -54,6 +59,9 @@ private class RAA_UserPopulationBuilderTest {
 
         Set<Id> population = new RAA_UserPopulationBuilder().buildPopulation(filter, 0);
 
-        System.assert(population.size() >= 1, 'A maximum of zero should not throw and should return the full population.');
+        System.assert(
+            population.size() >= 1,
+            'A maximum of zero should not throw and should return the full population.'
+        );
     }
 }

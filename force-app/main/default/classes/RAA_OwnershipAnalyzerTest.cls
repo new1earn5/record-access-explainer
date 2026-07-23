@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_OwnershipAnalyzerTest {
-
     @TestSetup
     static void setup() {
         RAA_TestDataFactory.createUser('Owner', 'Direct');
@@ -20,7 +19,8 @@ private class RAA_OwnershipAnalyzerTest {
         context.ownerId = owner.Id;
 
         Test.startTest();
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer().analyze(context, new Set<Id>{ owner.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer()
+            .analyze(context, new Set<Id>{ owner.Id });
         Test.stopTest();
 
         System.assert(results.containsKey(owner.Id), 'The owner should have an ownership reason.');
@@ -39,7 +39,8 @@ private class RAA_OwnershipAnalyzerTest {
         context.maxGroupDepth = 6;
 
         Test.startTest();
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer().analyze(context, new Set<Id>{ member.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer()
+            .analyze(context, new Set<Id>{ member.Id });
         Test.stopTest();
 
         System.assert(results.containsKey(member.Id), 'The queue member should have an ownership reason.');
@@ -55,15 +56,20 @@ private class RAA_OwnershipAnalyzerTest {
         RAA_AnalysisContext context = new RAA_AnalysisContext();
         context.ownerId = owner.Id;
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer().analyze(context, new Set<Id>{ other.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer()
+            .analyze(context, new Set<Id>{ other.Id });
 
-        System.assert(!results.containsKey(other.Id), 'A user unrelated to ownership should not get an ownership reason.');
+        System.assert(
+            !results.containsKey(other.Id),
+            'A user unrelated to ownership should not get an ownership reason.'
+        );
     }
 
     @IsTest
     static void returnsNothingWhenNoOwnerOnContext() {
         RAA_AnalysisContext context = new RAA_AnalysisContext();
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer().analyze(context, new Set<Id>{ UserInfo.getUserId() });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_OwnershipAnalyzer()
+            .analyze(context, new Set<Id>{ UserInfo.getUserId() });
         System.assertEquals(0, results.size(), 'No owner on the context means no ownership reasons.');
     }
 }

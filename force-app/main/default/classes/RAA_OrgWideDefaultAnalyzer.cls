@@ -15,7 +15,6 @@
  * but could not be conclusively retrieved, at Low confidence, rather than guessing a value.
  */
 public without sharing class RAA_OrgWideDefaultAnalyzer implements RAA_IReasonAnalyzer {
-
     public String getAnalyzerName() {
         return 'Organization-Wide Default';
     }
@@ -50,8 +49,9 @@ public without sharing class RAA_OrgWideDefaultAnalyzer implements RAA_IReasonAn
         reason.principalType = 'AllInternalUsers';
         reason.rowCause = null;
         reason.grantPath = context.prefixedPath('Organization-Wide Default (unknown) -> User');
-        reason.explanation = 'Baseline sharing access may be involved, but the organization-wide default could not be '
-                + 'conclusively retrieved through the supported Apex implementation.';
+        reason.explanation =
+            'Baseline sharing access may be involved, but the organization-wide default could not be ' +
+            'conclusively retrieved through the supported Apex implementation.';
         reason.evidence = 'No supported Apex/Schema/SOQL API exposes the OWD value for ' + context.objectApiName + '.';
         return reason;
     }

@@ -3,23 +3,40 @@
  * together with every detected reason for that user.
  */
 public class RAA_AccessResultDTO {
-    @AuraEnabled public String recordId;
-    @AuraEnabled public String userId;
-    @AuraEnabled public String userFullName;
-    @AuraEnabled public String username;
-    @AuraEnabled public String userType;
-    @AuraEnabled public String profileName;
-    @AuraEnabled public Boolean isActive;
-    @AuraEnabled public String maxAccessLevel;
-    @AuraEnabled public Boolean hasReadAccess;
-    @AuraEnabled public Boolean hasEditAccess;
-    @AuraEnabled public Boolean hasDeleteAccess;
-    @AuraEnabled public Boolean hasTransferAccess;
-    @AuraEnabled public Boolean hasAllAccess;
-    @AuraEnabled public String reasonSummary;
-    @AuraEnabled public String overallConfidence;
-    @AuraEnabled public Boolean hasUnresolvedReason;
-    @AuraEnabled public List<RAA_AccessReasonDTO> reasons;
+    @AuraEnabled
+    public String recordId;
+    @AuraEnabled
+    public String userId;
+    @AuraEnabled
+    public String userFullName;
+    @AuraEnabled
+    public String username;
+    @AuraEnabled
+    public String userType;
+    @AuraEnabled
+    public String profileName;
+    @AuraEnabled
+    public Boolean isActive;
+    @AuraEnabled
+    public String maxAccessLevel;
+    @AuraEnabled
+    public Boolean hasReadAccess;
+    @AuraEnabled
+    public Boolean hasEditAccess;
+    @AuraEnabled
+    public Boolean hasDeleteAccess;
+    @AuraEnabled
+    public Boolean hasTransferAccess;
+    @AuraEnabled
+    public Boolean hasAllAccess;
+    @AuraEnabled
+    public String reasonSummary;
+    @AuraEnabled
+    public String overallConfidence;
+    @AuraEnabled
+    public Boolean hasUnresolvedReason;
+    @AuraEnabled
+    public List<RAA_AccessReasonDTO> reasons;
 
     public RAA_AccessResultDTO() {
         this.reasons = new List<RAA_AccessReasonDTO>();

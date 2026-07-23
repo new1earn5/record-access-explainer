@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_UserRecordAccessProviderTest {
-
     @IsTest
     static void ownerHasEffectiveAccessAccordingToUserRecordAccess() {
         Account acct = new Account(Name = 'RAA URA Provider Account');
@@ -8,7 +7,7 @@ private class RAA_UserRecordAccessProviderTest {
 
         Test.startTest();
         Map<Id, RAA_EffectiveAccessResult> results = new RAA_UserRecordAccessProvider()
-                .getEffectiveAccess(acct.Id, new Set<Id>{ UserInfo.getUserId() });
+            .getEffectiveAccess(acct.Id, new Set<Id>{ UserInfo.getUserId() });
         Test.stopTest();
 
         System.assert(results.containsKey(UserInfo.getUserId()), 'The owner should have a UserRecordAccess row.');

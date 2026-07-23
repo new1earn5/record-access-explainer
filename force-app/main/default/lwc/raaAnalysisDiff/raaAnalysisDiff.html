@@ -1,54 +1,132 @@
 <template>
-    <section class="raa-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="raa-diff-heading" onclick={handleClose}>
-        <div class="slds-modal slds-fade-in-open slds-modal_medium raa-modal" onclick={handleStopPropagation}>
+    <section
+        class="raa-modal-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="raa-diff-heading"
+        onclick={handleClose}
+    >
+        <div
+            class="slds-modal slds-fade-in-open slds-modal_medium raa-modal"
+            onclick={handleStopPropagation}
+        >
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
-                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleClose}>
-                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    <button
+                        class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close"
+                        onclick={handleClose}
+                    >
+                        <lightning-icon
+                            icon-name="utility:close"
+                            size="small"
+                            variant="inverse"
+                        ></lightning-icon>
                         <span class="slds-assistive-text">Close</span>
                     </button>
-                    <h2 id="raa-diff-heading" class="slds-text-heading_medium">Compared to previous scan of {recordDisplayName}</h2>
+                    <h2 id="raa-diff-heading" class="slds-text-heading_medium">
+                        Compared to previous scan of {recordDisplayName}
+                    </h2>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
                     <template if:true={isLoading}>
-                        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+                        <lightning-spinner
+                            alternative-text="Loading"
+                            size="medium"
+                        ></lightning-spinner>
                     </template>
                     <template if:true={errorMessage}>
-                        <div class="slds-notify slds-notify_alert slds-theme_error" role="alert">{errorMessage}</div>
+                        <div
+                            class="slds-notify slds-notify_alert slds-theme_error"
+                            role="alert"
+                        >
+                            {errorMessage}
+                        </div>
                     </template>
                     <template if:true={noPreviousAnalysis}>
-                        <p class="slds-text-body_regular">There is no earlier completed scan of this record to compare against.</p>
+                        <p class="slds-text-body_regular">
+                            There is no earlier completed scan of this record to
+                            compare against.
+                        </p>
                     </template>
                     <template if:true={hasNoChanges}>
-                        <p class="slds-text-body_regular">No differences were found since the previous scan.</p>
+                        <p class="slds-text-body_regular">
+                            No differences were found since the previous scan.
+                        </p>
                     </template>
                     <template if:true={hasChanges}>
-                        <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
-                            {diff.usersAdded} gained access &middot; {diff.usersRemoved} lost access &middot; {diff.usersChanged} changed
+                        <p
+                            class="slds-text-body_small slds-text-color_weak slds-m-bottom_small"
+                        >
+                            {diff.usersAdded} gained access &middot;
+                            {diff.usersRemoved} lost access &middot;
+                            {diff.usersChanged} changed
                         </p>
                         <template for:each={diff.changes} for:item="change">
-                            <article key={change.key} class="slds-box slds-box_x-small slds-m-bottom_small">
+                            <article
+                                key={change.key}
+                                class="slds-box slds-box_x-small slds-m-bottom_small"
+                            >
                                 <div class="slds-grid slds-grid_align-spread">
-                                    <span class="slds-text-heading_small">{change.userFullName}</span>
-                                    <span class={change.badgeClass}>{change.changeType}</span>
+                                    <span class="slds-text-heading_small"
+                                        >{change.userFullName}</span
+                                    >
+                                    <span class={change.badgeClass}
+                                        >{change.changeType}</span
+                                    >
                                 </div>
-                                <p class="slds-text-body_small slds-text-color_weak">{change.username}</p>
-                                <dl class="slds-list_horizontal slds-wrap slds-m-top_x-small">
-                                    <dt class="slds-item_label slds-text-color_weak raa-dt">Previous access</dt>
-                                    <dd class="slds-item_detail raa-dd">{change.previousMaxAccessLevel}</dd>
-                                    <dt class="slds-item_label slds-text-color_weak raa-dt">Current access</dt>
-                                    <dd class="slds-item_detail raa-dd">{change.currentMaxAccessLevel}</dd>
-                                    <dt class="slds-item_label slds-text-color_weak raa-dt">Previous reasons</dt>
-                                    <dd class="slds-item_detail raa-dd">{change.previousReasonSummary}</dd>
-                                    <dt class="slds-item_label slds-text-color_weak raa-dt">Current reasons</dt>
-                                    <dd class="slds-item_detail raa-dd">{change.currentReasonSummary}</dd>
+                                <p
+                                    class="slds-text-body_small slds-text-color_weak"
+                                >
+                                    {change.username}
+                                </p>
+                                <dl
+                                    class="slds-list_horizontal slds-wrap slds-m-top_x-small"
+                                >
+                                    <dt
+                                        class="slds-item_label slds-text-color_weak raa-dt"
+                                    >
+                                        Previous access
+                                    </dt>
+                                    <dd class="slds-item_detail raa-dd">
+                                        {change.previousMaxAccessLevel}
+                                    </dd>
+                                    <dt
+                                        class="slds-item_label slds-text-color_weak raa-dt"
+                                    >
+                                        Current access
+                                    </dt>
+                                    <dd class="slds-item_detail raa-dd">
+                                        {change.currentMaxAccessLevel}
+                                    </dd>
+                                    <dt
+                                        class="slds-item_label slds-text-color_weak raa-dt"
+                                    >
+                                        Previous reasons
+                                    </dt>
+                                    <dd class="slds-item_detail raa-dd">
+                                        {change.previousReasonSummary}
+                                    </dd>
+                                    <dt
+                                        class="slds-item_label slds-text-color_weak raa-dt"
+                                    >
+                                        Current reasons
+                                    </dt>
+                                    <dd class="slds-item_detail raa-dd">
+                                        {change.currentReasonSummary}
+                                    </dd>
                                 </dl>
                             </article>
                         </template>
                     </template>
                 </div>
                 <footer class="slds-modal__footer">
-                    <button class="slds-button slds-button_brand" onclick={handleClose}>Close</button>
+                    <button
+                        class="slds-button slds-button_brand"
+                        onclick={handleClose}
+                    >
+                        Close
+                    </button>
                 </footer>
             </div>
         </div>

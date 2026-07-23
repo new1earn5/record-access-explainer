@@ -5,7 +5,6 @@
  */
 @IsTest
 public class RAA_FakeEffectiveAccessProvider implements RAA_IEffectiveAccessProvider {
-
     private final Map<Id, RAA_EffectiveAccessResult> canned;
 
     public RAA_FakeEffectiveAccessProvider(Map<Id, RAA_EffectiveAccessResult> canned) {

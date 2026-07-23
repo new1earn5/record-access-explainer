@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_BulkScanQueueableTest {
-
     @IsTest
     static void dispatchesAScanForEachRecordAndCompletesTheBatchRun() {
         Account acctOne = new Account(Name = 'RAA Bulk Account 1');
@@ -8,10 +7,25 @@ private class RAA_BulkScanQueueableTest {
         insert new List<Account>{ acctOne, acctTwo };
 
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id batchRunId = repo.createBatchRun('Account', 2, acctOne.Id + '\n' + acctTwo.Id, UserInfo.getUserId(), false, false);
+        Id batchRunId = repo.createBatchRun(
+            'Account',
+            2,
+            acctOne.Id + '\n' + acctTwo.Id,
+            UserInfo.getUserId(),
+            false,
+            false
+        );
 
         Test.startTest();
-        System.enqueueJob(new RAA_BulkScanQueueable(new List<Id>{ acctOne.Id, acctTwo.Id }, batchRunId, UserInfo.getUserId(), false, false));
+        System.enqueueJob(
+            new RAA_BulkScanQueueable(
+                new List<Id>{ acctOne.Id, acctTwo.Id },
+                batchRunId,
+                UserInfo.getUserId(),
+                false,
+                false
+            )
+        );
         Test.stopTest();
 
         List<RAA_Analysis__c> children = repo.getAnalysesForBatchRun(batchRunId);
@@ -35,7 +49,9 @@ private class RAA_BulkScanQueueableTest {
         Id batchRunId = repo.createBatchRun('Account', 2, validId + '\n' + bogusId, UserInfo.getUserId(), false, false);
 
         Test.startTest();
-        System.enqueueJob(new RAA_BulkScanQueueable(new List<Id>{ validId, bogusId }, batchRunId, UserInfo.getUserId(), false, false));
+        System.enqueueJob(
+            new RAA_BulkScanQueueable(new List<Id>{ validId, bogusId }, batchRunId, UserInfo.getUserId(), false, false)
+        );
         Test.stopTest();
 
         List<RAA_Analysis__c> children = repo.getAnalysesForBatchRun(batchRunId);
@@ -47,7 +63,10 @@ private class RAA_BulkScanQueueableTest {
                 foundFailed = true;
             }
         }
-        System.assert(foundFailed, 'The bogus record ID should have produced a Failed child analysis, not aborted the run.');
+        System.assert(
+            foundFailed,
+            'The bogus record ID should have produced a Failed child analysis, not aborted the run.'
+        );
     }
 
     @IsTest
@@ -64,7 +83,14 @@ private class RAA_BulkScanQueueableTest {
         }
 
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id batchRunId = repo.createBatchRun('Account', recordIds.size(), String.join(recordIds, '\n'), UserInfo.getUserId(), false, false);
+        Id batchRunId = repo.createBatchRun(
+            'Account',
+            recordIds.size(),
+            String.join(recordIds, '\n'),
+            UserInfo.getUserId(),
+            false,
+            false
+        );
 
         List<Id> firstChunk = new List<Id>();
         List<Id> secondChunk = new List<Id>();
@@ -82,6 +108,10 @@ private class RAA_BulkScanQueueableTest {
         Test.stopTest();
 
         List<RAA_Analysis__c> children = repo.getAnalysesForBatchRun(batchRunId);
-        System.assertEquals(recordIds.size(), children.size(), 'Every record should eventually get an analysis, even across chained queueable executions.');
+        System.assertEquals(
+            recordIds.size(),
+            children.size(),
+            'Every record should eventually get an analysis, even across chained queueable executions.'
+        );
     }
 }

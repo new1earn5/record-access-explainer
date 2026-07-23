@@ -18,7 +18,6 @@
  * be treated as the group's nominal (not necessarily muting-adjusted) effective permissions.
  */
 public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyzer {
-
     public String getAnalyzerName() {
         return 'Permissions';
     }
@@ -30,10 +29,16 @@ public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyz
         }
 
         List<PermissionSetAssignment> assignments = [
-            SELECT AssigneeId, PermissionSetId, PermissionSetGroupId,
-                   PermissionSet.Label, PermissionSet.IsOwnedByProfile, PermissionSet.Profile.Name,
-                   PermissionSet.PermissionsViewAllData, PermissionSet.PermissionsModifyAllData,
-                   PermissionSetGroup.MasterLabel
+            SELECT
+                AssigneeId,
+                PermissionSetId,
+                PermissionSetGroupId,
+                PermissionSet.Label,
+                PermissionSet.IsOwnedByProfile,
+                PermissionSet.Profile.Name,
+                PermissionSet.PermissionsViewAllData,
+                PermissionSet.PermissionsModifyAllData,
+                PermissionSetGroup.MasterLabel
             FROM PermissionSetAssignment
             WHERE AssigneeId IN :userIds
         ];
@@ -48,11 +53,15 @@ public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyz
 
         Map<Id, ObjectPermissions> objectPermsBySetId = new Map<Id, ObjectPermissions>();
         for (ObjectPermissions op : [
-            SELECT ParentId, PermissionsRead, PermissionsEdit, PermissionsDelete,
-                   PermissionsViewAllRecords, PermissionsModifyAllRecords
+            SELECT
+                ParentId,
+                PermissionsRead,
+                PermissionsEdit,
+                PermissionsDelete,
+                PermissionsViewAllRecords,
+                PermissionsModifyAllRecords
             FROM ObjectPermissions
-            WHERE ParentId IN :permissionSetIds
-            AND SobjectType = :context.objectApiName
+            WHERE ParentId IN :permissionSetIds AND SobjectType = :context.objectApiName
         ]) {
             objectPermsBySetId.put(op.ParentId, op);
         }
@@ -76,16 +85,38 @@ public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyz
             }
 
             if (psa.PermissionSet.PermissionsViewAllData) {
-                addReason(results, psa.AssigneeId, buildReason(context, 'Permission', 'Full Access (organization-wide)', 'High', isDirect,
-                        sourceName, psa.PermissionSetId,
+                addReason(
+                    results,
+                    psa.AssigneeId,
+                    buildReason(
+                        context,
+                        'Permission',
+                        'Full Access (organization-wide)',
+                        'High',
+                        isDirect,
+                        sourceName,
+                        psa.PermissionSetId,
                         'View All Data from ' + sourceName + '.',
-                        'This permission bypasses record-level sharing entirely for all objects.'));
+                        'This permission bypasses record-level sharing entirely for all objects.'
+                    )
+                );
             }
             if (psa.PermissionSet.PermissionsModifyAllData) {
-                addReason(results, psa.AssigneeId, buildReason(context, 'Permission', 'Full Access (organization-wide)', 'High', isDirect,
-                        sourceName, psa.PermissionSetId,
+                addReason(
+                    results,
+                    psa.AssigneeId,
+                    buildReason(
+                        context,
+                        'Permission',
+                        'Full Access (organization-wide)',
+                        'High',
+                        isDirect,
+                        sourceName,
+                        psa.PermissionSetId,
                         'Modify All Data from ' + sourceName + '.',
-                        'This permission bypasses record-level sharing entirely for all objects, including delete and transfer.'));
+                        'This permission bypasses record-level sharing entirely for all objects, including delete and transfer.'
+                    )
+                );
             }
 
             ObjectPermissions op = objectPermsBySetId.get(psa.PermissionSetId);
@@ -93,24 +124,55 @@ public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyz
                 continue;
             }
             if (op.PermissionsViewAllRecords) {
-                addReason(results, psa.AssigneeId, buildReason(context, 'Permission', 'Read (object-wide)', 'High', isDirect,
-                        sourceName, psa.PermissionSetId,
+                addReason(
+                    results,
+                    psa.AssigneeId,
+                    buildReason(
+                        context,
+                        'Permission',
+                        'Read (object-wide)',
+                        'High',
+                        isDirect,
+                        sourceName,
+                        psa.PermissionSetId,
                         'View All Records on ' + context.objectApiName + ' from ' + sourceName + '.',
-                        'This permission bypasses record-level sharing for this object only.'));
+                        'This permission bypasses record-level sharing for this object only.'
+                    )
+                );
             }
             if (op.PermissionsModifyAllRecords) {
-                addReason(results, psa.AssigneeId, buildReason(context, 'Permission', 'Edit/Delete (object-wide)', 'High', isDirect,
-                        sourceName, psa.PermissionSetId,
+                addReason(
+                    results,
+                    psa.AssigneeId,
+                    buildReason(
+                        context,
+                        'Permission',
+                        'Edit/Delete (object-wide)',
+                        'High',
+                        isDirect,
+                        sourceName,
+                        psa.PermissionSetId,
                         'Modify All Records on ' + context.objectApiName + ' from ' + sourceName + '.',
-                        'This permission bypasses record-level sharing for this object only, including delete and transfer.'));
+                        'This permission bypasses record-level sharing for this object only, including delete and transfer.'
+                    )
+                );
             }
         }
 
         return results;
     }
 
-    private RAA_AccessReasonDTO buildReason(RAA_AnalysisContext context, String category, String accessLevel, String confidence,
-            Boolean isDirect, String sourceName, Id sourceId, String explanation, String bypassNote) {
+    private RAA_AccessReasonDTO buildReason(
+        RAA_AnalysisContext context,
+        String category,
+        String accessLevel,
+        String confidence,
+        Boolean isDirect,
+        String sourceName,
+        Id sourceId,
+        String explanation,
+        String bypassNote
+    ) {
         RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
         reason.category = category;
         reason.accessLevel = accessLevel;

@@ -5,13 +5,22 @@
  * across potentially hundreds of candidate records (see RAA_UserAccessExplorerService).
  */
 public class RAA_UserRecordAccessSummaryDTO {
-    @AuraEnabled public String recordId;
-    @AuraEnabled public String recordDisplayName;
-    @AuraEnabled public Boolean hasAnyAccess;
-    @AuraEnabled public String maxAccessLevel;
-    @AuraEnabled public Boolean hasReadAccess;
-    @AuraEnabled public Boolean hasEditAccess;
-    @AuraEnabled public Boolean hasDeleteAccess;
-    @AuraEnabled public Boolean hasTransferAccess;
-    @AuraEnabled public Boolean hasAllAccess;
+    @AuraEnabled
+    public String recordId;
+    @AuraEnabled
+    public String recordDisplayName;
+    @AuraEnabled
+    public Boolean hasAnyAccess;
+    @AuraEnabled
+    public String maxAccessLevel;
+    @AuraEnabled
+    public Boolean hasReadAccess;
+    @AuraEnabled
+    public Boolean hasEditAccess;
+    @AuraEnabled
+    public Boolean hasDeleteAccess;
+    @AuraEnabled
+    public Boolean hasTransferAccess;
+    @AuraEnabled
+    public Boolean hasAllAccess;
 }

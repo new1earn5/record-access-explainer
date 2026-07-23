@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_RecordAccessExplainerControllerTest {
-
     @TestSetup
     static void setup() {
         User owner = RAA_TestDataFactory.createUser('Ctrl', 'Owner');
@@ -8,9 +7,9 @@ private class RAA_RecordAccessExplainerControllerTest {
 
         PermissionSet auditorSet = [SELECT Id FROM PermissionSet WHERE Name = 'RAA_Record_Access_Auditor' LIMIT 1];
         insert new List<PermissionSetAssignment>{
-                new PermissionSetAssignment(AssigneeId = UserInfo.getUserId(), PermissionSetId = auditorSet.Id),
-                new PermissionSetAssignment(AssigneeId = owner.Id, PermissionSetId = auditorSet.Id),
-                new PermissionSetAssignment(AssigneeId = otherReader.Id, PermissionSetId = auditorSet.Id)
+            new PermissionSetAssignment(AssigneeId = UserInfo.getUserId(), PermissionSetId = auditorSet.Id),
+            new PermissionSetAssignment(AssigneeId = owner.Id, PermissionSetId = auditorSet.Id),
+            new PermissionSetAssignment(AssigneeId = otherReader.Id, PermissionSetId = auditorSet.Id)
         };
     }
 
@@ -29,8 +28,10 @@ private class RAA_RecordAccessExplainerControllerTest {
         Test.stopTest();
 
         RAA_AnalysisSummaryDTO status = RAA_RecordAccessExplainerController.getAnalysisStatus(summary.analysisId);
-        System.assert(status.status == 'Completed' || status.status == 'Completed with Warnings',
-                'Expected a terminal completed status, got: ' + status.status);
+        System.assert(
+            status.status == 'Completed' || status.status == 'Completed with Warnings',
+            'Expected a terminal completed status, got: ' + status.status
+        );
 
         List<RAA_AccessResultDTO> results = RAA_RecordAccessExplainerController.getResults(summary.analysisId);
         System.assert(!results.isEmpty(), 'Expected at least one result (the owner).');
@@ -108,12 +109,12 @@ private class RAA_RecordAccessExplainerControllerTest {
         Id analysisId;
         System.runAs(owner) {
             RAA_Analysis__c analysis = new RAA_Analysis__c(
-                    RAA_Record_Id__c = owner.Id,
-                    RAA_Object_API_Name__c = 'User',
-                    RAA_Status__c = 'Completed',
-                    RAA_Requested_By__c = owner.Id,
-                    RAA_Requested_At__c = System.now(),
-                    RAA_Is_Complete__c = true
+                RAA_Record_Id__c = owner.Id,
+                RAA_Object_API_Name__c = 'User',
+                RAA_Status__c = 'Completed',
+                RAA_Requested_By__c = owner.Id,
+                RAA_Requested_At__c = System.now(),
+                RAA_Is_Complete__c = true
             );
             insert analysis;
             analysisId = analysis.Id;
@@ -125,7 +126,10 @@ private class RAA_RecordAccessExplainerControllerTest {
                 RAA_RecordAccessExplainerController.getAnalysisStatus(String.valueOf(analysisId));
                 System.assert(false, 'A Private-OWD analysis owned by another standard user should not be visible.');
             } catch (AuraHandledException e) {
-                System.assert(e.getMessage().contains('could not be found'), 'Should not reveal that the record exists.');
+                System.assert(
+                    e.getMessage().contains('could not be found'),
+                    'Should not reveal that the record exists.'
+                );
             }
         }
         Test.stopTest();
@@ -136,7 +140,14 @@ private class RAA_RecordAccessExplainerControllerTest {
         RAA_PermissionChecker.testOverride = true;
 
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Cancel Me', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Cancel Me',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         repo.markBatchStarted(analysisId, '707000000000003AAA', 1);
 
         Test.startTest();
@@ -151,7 +162,14 @@ private class RAA_RecordAccessExplainerControllerTest {
         RAA_PermissionChecker.testOverride = true;
 
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
-        Id analysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Already Done', UserInfo.getUserId(), false, false);
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Already Done',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
         repo.markCompleted(analysisId, false, null);
 
         try {
@@ -184,7 +202,10 @@ private class RAA_RecordAccessExplainerControllerTest {
 
         Test.startTest();
         RAA_BatchRunSummaryDTO summary = RAA_RecordAccessExplainerController.startBulkAnalysis(
-                new List<String>{ String.valueOf(acctOne.Id), String.valueOf(acctTwo.Id) }, false, false);
+            new List<String>{ String.valueOf(acctOne.Id), String.valueOf(acctTwo.Id) },
+            false,
+            false
+        );
         Test.stopTest();
 
         RAA_BatchRunSummaryDTO status = RAA_RecordAccessExplainerController.getBatchRunStatus(summary.batchRunId);
@@ -233,14 +254,24 @@ private class RAA_RecordAccessExplainerControllerTest {
         RAA_AnalysisDiffDTO diff = RAA_RecordAccessExplainerController.getAnalysisDiff(summary.analysisId);
         System.assertEquals(null, diff, 'No previous scan exists yet.');
 
-        List<RAA_FieldAccessDTO> fields = RAA_RecordAccessExplainerController.getFieldAccess(String.valueOf(UserInfo.getUserId()), 'Account');
+        List<RAA_FieldAccessDTO> fields = RAA_RecordAccessExplainerController.getFieldAccess(
+            String.valueOf(UserInfo.getUserId()),
+            'Account'
+        );
         System.assert(!fields.isEmpty());
 
         List<RAA_UserRecordAccessSummaryDTO> accessResults = RAA_RecordAccessExplainerController.scanUserAccess(
-                String.valueOf(UserInfo.getUserId()), 'Account', new List<String>{ String.valueOf(acct.Id) }, null);
+            String.valueOf(UserInfo.getUserId()),
+            'Account',
+            new List<String>{ String.valueOf(acct.Id) },
+            null
+        );
         System.assertEquals(1, accessResults.size());
 
-        List<RAA_AccessReasonDTO> reasons = RAA_RecordAccessExplainerController.getUserAccessReasons(String.valueOf(UserInfo.getUserId()), String.valueOf(acct.Id));
+        List<RAA_AccessReasonDTO> reasons = RAA_RecordAccessExplainerController.getUserAccessReasons(
+            String.valueOf(UserInfo.getUserId()),
+            String.valueOf(acct.Id)
+        );
         System.assert(!reasons.isEmpty());
     }
 
@@ -280,7 +311,12 @@ private class RAA_RecordAccessExplainerControllerTest {
 
         Id subscriptionId;
         System.runAs(owner) {
-            subscriptionId = RAA_RecordAccessExplainerController.createSubscription(String.valueOf(owner.Id), false, false, true);
+            subscriptionId = RAA_RecordAccessExplainerController.createSubscription(
+                String.valueOf(owner.Id),
+                false,
+                false,
+                true
+            );
         }
 
         System.runAs(owner) {

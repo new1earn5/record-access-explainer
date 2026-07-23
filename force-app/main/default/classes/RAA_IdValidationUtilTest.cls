@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_IdValidationUtilTest {
-
     @IsTest
     static void normalizesValid15And18CharIds() {
         Id userId = UserInfo.getUserId();
@@ -21,7 +20,10 @@ private class RAA_IdValidationUtilTest {
             RAA_IdValidationUtil.normalizeRecordId('   ');
             System.assert(false, 'Expected an exception for a blank ID.');
         } catch (RAA_AppException e) {
-            System.assert(e.getMessage().contains('enter a record ID'), 'Message should explain a record ID is required.');
+            System.assert(
+                e.getMessage().contains('enter a record ID'),
+                'Message should explain a record ID is required.'
+            );
         }
     }
 
@@ -31,7 +33,10 @@ private class RAA_IdValidationUtilTest {
             RAA_IdValidationUtil.normalizeRecordId('not-a-valid-id!!');
             System.assert(false, 'Expected an exception for a malformed ID.');
         } catch (RAA_AppException e) {
-            System.assert(e.getMessage().contains('not a valid Salesforce record ID'), 'Message should explain the format is invalid.');
+            System.assert(
+                e.getMessage().contains('not a valid Salesforce record ID'),
+                'Message should explain the format is invalid.'
+            );
         }
     }
 

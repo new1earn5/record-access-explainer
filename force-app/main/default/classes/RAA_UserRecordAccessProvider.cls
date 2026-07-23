@@ -18,7 +18,6 @@
  * @AuraEnabled methods.
  */
 public without sharing class RAA_UserRecordAccessProvider implements RAA_IEffectiveAccessProvider {
-
     public Map<Id, RAA_EffectiveAccessResult> getEffectiveAccess(Id recordId, Set<Id> userIds) {
         Map<Id, RAA_EffectiveAccessResult> results = new Map<Id, RAA_EffectiveAccessResult>();
         if (recordId == null || userIds == null || userIds.isEmpty()) {
@@ -29,17 +28,24 @@ public without sharing class RAA_UserRecordAccessProvider implements RAA_IEffect
             // Intentional per-user query: see class-level comment for why UserRecordAccess
             // cannot be bulk-queried by a list of users for a single record.
             List<UserRecordAccess> rows = [
-                SELECT RecordId, HasReadAccess, HasEditAccess, HasDeleteAccess, HasTransferAccess,
-                       HasAllAccess, MaxAccessLevel
+                SELECT
+                    RecordId,
+                    HasReadAccess,
+                    HasEditAccess,
+                    HasDeleteAccess,
+                    HasTransferAccess,
+                    HasAllAccess,
+                    MaxAccessLevel
                 FROM UserRecordAccess
-                WHERE RecordId = :recordId
-                AND UserId = :userId
+                WHERE RecordId = :recordId AND UserId = :userId
             ];
             if (rows.isEmpty()) {
                 continue;
             }
             UserRecordAccess access = rows[0];
-            results.put(userId, new RAA_EffectiveAccessResult(
+            results.put(
+                userId,
+                new RAA_EffectiveAccessResult(
                     userId,
                     access.HasReadAccess,
                     access.HasEditAccess,
@@ -47,7 +53,8 @@ public without sharing class RAA_UserRecordAccessProvider implements RAA_IEffect
                     access.HasTransferAccess,
                     access.HasAllAccess,
                     access.MaxAccessLevel
-            ));
+                )
+            );
         }
         return results;
     }

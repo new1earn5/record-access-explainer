@@ -2,8 +2,9 @@
     <div class="slds-p-around_medium">
         <template if:true={showForm}>
             <p class="slds-text-body_regular slds-m-bottom_small">
-                Analyze many records of the same object in one submission. Each record is scanned independently and can be
-                reviewed on its own once finished.
+                Analyze many records of the same object in one submission. Each
+                record is scanned independently and can be reviewed on its own
+                once finished.
             </p>
             <lightning-textarea
                 data-id="bulk-record-ids"
@@ -12,30 +13,64 @@
                 onchange={handleRecordIdsChange}
             ></lightning-textarea>
             <template if:true={validationMessage}>
-                <p class="slds-text-color_error slds-m-top_xx-small">{validationMessage}</p>
+                <p class="slds-text-color_error slds-m-top_xx-small">
+                    {validationMessage}
+                </p>
             </template>
             <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
                 <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                    <lightning-input type="checkbox" label="Include active external / Experience Cloud users" checked={includeExternalUsers} onchange={handleIncludeExternalChange}></lightning-input>
+                    <lightning-input
+                        type="checkbox"
+                        label="Include active external / Experience Cloud users"
+                        checked={includeExternalUsers}
+                        onchange={handleIncludeExternalChange}
+                    ></lightning-input>
                 </div>
                 <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                    <lightning-input type="checkbox" label="Include inactive users" checked={includeInactiveUsers} onchange={handleIncludeInactiveChange}></lightning-input>
+                    <lightning-input
+                        type="checkbox"
+                        label="Include inactive users"
+                        checked={includeInactiveUsers}
+                        onchange={handleIncludeInactiveChange}
+                    ></lightning-input>
                 </div>
             </div>
             <div class="slds-m-top_medium">
-                <lightning-button data-id="bulk-start-button" variant="brand" label="Start Bulk Scan" onclick={handleStart} disabled={isStarting}></lightning-button>
+                <lightning-button
+                    data-id="bulk-start-button"
+                    variant="brand"
+                    label="Start Bulk Scan"
+                    onclick={handleStart}
+                    disabled={isStarting}
+                ></lightning-button>
             </div>
         </template>
 
         <template if:true={showResults}>
             <div class="slds-box slds-m-bottom_medium">
-                <p class="slds-text-heading_small">Bulk run status: {batchRun.status}</p>
-                <div class="slds-progress-bar slds-progress-bar_large slds-m-top_small" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent} role="progressbar">
-                    <span class="slds-progress-bar__value" style={progressBarStyle}>
-                        <span class="slds-assistive-text">Progress: {progressPercent}%</span>
+                <p class="slds-text-heading_small">
+                    Bulk run status: {batchRun.status}
+                </p>
+                <div
+                    class="slds-progress-bar slds-progress-bar_large slds-m-top_small"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow={progressPercent}
+                    role="progressbar"
+                >
+                    <span
+                        class="slds-progress-bar__value"
+                        style={progressBarStyle}
+                    >
+                        <span class="slds-assistive-text"
+                            >Progress: {progressPercent}%</span
+                        >
                     </span>
                 </div>
-                <p class="slds-m-top_x-small">{batchRun.completedRecords} / {batchRun.totalRecords} records completed</p>
+                <p class="slds-m-top_x-small">
+                    {batchRun.completedRecords} / {batchRun.totalRecords}
+                    records completed
+                </p>
             </div>
 
             <lightning-datatable
@@ -47,7 +82,10 @@
             ></lightning-datatable>
 
             <div class="slds-m-top_medium">
-                <lightning-button label="New Bulk Scan" onclick={handleNewBulkScan}></lightning-button>
+                <lightning-button
+                    label="New Bulk Scan"
+                    onclick={handleNewBulkScan}
+                ></lightning-button>
             </div>
         </template>
     </div>

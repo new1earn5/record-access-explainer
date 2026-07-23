@@ -4,9 +4,24 @@ import scanUserAccess from '@salesforce/apex/RAA_RecordAccessExplainerController
 import getUserAccessReasons from '@salesforce/apex/RAA_RecordAccessExplainerController.getUserAccessReasons';
 
 const COLUMNS = [
-    { label: 'Record', fieldName: 'recordDisplayName', type: 'text', sortable: true },
-    { label: 'Has Access', fieldName: 'hasAnyAccess', type: 'boolean', sortable: true },
-    { label: 'Max Access', fieldName: 'maxAccessLevel', type: 'text', sortable: true },
+    {
+        label: 'Record',
+        fieldName: 'recordDisplayName',
+        type: 'text',
+        sortable: true
+    },
+    {
+        label: 'Has Access',
+        fieldName: 'hasAnyAccess',
+        type: 'boolean',
+        sortable: true
+    },
+    {
+        label: 'Max Access',
+        fieldName: 'maxAccessLevel',
+        type: 'text',
+        sortable: true
+    },
     { label: 'Read', fieldName: 'hasReadAccess', type: 'boolean' },
     { label: 'Edit', fieldName: 'hasEditAccess', type: 'boolean' },
     { label: 'Delete', fieldName: 'hasDeleteAccess', type: 'boolean' },
@@ -14,7 +29,11 @@ const COLUMNS = [
     { label: 'All Access', fieldName: 'hasAllAccess', type: 'boolean' },
     {
         type: 'button',
-        typeAttributes: { label: 'View Reasons', name: 'view_reasons', variant: 'brand-outline' }
+        typeAttributes: {
+            label: 'View Reasons',
+            name: 'view_reasons',
+            variant: 'brand-outline'
+        }
     }
 ];
 
@@ -67,11 +86,13 @@ export default class RaaUserAccessExplorer extends LightningElement {
         const userId = (this.userIdInput || '').trim();
         const objectApiName = (this.objectApiNameInput || '').trim();
         if (!/^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$/.test(userId)) {
-            this.validationMessage = 'Enter a valid 15 or 18 character User ID.';
+            this.validationMessage =
+                'Enter a valid 15 or 18 character User ID.';
             return;
         }
         if (!objectApiName) {
-            this.validationMessage = 'Enter the object API name to check (for example Account).';
+            this.validationMessage =
+                'Enter the object API name to check (for example Account).';
             return;
         }
         this.validationMessage = '';
@@ -86,7 +107,8 @@ export default class RaaUserAccessExplorer extends LightningElement {
             userId,
             objectApiName,
             recordIds: recordIds.length > 0 ? recordIds : null,
-            limitCount: recordIds.length > 0 ? null : Number(this.limitInput) || 50
+            limitCount:
+                recordIds.length > 0 ? null : Number(this.limitInput) || 50
         })
             .then((result) => {
                 this.results = result;
@@ -106,7 +128,10 @@ export default class RaaUserAccessExplorer extends LightningElement {
         const row = event.detail.row;
         this.isLoadingReasons = true;
         this.selectedRecordName = row.recordDisplayName;
-        getUserAccessReasons({ userId: this.userIdInput.trim(), recordId: row.recordId })
+        getUserAccessReasons({
+            userId: this.userIdInput.trim(),
+            recordId: row.recordId
+        })
             .then((reasons) => {
                 this.selectedReasons = reasons;
             })
@@ -124,7 +149,12 @@ export default class RaaUserAccessExplorer extends LightningElement {
     }
 
     showError(error) {
-        const message = error && error.body && error.body.message ? error.body.message : 'An unexpected error occurred.';
-        this.dispatchEvent(new ShowToastEvent({ title: 'Error', message, variant: 'error' }));
+        const message =
+            error && error.body && error.body.message
+                ? error.body.message
+                : 'An unexpected error occurred.';
+        this.dispatchEvent(
+            new ShowToastEvent({ title: 'Error', message, variant: 'error' })
+        );
     }
 }

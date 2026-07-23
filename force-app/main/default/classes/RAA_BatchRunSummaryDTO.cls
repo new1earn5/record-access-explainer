@@ -2,13 +2,20 @@
  * Aura-enabled summary of a bulk scan run.
  */
 public class RAA_BatchRunSummaryDTO {
-    @AuraEnabled public String batchRunId;
-    @AuraEnabled public String objectApiName;
-    @AuraEnabled public String status;
-    @AuraEnabled public Integer totalRecords;
-    @AuraEnabled public Integer completedRecords;
-    @AuraEnabled public Datetime requestedAt;
-    @AuraEnabled public List<RAA_BatchRunAnalysisSummaryDTO> analyses;
+    @AuraEnabled
+    public String batchRunId;
+    @AuraEnabled
+    public String objectApiName;
+    @AuraEnabled
+    public String status;
+    @AuraEnabled
+    public Integer totalRecords;
+    @AuraEnabled
+    public Integer completedRecords;
+    @AuraEnabled
+    public Datetime requestedAt;
+    @AuraEnabled
+    public List<RAA_BatchRunAnalysisSummaryDTO> analyses;
 
     public RAA_BatchRunSummaryDTO(RAA_Batch_Run__c run, List<RAA_Analysis__c> children) {
         this.batchRunId = run.Id;

@@ -13,7 +13,6 @@
  * sanitized, user-safe text.
  */
 public with sharing class RAA_RecordAccessExplainerController {
-
     @AuraEnabled(cacheable=true)
     public static Boolean hasRunPermission() {
         return RAA_PermissionChecker.hasRunPermission();
@@ -133,10 +132,15 @@ public with sharing class RAA_RecordAccessExplainerController {
 
     /** Feature: bulk scan mode. */
     @AuraEnabled
-    public static RAA_BatchRunSummaryDTO startBulkAnalysis(List<String> recordIds, Boolean includeExternalUsers, Boolean includeInactiveUsers) {
+    public static RAA_BatchRunSummaryDTO startBulkAnalysis(
+        List<String> recordIds,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers
+    ) {
         enforceRunPermission();
         try {
-            return new RAA_AnalysisOrchestratorService().startBulkAnalysis(recordIds, includeExternalUsers, includeInactiveUsers, UserInfo.getUserId());
+            return new RAA_AnalysisOrchestratorService()
+                .startBulkAnalysis(recordIds, includeExternalUsers, includeInactiveUsers, UserInfo.getUserId());
         } catch (RAA_AppException e) {
             throw toAuraException(e.getMessage());
         } catch (Exception e) {
@@ -173,11 +177,17 @@ public with sharing class RAA_RecordAccessExplainerController {
 
     /** Feature: reverse mode ("by user"). */
     @AuraEnabled
-    public static List<RAA_UserRecordAccessSummaryDTO> scanUserAccess(String userId, String objectApiName, List<String> recordIds, Integer limitCount) {
+    public static List<RAA_UserRecordAccessSummaryDTO> scanUserAccess(
+        String userId,
+        String objectApiName,
+        List<String> recordIds,
+        Integer limitCount
+    ) {
         enforceRunPermission();
         Id normalizedUserId = normalizeUserId(userId);
         try {
-            return new RAA_AnalysisOrchestratorService().scanUserAccess(normalizedUserId, objectApiName, recordIds, limitCount);
+            return new RAA_AnalysisOrchestratorService()
+                .scanUserAccess(normalizedUserId, objectApiName, recordIds, limitCount);
         } catch (RAA_AppException e) {
             throw toAuraException(e.getMessage());
         } catch (Exception e) {
@@ -201,11 +211,22 @@ public with sharing class RAA_RecordAccessExplainerController {
 
     /** Feature: recurring scans / change alerts. */
     @AuraEnabled
-    public static String createSubscription(String recordId, Boolean includeExternalUsers, Boolean includeInactiveUsers, Boolean notifyOnChange) {
+    public static String createSubscription(
+        String recordId,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers,
+        Boolean notifyOnChange
+    ) {
         enforceRunPermission();
         try {
-            return new RAA_AnalysisOrchestratorService().createSubscription(recordId, includeExternalUsers, includeInactiveUsers,
-                    notifyOnChange, UserInfo.getUserId());
+            return new RAA_AnalysisOrchestratorService()
+                .createSubscription(
+                    recordId,
+                    includeExternalUsers,
+                    includeInactiveUsers,
+                    notifyOnChange,
+                    UserInfo.getUserId()
+                );
         } catch (RAA_AppException e) {
             throw toAuraException(e.getMessage());
         } catch (Exception e) {
@@ -247,7 +268,9 @@ public with sharing class RAA_RecordAccessExplainerController {
 
     private static void enforceRunPermission() {
         if (!RAA_PermissionChecker.hasRunPermission()) {
-            throw toAuraException('You do not have permission to use Record Access Explainer. Ask your administrator to assign the RAA Record Access Auditor permission set.');
+            throw toAuraException(
+                'You do not have permission to use Record Access Explainer. Ask your administrator to assign the RAA Record Access Auditor permission set.'
+            );
         }
     }
 
@@ -293,7 +316,12 @@ public with sharing class RAA_RecordAccessExplainerController {
         if (subscriptionId.getSObjectType() != RAA_Scan_Subscription__c.SObjectType) {
             throw toAuraException('The supplied ID does not refer to an RAA Scan Subscription record.');
         }
-        List<RAA_Scan_Subscription__c> visible = [SELECT Id FROM RAA_Scan_Subscription__c WHERE Id = :subscriptionId LIMIT 1];
+        List<RAA_Scan_Subscription__c> visible = [
+            SELECT Id
+            FROM RAA_Scan_Subscription__c
+            WHERE Id = :subscriptionId
+            LIMIT 1
+        ];
         if (visible.isEmpty()) {
             throw toAuraException('The requested subscription could not be found, or you do not have access to it.');
         }

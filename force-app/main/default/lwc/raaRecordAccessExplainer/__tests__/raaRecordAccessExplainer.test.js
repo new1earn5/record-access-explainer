@@ -157,7 +157,9 @@ describe('c-raa-record-access-explainer', () => {
             defaultIncludeInactiveUsers: false,
             maxUsersPerScan: 0
         });
-        const element = createElement('c-raa-record-access-explainer', { is: RaaRecordAccessExplainer });
+        const element = createElement('c-raa-record-access-explainer', {
+            is: RaaRecordAccessExplainer
+        });
         document.body.appendChild(element);
         return element;
     }
@@ -165,7 +167,9 @@ describe('c-raa-record-access-explainer', () => {
     it('shows an unauthorized state when the user lacks the custom permission', async () => {
         hasRunPermission.mockResolvedValue(false);
         getDefaultSettings.mockRejectedValue(new Error('no permission'));
-        const element = createElement('c-raa-record-access-explainer', { is: RaaRecordAccessExplainer });
+        const element = createElement('c-raa-record-access-explainer', {
+            is: RaaRecordAccessExplainer
+        });
         document.body.appendChild(element);
 
         await flushPromises();
@@ -178,11 +182,15 @@ describe('c-raa-record-access-explainer', () => {
         const element = createComponent();
         await flushPromises();
 
-        const analyzeButton = element.shadowRoot.querySelector('[data-id="analyze-button"]');
+        const analyzeButton = element.shadowRoot.querySelector(
+            '[data-id="analyze-button"]'
+        );
         analyzeButton.click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Please enter a record ID');
+        expect(element.shadowRoot.textContent).toContain(
+            'Please enter a record ID'
+        );
         expect(startAnalysis).not.toHaveBeenCalled();
     });
 
@@ -190,15 +198,21 @@ describe('c-raa-record-access-explainer', () => {
         const element = createComponent();
         await flushPromises();
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = 'not-valid';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
 
-        const analyzeButton = element.shadowRoot.querySelector('[data-id="analyze-button"]');
+        const analyzeButton = element.shadowRoot.querySelector(
+            '[data-id="analyze-button"]'
+        );
         analyzeButton.click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('does not look like a valid');
+        expect(element.shadowRoot.textContent).toContain(
+            'does not look like a valid'
+        );
         expect(startAnalysis).not.toHaveBeenCalled();
     });
 
@@ -225,11 +239,15 @@ describe('c-raa-record-access-explainer', () => {
             isComplete: false
         });
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
 
-        const analyzeButton = element.shadowRoot.querySelector('[data-id="analyze-button"]');
+        const analyzeButton = element.shadowRoot.querySelector(
+            '[data-id="analyze-button"]'
+        );
         analyzeButton.click();
         await flushPromises();
 
@@ -246,7 +264,9 @@ describe('c-raa-record-access-explainer', () => {
             defaultIncludeInactiveUsers: false,
             maxUsersPerScan: 0
         });
-        const element = createElement('c-raa-record-access-explainer', { is: RaaRecordAccessExplainer });
+        const element = createElement('c-raa-record-access-explainer', {
+            is: RaaRecordAccessExplainer
+        });
         document.body.appendChild(element);
         await jest.advanceTimersByTimeAsync(0);
 
@@ -259,7 +279,9 @@ describe('c-raa-record-access-explainer', () => {
             isComplete: false
         });
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
@@ -299,18 +321,26 @@ describe('c-raa-record-access-explainer', () => {
         });
         getResults.mockResolvedValue([SAMPLE_RESULT]);
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
         await flushPromises();
         await flushPromises();
 
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
         expect(datatable).not.toBeNull();
         expect(datatable.data).toHaveLength(1);
 
-        datatable.dispatchEvent(new CustomEvent('rowaction', { detail: { action: { name: 'view_reasons' }, row: SAMPLE_RESULT } }));
+        datatable.dispatchEvent(
+            new CustomEvent('rowaction', {
+                detail: { action: { name: 'view_reasons' }, row: SAMPLE_RESULT }
+            })
+        );
         await flushPromises();
 
         const detail = element.shadowRoot.querySelector('c-raa-reason-detail');
@@ -336,30 +366,42 @@ describe('c-raa-record-access-explainer', () => {
         });
         getResults.mockResolvedValue([]);
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
         await flushPromises();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Potentially Incomplete');
-        expect(element.shadowRoot.textContent).toContain('Territory analysis could not be completed');
+        expect(element.shadowRoot.textContent).toContain(
+            'Potentially Incomplete'
+        );
+        expect(element.shadowRoot.textContent).toContain(
+            'Territory analysis could not be completed'
+        );
     });
 
     it('shows a sanitized error message when the server call fails', async () => {
         const element = createComponent();
         await flushPromises();
 
-        startAnalysis.mockRejectedValue({ body: { message: 'You do not have access to this record type.' } });
+        startAnalysis.mockRejectedValue({
+            body: { message: 'You do not have access to this record type.' }
+        });
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('You do not have access to this record type.');
+        expect(element.shadowRoot.textContent).toContain(
+            'You do not have access to this record type.'
+        );
     });
 
     it('switches to bulk mode and hides the single-record form', async () => {
@@ -371,8 +413,12 @@ describe('c-raa-record-access-explainer', () => {
         element.shadowRoot.querySelector('[data-mode="bulk"]').click();
         await flushPromises();
 
-        expect(element.shadowRoot.querySelector('c-raa-bulk-scan')).not.toBeNull();
-        expect(element.shadowRoot.querySelector('[data-id="record-id-input"]')).toBeNull();
+        expect(
+            element.shadowRoot.querySelector('c-raa-bulk-scan')
+        ).not.toBeNull();
+        expect(
+            element.shadowRoot.querySelector('[data-id="record-id-input"]')
+        ).toBeNull();
     });
 
     it('switches to by-user mode', async () => {
@@ -382,7 +428,9 @@ describe('c-raa-record-access-explainer', () => {
         element.shadowRoot.querySelector('[data-mode="byUser"]').click();
         await flushPromises();
 
-        expect(element.shadowRoot.querySelector('c-raa-user-access-explorer')).not.toBeNull();
+        expect(
+            element.shadowRoot.querySelector('c-raa-user-access-explorer')
+        ).not.toBeNull();
     });
 
     it('switches to subscriptions mode', async () => {
@@ -392,7 +440,9 @@ describe('c-raa-record-access-explainer', () => {
         element.shadowRoot.querySelector('[data-mode="subscriptions"]').click();
         await flushPromises();
 
-        expect(element.shadowRoot.querySelector('c-raa-subscriptions')).not.toBeNull();
+        expect(
+            element.shadowRoot.querySelector('c-raa-subscriptions')
+        ).not.toBeNull();
     });
 
     it('switches back to single mode and loads the analysis when a bulk row is opened', async () => {
@@ -415,11 +465,17 @@ describe('c-raa-record-access-explainer', () => {
         await flushPromises();
 
         const bulkScan = element.shadowRoot.querySelector('c-raa-bulk-scan');
-        bulkScan.dispatchEvent(new CustomEvent('viewanalysis', { detail: { analysisId: 'a00000000000002' } }));
+        bulkScan.dispatchEvent(
+            new CustomEvent('viewanalysis', {
+                detail: { analysisId: 'a00000000000002' }
+            })
+        );
         await flushPromises();
 
         expect(element.shadowRoot.querySelector('c-raa-bulk-scan')).toBeNull();
-        expect(getAnalysisStatus).toHaveBeenCalledWith({ analysisId: 'a00000000000002' });
+        expect(getAnalysisStatus).toHaveBeenCalledWith({
+            analysisId: 'a00000000000002'
+        });
         expect(element.shadowRoot.textContent).toContain('From Bulk');
     });
 
@@ -439,7 +495,9 @@ describe('c-raa-record-access-explainer', () => {
         });
         getResults.mockResolvedValue([SAMPLE_RESULT]);
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
@@ -447,18 +505,30 @@ describe('c-raa-record-access-explainer', () => {
         await flushPromises();
 
         getFieldAccess.mockResolvedValue([]);
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
-        datatable.dispatchEvent(new CustomEvent('rowaction', { detail: { action: { name: 'view_field_access' }, row: SAMPLE_RESULT } }));
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
+        datatable.dispatchEvent(
+            new CustomEvent('rowaction', {
+                detail: {
+                    action: { name: 'view_field_access' },
+                    row: SAMPLE_RESULT
+                }
+            })
+        );
         await flushPromises();
 
-        const fieldAccess = element.shadowRoot.querySelector('c-raa-field-access');
+        const fieldAccess =
+            element.shadowRoot.querySelector('c-raa-field-access');
         expect(fieldAccess).not.toBeNull();
         expect(fieldAccess.userId).toBe(SAMPLE_RESULT.userId);
         expect(fieldAccess.objectApiName).toBe('Account');
 
         fieldAccess.dispatchEvent(new CustomEvent('close'));
         await flushPromises();
-        expect(element.shadowRoot.querySelector('c-raa-field-access')).toBeNull();
+        expect(
+            element.shadowRoot.querySelector('c-raa-field-access')
+        ).toBeNull();
     });
 
     it('opens the compare-to-previous-scan diff modal', async () => {
@@ -477,7 +547,9 @@ describe('c-raa-record-access-explainer', () => {
         });
         getResults.mockResolvedValue([SAMPLE_RESULT]);
 
-        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
         input.value = '001000000000001AAA';
         input.dispatchEvent(new CustomEvent('change', { detail: {} }));
         element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
@@ -485,17 +557,25 @@ describe('c-raa-record-access-explainer', () => {
         await flushPromises();
 
         getAnalysisDiff.mockResolvedValue(null);
-        const buttons = [...element.shadowRoot.querySelectorAll('lightning-button')];
-        const diffButton = buttons.find((b) => b.label === 'Compare to Previous Scan');
+        const buttons = [
+            ...element.shadowRoot.querySelectorAll('lightning-button')
+        ];
+        const diffButton = buttons.find(
+            (b) => b.label === 'Compare to Previous Scan'
+        );
         diffButton.click();
         await flushPromises();
 
-        const diffModal = element.shadowRoot.querySelector('c-raa-analysis-diff');
+        const diffModal = element.shadowRoot.querySelector(
+            'c-raa-analysis-diff'
+        );
         expect(diffModal).not.toBeNull();
         expect(diffModal.analysisId).toBe('a00000000000001');
 
         diffModal.dispatchEvent(new CustomEvent('close'));
         await flushPromises();
-        expect(element.shadowRoot.querySelector('c-raa-analysis-diff')).toBeNull();
+        expect(
+            element.shadowRoot.querySelector('c-raa-analysis-diff')
+        ).toBeNull();
     });
 });

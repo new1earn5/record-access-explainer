@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_TeamAnalyzerTest {
-
     @TestSetup
     static void setup() {
         RAA_TestDataFactory.createUser('Team', 'Member');
@@ -51,7 +50,8 @@ private class RAA_TeamAnalyzerTest {
         context.recordId = UserInfo.getUserId();
         context.objectApiName = 'User';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_TeamAnalyzer().analyze(context, new Set<Id>{ UserInfo.getUserId() });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_TeamAnalyzer()
+            .analyze(context, new Set<Id>{ UserInfo.getUserId() });
 
         System.assertEquals(0, results.size(), 'Team analysis only applies to Account, Opportunity, and Case.');
     }

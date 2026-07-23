@@ -8,7 +8,6 @@
  * scan has had time to complete - by design, so this never blocks on a long-running scan.
  */
 public without sharing class RAA_RecurringScanScheduler implements Schedulable {
-
     @TestVisible
     private static final Integer MAX_SUBSCRIPTIONS_PER_RUN = 200;
 
@@ -17,7 +16,9 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
         RAA_AnalysisDiffService diffService = new RAA_AnalysisDiffService();
 
-        List<RAA_Scan_Subscription__c> subscriptions = subscriptionRepo.getActiveSubscriptions(MAX_SUBSCRIPTIONS_PER_RUN);
+        List<RAA_Scan_Subscription__c> subscriptions = subscriptionRepo.getActiveSubscriptions(
+            MAX_SUBSCRIPTIONS_PER_RUN
+        );
 
         List<Id> readyToStart = new List<Id>();
         for (RAA_Scan_Subscription__c subscription : subscriptions) {
@@ -40,8 +41,12 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
     }
 
     @TestVisible
-    private void processCompletedCycle(RAA_Scan_Subscription__c subscription, RAA_Analysis__c pendingAnalysis,
-            RAA_AnalysisDiffService diffService, RAA_SubscriptionRepository subscriptionRepo) {
+    private void processCompletedCycle(
+        RAA_Scan_Subscription__c subscription,
+        RAA_Analysis__c pendingAnalysis,
+        RAA_AnalysisDiffService diffService,
+        RAA_SubscriptionRepository subscriptionRepo
+    ) {
         if (subscription.RAA_Last_Analysis__c != null && subscription.RAA_Notify_On_Change__c) {
             try {
                 RAA_AnalysisDiffDTO diff = diffService.compare(subscription.RAA_Last_Analysis__c, pendingAnalysis.Id);
@@ -59,14 +64,21 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         if (subscription.RAA_Subscriber__c == null) {
             return;
         }
-        List<User> recipients = [SELECT Id, Email FROM User WHERE Id = :subscription.RAA_Subscriber__c AND IsActive = true LIMIT 1];
+        List<User> recipients = [
+            SELECT Id, Email
+            FROM User
+            WHERE Id = :subscription.RAA_Subscriber__c AND IsActive = TRUE
+            LIMIT 1
+        ];
         if (recipients.isEmpty() || String.isBlank(recipients[0].Email)) {
             return;
         }
 
         Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
         email.setToAddresses(new List<String>{ recipients[0].Email });
-        email.setSubject('Record Access Explainer: access change detected for ' + subscription.RAA_Record_Display_Name__c);
+        email.setSubject(
+            'Record Access Explainer: access change detected for ' + subscription.RAA_Record_Display_Name__c
+        );
         email.setPlainTextBody(buildEmailBody(subscription, diff));
         email.setSaveAsActivity(false);
         Messaging.sendEmail(new List<Messaging.SingleEmailMessage>{ email });
@@ -74,11 +86,22 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
 
     private String buildEmailBody(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
         List<String> lines = new List<String>();
-        lines.add('Record Access Explainer detected an access change for "' + subscription.RAA_Record_Display_Name__c
-                + '" (' + subscription.RAA_Object_API_Name__c + ').');
+        lines.add(
+            'Record Access Explainer detected an access change for "' +
+                subscription.RAA_Record_Display_Name__c +
+                '" (' +
+                subscription.RAA_Object_API_Name__c +
+                ').'
+        );
         lines.add('');
-        lines.add(diff.usersAdded + ' user(s) gained access, ' + diff.usersRemoved + ' user(s) lost access, '
-                + diff.usersChanged + ' user(s) had their access change.');
+        lines.add(
+            diff.usersAdded +
+                ' user(s) gained access, ' +
+                diff.usersRemoved +
+                ' user(s) lost access, ' +
+                diff.usersChanged +
+                ' user(s) had their access change.'
+        );
         lines.add('');
         for (RAA_UserAccessChangeDTO change : diff.changes) {
             lines.add('- ' + change.changeType + ': ' + change.userFullName + ' (' + change.username + ')');

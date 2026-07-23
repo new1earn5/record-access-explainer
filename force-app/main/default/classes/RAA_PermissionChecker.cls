@@ -8,7 +8,6 @@
  * is true, so it can never be used to bypass the real permission check outside of tests.
  */
 public without sharing class RAA_PermissionChecker {
-
     private static final String RUN_PERMISSION = 'RAA_Run_Record_Access_Analysis';
 
     @TestVisible

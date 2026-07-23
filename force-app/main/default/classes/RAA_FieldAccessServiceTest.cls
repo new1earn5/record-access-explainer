@@ -1,15 +1,23 @@
 @IsTest
 private class RAA_FieldAccessServiceTest {
-
     @TestSetup
     static void setup() {
         User u = RAA_TestDataFactory.createUser('Field', 'Tester');
         String uniqueSuffix = String.valueOf(Math.abs(Crypto.getRandomInteger()));
 
-        PermissionSet ps = new PermissionSet(Name = 'RAA_Test_Field_Access_' + uniqueSuffix, Label = 'RAA Test Field Access');
+        PermissionSet ps = new PermissionSet(
+            Name = 'RAA_Test_Field_Access_' + uniqueSuffix,
+            Label = 'RAA Test Field Access'
+        );
         insert ps;
         insert new ObjectPermissions(ParentId = ps.Id, SobjectType = 'Account', PermissionsRead = true);
-        insert new FieldPermissions(ParentId = ps.Id, SobjectType = 'Account', Field = 'Account.Website', PermissionsRead = true, PermissionsEdit = true);
+        insert new FieldPermissions(
+            ParentId = ps.Id,
+            SobjectType = 'Account',
+            Field = 'Account.Website',
+            PermissionsRead = true,
+            PermissionsEdit = true
+        );
         insert new PermissionSetAssignment(AssigneeId = u.Id, PermissionSetId = ps.Id);
     }
 
@@ -31,7 +39,11 @@ private class RAA_FieldAccessServiceTest {
         System.assertEquals(true, byField.get('Website').editable);
 
         System.assert(byField.containsKey('Id'), 'Id should always be present.');
-        System.assertEquals(true, byField.get('Id').readable, 'Non-permissionable fields like Id are always accessible.');
+        System.assertEquals(
+            true,
+            byField.get('Id').readable,
+            'Non-permissionable fields like Id are always accessible.'
+        );
     }
 
     @IsTest

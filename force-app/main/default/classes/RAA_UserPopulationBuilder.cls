@@ -5,7 +5,6 @@
  * default, exactly as specified for the package's default scan behavior.
  */
 public without sharing class RAA_UserPopulationBuilder {
-
     public class PopulationFilter {
         public Boolean includeExternalUsers = false;
         public Boolean includeInactiveUsers = false;
@@ -35,7 +34,9 @@ public without sharing class RAA_UserPopulationBuilder {
 
         List<String> permissionSetNames = filter.permissionSetNames;
         if (permissionSetNames != null && !permissionSetNames.isEmpty()) {
-            whereClauses.add('Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name IN :permissionSetNames)');
+            whereClauses.add(
+                'Id IN (SELECT AssigneeId FROM PermissionSetAssignment WHERE PermissionSet.Name IN :permissionSetNames)'
+            );
         }
 
         Integer queryLimit = maxUsersPerScan != null && maxUsersPerScan > 0 ? maxUsersPerScan + 1 : 50000;
@@ -49,8 +50,11 @@ public without sharing class RAA_UserPopulationBuilder {
         List<User> users = Database.query(query);
 
         if (maxUsersPerScan != null && maxUsersPerScan > 0 && users.size() > maxUsersPerScan) {
-            throw new RAA_AppException('This scan would include more than ' + maxUsersPerScan
-                    + ' users, which exceeds the configured maximum in RAA Settings. Narrow the filters and try again.');
+            throw new RAA_AppException(
+                'This scan would include more than ' +
+                    maxUsersPerScan +
+                    ' users, which exceeds the configured maximum in RAA Settings. Narrow the filters and try again.'
+            );
         }
 
         Set<Id> populationIds = new Set<Id>();

@@ -1,12 +1,15 @@
 @IsTest
 private class RAA_RoleHierarchyAnalyzerTest {
-
     @TestSetup
     static void setup() {
         String uniqueSuffix = String.valueOf(Math.abs(Crypto.getRandomInteger()));
         UserRole parentRole = new UserRole(Name = 'RAA Parent Role', DeveloperName = 'RAA_Parent_Role_' + uniqueSuffix);
         insert parentRole;
-        UserRole childRole = new UserRole(Name = 'RAA Child Role', ParentRoleId = parentRole.Id, DeveloperName = 'RAA_Child_Role_' + uniqueSuffix);
+        UserRole childRole = new UserRole(
+            Name = 'RAA Child Role',
+            ParentRoleId = parentRole.Id,
+            DeveloperName = 'RAA_Child_Role_' + uniqueSuffix
+        );
         insert childRole;
 
         User owner = RAA_TestDataFactory.createUser('Role', 'Owner');
@@ -35,11 +38,19 @@ private class RAA_RoleHierarchyAnalyzerTest {
         context.objectApiName = 'Account';
 
         Test.startTest();
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer().analyze(context, new Set<Id>{ manager.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer()
+            .analyze(context, new Set<Id>{ manager.Id });
         Test.stopTest();
 
-        System.assert(results.containsKey(manager.Id), 'The manager above the owner\'s role should get a hierarchy reason.');
-        System.assertEquals('High', results.get(manager.Id)[0].confidence, 'Standard objects cannot disable grant-using-hierarchies.');
+        System.assert(
+            results.containsKey(manager.Id),
+            'The manager above the owner\'s role should get a hierarchy reason.'
+        );
+        System.assertEquals(
+            'High',
+            results.get(manager.Id)[0].confidence,
+            'Standard objects cannot disable grant-using-hierarchies.'
+        );
     }
 
     @IsTest
@@ -51,9 +62,14 @@ private class RAA_RoleHierarchyAnalyzerTest {
         context.ownerId = owner.Id;
         context.objectApiName = 'RAA_Analysis__c';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer().analyze(context, new Set<Id>{ manager.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer()
+            .analyze(context, new Set<Id>{ manager.Id });
 
-        System.assertEquals('Medium', results.get(manager.Id)[0].confidence, 'Custom objects cannot confirm the hierarchy grant checkbox, so confidence is Medium.');
+        System.assertEquals(
+            'Medium',
+            results.get(manager.Id)[0].confidence,
+            'Custom objects cannot confirm the hierarchy grant checkbox, so confidence is Medium.'
+        );
     }
 
     @IsTest
@@ -65,9 +81,13 @@ private class RAA_RoleHierarchyAnalyzerTest {
         context.ownerId = owner.Id;
         context.objectApiName = 'Account';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer().analyze(context, new Set<Id>{ peer.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer()
+            .analyze(context, new Set<Id>{ peer.Id });
 
-        System.assert(!results.containsKey(peer.Id), 'A peer in the same role (not above) should not get a hierarchy reason.');
+        System.assert(
+            !results.containsKey(peer.Id),
+            'A peer in the same role (not above) should not get a hierarchy reason.'
+        );
     }
 
     @IsTest
@@ -79,7 +99,8 @@ private class RAA_RoleHierarchyAnalyzerTest {
         context.ownerId = roleless.Id;
         context.objectApiName = 'Account';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer().analyze(context, new Set<Id>{ manager.Id });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer()
+            .analyze(context, new Set<Id>{ manager.Id });
 
         System.assertEquals(0, results.size(), 'An owner with no role means no hierarchy-based reasons.');
     }
@@ -93,8 +114,13 @@ private class RAA_RoleHierarchyAnalyzerTest {
         context.ownerId = queue.Id;
         context.objectApiName = 'Account';
 
-        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer().analyze(context, new Set<Id>{ UserInfo.getUserId() });
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_RoleHierarchyAnalyzer()
+            .analyze(context, new Set<Id>{ UserInfo.getUserId() });
 
-        System.assertEquals(0, results.size(), 'Queue-owned records are handled by ownership analysis, not role hierarchy.');
+        System.assertEquals(
+            0,
+            results.size(),
+            'Queue-owned records are handled by ownership analysis, not role hierarchy.'
+        );
     }
 }

@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_CsvExportServiceTest {
-
     private static RAA_AccessResultDTO buildResult(String name, String reasonSummary) {
         RAA_AccessResultDTO result = new RAA_AccessResultDTO();
         result.userFullName = name;
@@ -22,7 +21,10 @@ private class RAA_CsvExportServiceTest {
 
     @IsTest
     static void escapesCommasQuotesAndLineBreaks() {
-        RAA_AccessResultDTO result = buildResult('Smith, John "The Boss"', 'Ownership; Direct Share' + '\n' + 'Second line');
+        RAA_AccessResultDTO result = buildResult(
+            'Smith, John "The Boss"',
+            'Ownership; Direct Share' + '\n' + 'Second line'
+        );
 
         Test.startTest();
         String csv = new RAA_CsvExportService().buildResultsCsv(new List<RAA_AccessResultDTO>{ result });

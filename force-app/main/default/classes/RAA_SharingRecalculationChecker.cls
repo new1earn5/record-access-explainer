@@ -6,13 +6,11 @@
  * it tells an auditor definitively when a scan's results might already be stale.
  */
 public without sharing class RAA_SharingRecalculationChecker {
-
     public Boolean isRecalculationInProgress() {
         List<AggregateResult> results = [
             SELECT COUNT(Id) total
             FROM AsyncApexJob
-            WHERE JobType = 'SharingRecalculation'
-            AND Status IN ('Holding', 'Queued', 'Preparing', 'Processing')
+            WHERE JobType = 'SharingRecalculation' AND Status IN ('Holding', 'Queued', 'Preparing', 'Processing')
         ];
         if (results.isEmpty()) {
             return false;

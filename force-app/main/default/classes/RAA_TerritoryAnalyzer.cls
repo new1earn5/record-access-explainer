@@ -8,7 +8,6 @@
  * analysis is simply not applicable there.
  */
 public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyzer {
-
     public String getAnalyzerName() {
         return 'Territory Management';
     }
@@ -26,7 +25,11 @@ public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyze
             }
 
             Set<Id> directTerritoryIds = new Set<Id>();
-            for (SObject assoc : Database.query('SELECT Territory2Id FROM ObjectTerritory2Association WHERE ObjectId = :accountId')) {
+            for (
+                SObject assoc : Database.query(
+                    'SELECT Territory2Id FROM ObjectTerritory2Association WHERE ObjectId = :accountId'
+                )
+            ) {
                 directTerritoryIds.add((Id) assoc.get('Territory2Id'));
             }
             if (directTerritoryIds.isEmpty()) {
@@ -54,8 +57,11 @@ public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyze
             Set<Id> allRelevantTerritoryIds = new Set<Id>(directTerritoryIds);
             allRelevantTerritoryIds.addAll(ancestorTerritoryIds);
 
-            for (SObject uta : Database.query(
-                    'SELECT UserId, Territory2Id FROM UserTerritory2Association WHERE UserId IN :userIds AND Territory2Id IN :allRelevantTerritoryIds')) {
+            for (
+                SObject uta : Database.query(
+                    'SELECT UserId, Territory2Id FROM UserTerritory2Association WHERE UserId IN :userIds AND Territory2Id IN :allRelevantTerritoryIds'
+                )
+            ) {
                 Id userId = (Id) uta.get('UserId');
                 Id territoryId = (Id) uta.get('Territory2Id');
                 Boolean isDirectTerritory = directTerritoryIds.contains(territoryId);
@@ -72,11 +78,16 @@ public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyze
                 reason.principalId = territoryId;
                 reason.principalType = isDirectTerritory ? 'Territory2' : 'Territory2AndSubordinates';
                 reason.rowCause = null;
-                reason.grantPath = context.prefixedPath((isDirectTerritory ? 'Territory: ' : 'Territory (subordinate): ')
-                        + territoryName + ' -> User');
+                reason.grantPath = context.prefixedPath(
+                    (isDirectTerritory ? 'Territory: ' : 'Territory (subordinate): ') + territoryName + ' -> User'
+                );
                 reason.explanation = isDirectTerritory
-                        ? 'The user is assigned to territory "' + territoryName + '", which is directly associated with this account.'
-                        : 'The user is assigned to territory "' + territoryName + '", an ancestor of a territory directly associated with this account, so subordinate territory access may apply.';
+                    ? 'The user is assigned to territory "' +
+                      territoryName +
+                      '", which is directly associated with this account.'
+                    : 'The user is assigned to territory "' +
+                      territoryName +
+                      '", an ancestor of a territory directly associated with this account, so subordinate territory access may apply.';
                 reason.explanation += ' The exact access level enforced by the territory model could not be independently confirmed through a supported API, so no specific access level is shown.';
                 reason.evidence = 'AccountId: ' + accountId + '; Territory2Id: ' + territoryId;
 
@@ -91,9 +102,9 @@ public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyze
 
     private Boolean territoryManagementAvailable() {
         Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
-        return globalDescribe.containsKey('Territory2')
-                && globalDescribe.containsKey('UserTerritory2Association')
-                && globalDescribe.containsKey('ObjectTerritory2Association');
+        return globalDescribe.containsKey('Territory2') &&
+            globalDescribe.containsKey('UserTerritory2Association') &&
+            globalDescribe.containsKey('ObjectTerritory2Association');
     }
 
     private Id resolveAccountId(RAA_AnalysisContext context) {
@@ -106,7 +117,10 @@ public without sharing class RAA_TerritoryAnalyzer implements RAA_IReasonAnalyze
         }
         Id recordId = context.recordId;
         List<SObject> rows = Database.query(
-                'SELECT AccountId FROM ' + String.escapeSingleQuotes(context.objectApiName) + ' WHERE Id = :recordId LIMIT 1');
+            'SELECT AccountId FROM ' +
+                String.escapeSingleQuotes(context.objectApiName) +
+                ' WHERE Id = :recordId LIMIT 1'
+        );
         if (rows.isEmpty() || rows[0].get('AccountId') == null) {
             return null;
         }

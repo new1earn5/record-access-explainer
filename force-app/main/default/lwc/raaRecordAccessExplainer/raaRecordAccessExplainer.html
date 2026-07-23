@@ -1,37 +1,84 @@
 <template>
-    <lightning-card title="Record Access Explainer" icon-name="standard:entitlement_process">
+    <lightning-card
+        title="Record Access Explainer"
+        icon-name="standard:entitlement_process"
+    >
         <div class="slds-p-around_medium">
             <!-- Unauthorized state -->
             <template if:true={showUnauthorized}>
                 <div class="slds-text-align_center slds-p-around_large">
-                    <lightning-icon icon-name="utility:lock" size="large" variant="error"></lightning-icon>
-                    <p class="slds-text-heading_small slds-m-top_small">You do not have permission to use Record Access Explainer.</p>
+                    <lightning-icon
+                        icon-name="utility:lock"
+                        size="large"
+                        variant="error"
+                    ></lightning-icon>
+                    <p class="slds-text-heading_small slds-m-top_small">
+                        You do not have permission to use Record Access
+                        Explainer.
+                    </p>
                     <p class="slds-text-body_regular slds-text-color_weak">
-                        Ask your administrator to assign you the "RAA Record Access Auditor" permission set.
+                        Ask your administrator to assign you the "RAA Record
+                        Access Auditor" permission set.
                     </p>
                 </div>
             </template>
 
             <template if:true={hasPermission}>
                 <!-- Persistent limitations banner -->
-                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info slds-m-bottom_medium" role="alert">
+                <div
+                    class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info slds-m-bottom_medium"
+                    role="alert"
+                >
                     <span class="slds-assistive-text">info</span>
-                    <lightning-icon icon-name="utility:info" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
-                    Effective access is Salesforce-computed and authoritative. Detected reasons are a best-effort explanation and
-                    do <strong>not</strong> account for restriction rules. Recently changed sharing settings may not be reflected
-                    until Salesforce finishes sharing recalculation.
+                    <lightning-icon
+                        icon-name="utility:info"
+                        size="x-small"
+                        variant="inverse"
+                        class="slds-m-right_x-small"
+                    ></lightning-icon>
+                    Effective access is Salesforce-computed and authoritative.
+                    Detected reasons are a best-effort explanation and do
+                    <strong>not</strong> account for restriction rules. Recently
+                    changed sharing settings may not be reflected until
+                    Salesforce finishes sharing recalculation.
                 </div>
 
                 <!-- Mode switcher -->
-                <div class="slds-button-group slds-m-bottom_medium" role="group" aria-label="Scan mode">
-                    <lightning-button label="Single Record" data-mode="single" variant={singleModeVariant} onclick={handleModeChange}></lightning-button>
-                    <lightning-button label="Bulk Scan" data-mode="bulk" variant={bulkModeVariant} onclick={handleModeChange}></lightning-button>
-                    <lightning-button label="By User" data-mode="byUser" variant={byUserModeVariant} onclick={handleModeChange}></lightning-button>
-                    <lightning-button label="Subscriptions" data-mode="subscriptions" variant={subscriptionsModeVariant} onclick={handleModeChange}></lightning-button>
+                <div
+                    class="slds-button-group slds-m-bottom_medium"
+                    role="group"
+                    aria-label="Scan mode"
+                >
+                    <lightning-button
+                        label="Single Record"
+                        data-mode="single"
+                        variant={singleModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
+                    <lightning-button
+                        label="Bulk Scan"
+                        data-mode="bulk"
+                        variant={bulkModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
+                    <lightning-button
+                        label="By User"
+                        data-mode="byUser"
+                        variant={byUserModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
+                    <lightning-button
+                        label="Subscriptions"
+                        data-mode="subscriptions"
+                        variant={subscriptionsModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
                 </div>
 
                 <template if:true={isBulkMode}>
-                    <c-raa-bulk-scan onviewanalysis={handleViewAnalysisFromBulk}></c-raa-bulk-scan>
+                    <c-raa-bulk-scan
+                        onviewanalysis={handleViewAnalysisFromBulk}
+                    ></c-raa-bulk-scan>
                 </template>
 
                 <template if:true={isByUserMode}>
@@ -43,204 +90,372 @@
                 </template>
 
                 <template if:true={isSingleMode}>
-                <!-- Scan input -->
-                <template if:true={showScanForm}>
-                    <div class="slds-grid slds-wrap slds-gutters">
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
-                            <lightning-input
-                                data-id="record-id-input"
-                                label="Record ID"
-                                value={recordIdInput}
-                                onchange={handleRecordIdChange}
-                                placeholder="e.g. 001XXXXXXXXXXXXXXX"
-                            ></lightning-input>
-                            <template if:true={validationMessage}>
-                                <p class="slds-text-color_error slds-m-top_xx-small">{validationMessage}</p>
-                            </template>
-                        </div>
-                    </div>
-                    <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                            <lightning-input
-                                type="checkbox"
-                                label="Include active external / Experience Cloud users"
-                                checked={includeExternalUsers}
-                                onchange={handleIncludeExternalChange}
-                            ></lightning-input>
-                        </div>
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                            <lightning-input
-                                type="checkbox"
-                                label="Include inactive users"
-                                checked={includeInactiveUsers}
-                                onchange={handleIncludeInactiveChange}
-                            ></lightning-input>
-                        </div>
-                    </div>
-                    <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
-                            <lightning-input
-                                label="Profile filter (comma-separated, optional)"
-                                value={profileNamesInput}
-                                onchange={handleProfileNamesChange}
-                                placeholder="Sales Manager, System Administrator"
-                            ></lightning-input>
-                        </div>
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
-                            <lightning-input
-                                label="User type filter (comma-separated, optional)"
-                                value={userTypesInput}
-                                onchange={handleUserTypesChange}
-                                placeholder="Standard, PowerCustomerSuccess"
-                            ></lightning-input>
-                        </div>
-                    </div>
-                    <div class="slds-m-top_medium">
-                        <lightning-button
-                            data-id="analyze-button"
-                            variant="brand"
-                            label="Analyze"
-                            onclick={handleAnalyze}
-                            disabled={isStarting}
-                        ></lightning-button>
-                    </div>
-                </template>
-
-                <!-- Progress -->
-                <template if:true={showProgress}>
-                    <div class="slds-box slds-m-top_medium">
-                        <div class="slds-grid slds-grid_align-spread slds-wrap">
-                            <div class="slds-col">
-                                <p class="slds-text-heading_small">Status: {summary.status}</p>
-                                <p class="slds-text-body_small slds-text-color_weak">{statusExplanation}</p>
-                            </div>
-                            <div class="slds-col">
-                                <lightning-button label="Cancel Scan" onclick={handleCancelScan} disabled={cancelDisabled}></lightning-button>
+                    <!-- Scan input -->
+                    <template if:true={showScanForm}>
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div
+                                class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12"
+                            >
+                                <lightning-input
+                                    data-id="record-id-input"
+                                    label="Record ID"
+                                    value={recordIdInput}
+                                    onchange={handleRecordIdChange}
+                                    placeholder="e.g. 001XXXXXXXXXXXXXXX"
+                                ></lightning-input>
+                                <template if:true={validationMessage}>
+                                    <p
+                                        class="slds-text-color_error slds-m-top_xx-small"
+                                    >
+                                        {validationMessage}
+                                    </p>
+                                </template>
                             </div>
                         </div>
-                        <div class="slds-progress-bar slds-progress-bar_large slds-m-top_small" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent} role="progressbar">
-                            <span class="slds-progress-bar__value" style={progressBarStyle}>
-                                <span class="slds-assistive-text">Progress: {progressPercent}%</span>
-                            </span>
+                        <div
+                            class="slds-grid slds-wrap slds-gutters slds-m-top_small"
+                        >
+                            <div
+                                class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12"
+                            >
+                                <lightning-input
+                                    type="checkbox"
+                                    label="Include active external / Experience Cloud users"
+                                    checked={includeExternalUsers}
+                                    onchange={handleIncludeExternalChange}
+                                ></lightning-input>
+                            </div>
+                            <div
+                                class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12"
+                            >
+                                <lightning-input
+                                    type="checkbox"
+                                    label="Include inactive users"
+                                    checked={includeInactiveUsers}
+                                    onchange={handleIncludeInactiveChange}
+                                ></lightning-input>
+                            </div>
                         </div>
-                        <p class="slds-m-top_x-small">
-                            {summary.processedUsers} / {summary.totalUsers} users processed &middot;
-                            {summary.usersWithAccess} found with access
-                        </p>
-                        <p class="slds-text-body_small slds-text-color_weak">Started: {summary.startedAt}</p>
-                    </div>
-                </template>
-
-                <!-- Warning banner -->
-                <template if:true={showWarningBanner}>
-                    <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning slds-m-top_medium" role="alert">
-                        <lightning-icon icon-name="utility:warning" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                        <strong>Potentially Incomplete:</strong> {warningText}
-                    </div>
-                </template>
-
-                <!-- Results -->
-                <template if:true={showResults}>
-                    <div class="slds-grid slds-grid_align-spread slds-wrap slds-m-top_medium">
-                        <div class="slds-col">
-                            <h2 class="slds-text-heading_small">Results for {summary.recordDisplayName} ({summary.objectApiName})</h2>
+                        <div
+                            class="slds-grid slds-wrap slds-gutters slds-m-top_small"
+                        >
+                            <div
+                                class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12"
+                            >
+                                <lightning-input
+                                    label="Profile filter (comma-separated, optional)"
+                                    value={profileNamesInput}
+                                    onchange={handleProfileNamesChange}
+                                    placeholder="Sales Manager, System Administrator"
+                                ></lightning-input>
+                            </div>
+                            <div
+                                class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12"
+                            >
+                                <lightning-input
+                                    label="User type filter (comma-separated, optional)"
+                                    value={userTypesInput}
+                                    onchange={handleUserTypesChange}
+                                    placeholder="Standard, PowerCustomerSuccess"
+                                ></lightning-input>
+                            </div>
                         </div>
-                        <div class="slds-col slds-grid raa-toolbar">
-                            <lightning-button label="Refresh" icon-name="utility:refresh" onclick={handleRefresh} class="slds-m-right_x-small"></lightning-button>
-                            <lightning-button label="Compare to Previous Scan" onclick={handleShowDiff} class="slds-m-right_x-small"></lightning-button>
-                            <lightning-button label="Export Results CSV" onclick={handleExportResults} class="slds-m-right_x-small"></lightning-button>
-                            <lightning-button label="Export Reasons CSV" onclick={handleExportReasons} class="slds-m-right_x-small"></lightning-button>
-                            <lightning-button label="New Analysis" onclick={handleNewAnalysis} class="slds-m-right_x-small"></lightning-button>
-                            <lightning-button label="Delete Analysis" variant="destructive" onclick={handleDeleteAnalysis}></lightning-button>
-                        </div>
-                    </div>
-
-                    <template if:true={hasNoResults}>
-                        <div class="slds-illustration slds-illustration_small slds-p-around_large slds-text-align_center">
-                            <lightning-icon icon-name="utility:groups" size="large"></lightning-icon>
-                            <p class="slds-text-heading_small slds-m-top_small">No users were found with effective access to this record.</p>
+                        <div class="slds-m-top_medium">
+                            <lightning-button
+                                data-id="analyze-button"
+                                variant="brand"
+                                label="Analyze"
+                                onclick={handleAnalyze}
+                                disabled={isStarting}
+                            ></lightning-button>
                         </div>
                     </template>
 
-                    <template if:false={hasNoResults}>
-                        <!-- Filters -->
-                        <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-input label="Search name or username" value={searchTerm} onchange={handleSearchChange}></lightning-input>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox label="Max Access Level" value={accessLevelFilter} options={accessLevelOptions} onchange={handleAccessLevelFilterChange}></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox label="Reason Category" value={categoryFilter} options={categoryOptions} onchange={handleCategoryFilterChange}></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox label="Profile" value={profileFilter} options={profileOptions} onchange={handleProfileFilterChange}></lightning-combobox>
-                            </div>
-                        </div>
-                        <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox label="User Type" value={userTypeFilter} options={userTypeOptions} onchange={handleUserTypeFilterChange}></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox
-                                    label="Active / Inactive"
-                                    value={activeFilter}
-                                    options={activeFilterOptions}
-                                    onchange={handleActiveFilterChange}
-                                ></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
-                                <lightning-combobox
-                                    label="Confidence"
-                                    value={confidenceFilter}
-                                    options={confidenceFilterOptions}
-                                    onchange={handleConfidenceFilterChange}
-                                ></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12 slds-p-top_large">
-                                <lightning-input type="checkbox" label="Unresolved reasons only" checked={unresolvedOnly} onchange={handleUnresolvedOnlyChange}></lightning-input>
-                            </div>
-                        </div>
-
-                        <template if:true={hasNoFilteredResults}>
-                            <p class="slds-p-around_medium slds-text-align_center slds-text-color_weak">No users match the current filters.</p>
-                        </template>
-
-                        <template if:false={hasNoFilteredResults}>
-                            <div class="slds-m-top_small">
-                                <lightning-datatable
-                                    key-field="recordId"
-                                    data={pagedResults}
-                                    columns={columns}
-                                    onsort={handleSort}
-                                    sorted-by={sortBy}
-                                    sorted-direction={sortDirection}
-                                    onrowaction={handleRowAction}
-                                    hide-checkbox-column
-                                ></lightning-datatable>
-                            </div>
-                            <div class="slds-grid slds-grid_align-spread slds-m-top_small">
-                                <p class="slds-text-body_small slds-text-color_weak">{paginationSummary}</p>
-                                <div>
-                                    <lightning-button label="Previous" onclick={handlePreviousPage} disabled={isFirstPage} class="slds-m-right_x-small"></lightning-button>
-                                    <lightning-button label="Next" onclick={handleNextPage} disabled={isLastPage}></lightning-button>
+                    <!-- Progress -->
+                    <template if:true={showProgress}>
+                        <div class="slds-box slds-m-top_medium">
+                            <div
+                                class="slds-grid slds-grid_align-spread slds-wrap"
+                            >
+                                <div class="slds-col">
+                                    <p class="slds-text-heading_small">
+                                        Status: {summary.status}
+                                    </p>
+                                    <p
+                                        class="slds-text-body_small slds-text-color_weak"
+                                    >
+                                        {statusExplanation}
+                                    </p>
+                                </div>
+                                <div class="slds-col">
+                                    <lightning-button
+                                        label="Cancel Scan"
+                                        onclick={handleCancelScan}
+                                        disabled={cancelDisabled}
+                                    ></lightning-button>
                                 </div>
                             </div>
+                            <div
+                                class="slds-progress-bar slds-progress-bar_large slds-m-top_small"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow={progressPercent}
+                                role="progressbar"
+                            >
+                                <span
+                                    class="slds-progress-bar__value"
+                                    style={progressBarStyle}
+                                >
+                                    <span class="slds-assistive-text"
+                                        >Progress: {progressPercent}%</span
+                                    >
+                                </span>
+                            </div>
+                            <p class="slds-m-top_x-small">
+                                {summary.processedUsers} / {summary.totalUsers}
+                                users processed &middot;
+                                {summary.usersWithAccess} found with access
+                            </p>
+                            <p
+                                class="slds-text-body_small slds-text-color_weak"
+                            >
+                                Started: {summary.startedAt}
+                            </p>
+                        </div>
+                    </template>
+
+                    <!-- Warning banner -->
+                    <template if:true={showWarningBanner}>
+                        <div
+                            class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning slds-m-top_medium"
+                            role="alert"
+                        >
+                            <lightning-icon
+                                icon-name="utility:warning"
+                                size="x-small"
+                                class="slds-m-right_x-small"
+                            ></lightning-icon>
+                            <strong>Potentially Incomplete:</strong>
+                            {warningText}
+                        </div>
+                    </template>
+
+                    <!-- Results -->
+                    <template if:true={showResults}>
+                        <div
+                            class="slds-grid slds-grid_align-spread slds-wrap slds-m-top_medium"
+                        >
+                            <div class="slds-col">
+                                <h2 class="slds-text-heading_small">
+                                    Results for {summary.recordDisplayName}
+                                    ({summary.objectApiName})
+                                </h2>
+                            </div>
+                            <div class="slds-col slds-grid raa-toolbar">
+                                <lightning-button
+                                    label="Refresh"
+                                    icon-name="utility:refresh"
+                                    onclick={handleRefresh}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
+                                    label="Compare to Previous Scan"
+                                    onclick={handleShowDiff}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
+                                    label="Export Results CSV"
+                                    onclick={handleExportResults}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
+                                    label="Export Reasons CSV"
+                                    onclick={handleExportReasons}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
+                                    label="New Analysis"
+                                    onclick={handleNewAnalysis}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
+                                    label="Delete Analysis"
+                                    variant="destructive"
+                                    onclick={handleDeleteAnalysis}
+                                ></lightning-button>
+                            </div>
+                        </div>
+
+                        <template if:true={hasNoResults}>
+                            <div
+                                class="slds-illustration slds-illustration_small slds-p-around_large slds-text-align_center"
+                            >
+                                <lightning-icon
+                                    icon-name="utility:groups"
+                                    size="large"
+                                ></lightning-icon>
+                                <p
+                                    class="slds-text-heading_small slds-m-top_small"
+                                >
+                                    No users were found with effective access to
+                                    this record.
+                                </p>
+                            </div>
+                        </template>
+
+                        <template if:false={hasNoResults}>
+                            <!-- Filters -->
+                            <div
+                                class="slds-grid slds-wrap slds-gutters slds-m-top_small"
+                            >
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-input
+                                        label="Search name or username"
+                                        value={searchTerm}
+                                        onchange={handleSearchChange}
+                                    ></lightning-input>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="Max Access Level"
+                                        value={accessLevelFilter}
+                                        options={accessLevelOptions}
+                                        onchange={handleAccessLevelFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="Reason Category"
+                                        value={categoryFilter}
+                                        options={categoryOptions}
+                                        onchange={handleCategoryFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="Profile"
+                                        value={profileFilter}
+                                        options={profileOptions}
+                                        onchange={handleProfileFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                            </div>
+                            <div
+                                class="slds-grid slds-wrap slds-gutters slds-m-top_small"
+                            >
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="User Type"
+                                        value={userTypeFilter}
+                                        options={userTypeOptions}
+                                        onchange={handleUserTypeFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="Active / Inactive"
+                                        value={activeFilter}
+                                        options={activeFilterOptions}
+                                        onchange={handleActiveFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12"
+                                >
+                                    <lightning-combobox
+                                        label="Confidence"
+                                        value={confidenceFilter}
+                                        options={confidenceFilterOptions}
+                                        onchange={handleConfidenceFilterChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div
+                                    class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12 slds-p-top_large"
+                                >
+                                    <lightning-input
+                                        type="checkbox"
+                                        label="Unresolved reasons only"
+                                        checked={unresolvedOnly}
+                                        onchange={handleUnresolvedOnlyChange}
+                                    ></lightning-input>
+                                </div>
+                            </div>
+
+                            <template if:true={hasNoFilteredResults}>
+                                <p
+                                    class="slds-p-around_medium slds-text-align_center slds-text-color_weak"
+                                >
+                                    No users match the current filters.
+                                </p>
+                            </template>
+
+                            <template if:false={hasNoFilteredResults}>
+                                <div class="slds-m-top_small">
+                                    <lightning-datatable
+                                        key-field="recordId"
+                                        data={pagedResults}
+                                        columns={columns}
+                                        onsort={handleSort}
+                                        sorted-by={sortBy}
+                                        sorted-direction={sortDirection}
+                                        onrowaction={handleRowAction}
+                                        hide-checkbox-column
+                                    ></lightning-datatable>
+                                </div>
+                                <div
+                                    class="slds-grid slds-grid_align-spread slds-m-top_small"
+                                >
+                                    <p
+                                        class="slds-text-body_small slds-text-color_weak"
+                                    >
+                                        {paginationSummary}
+                                    </p>
+                                    <div>
+                                        <lightning-button
+                                            label="Previous"
+                                            onclick={handlePreviousPage}
+                                            disabled={isFirstPage}
+                                            class="slds-m-right_x-small"
+                                        ></lightning-button>
+                                        <lightning-button
+                                            label="Next"
+                                            onclick={handleNextPage}
+                                            disabled={isLastPage}
+                                        ></lightning-button>
+                                    </div>
+                                </div>
+                            </template>
                         </template>
                     </template>
-                </template>
 
-                <!-- Generic error state -->
-                <template if:true={genericErrorMessage}>
-                    <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_medium" role="alert">
-                        {genericErrorMessage}
-                    </div>
-                </template>
+                    <!-- Generic error state -->
+                    <template if:true={genericErrorMessage}>
+                        <div
+                            class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_medium"
+                            role="alert"
+                        >
+                            {genericErrorMessage}
+                        </div>
+                    </template>
 
-                <template if:true={isLoading}>
-                    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
-                </template>
+                    <template if:true={isLoading}>
+                        <lightning-spinner
+                            alternative-text="Loading"
+                            size="medium"
+                        ></lightning-spinner>
+                    </template>
                 </template>
             </template>
         </div>

@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_RestrictionRuleCheckerTest {
-
     @IsTest
     static void doesNotThrowForAnyObject() {
         Test.startTest();

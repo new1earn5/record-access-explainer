@@ -8,7 +8,6 @@
  * before calling in.
  */
 public without sharing class RAA_RecordMetadataResolver {
-
     public class ResolvedRecord {
         public Id recordId;
         public Schema.SObjectType sObjectType;
@@ -27,10 +26,14 @@ public without sharing class RAA_RecordMetadataResolver {
         Schema.DescribeSObjectResult objectDescribe = sObjectType.getDescribe();
 
         if (objectDescribe.isCustomSetting()) {
-            throw new RAA_AppException(objectDescribe.getLabel() + ' is a custom setting, not a data record, and is not supported.');
+            throw new RAA_AppException(
+                objectDescribe.getLabel() + ' is a custom setting, not a data record, and is not supported.'
+            );
         }
         if (!objectDescribe.isQueryable()) {
-            throw new RAA_AppException(objectDescribe.getLabel() + ' is not a queryable data object and is not supported.');
+            throw new RAA_AppException(
+                objectDescribe.getLabel() + ' is not a queryable data object and is not supported.'
+            );
         }
 
         Map<String, Schema.SObjectField> fieldMap = objectDescribe.fields.getMap();
@@ -43,15 +46,20 @@ public without sharing class RAA_RecordMetadataResolver {
             queryFields.add(nameFieldApi);
         }
 
-        String query = 'SELECT ' + String.join(new List<String>(queryFields), ', ')
-                + ' FROM ' + String.escapeSingleQuotes(objectDescribe.getName())
-                + ' WHERE Id = :recordId LIMIT 1';
+        String query =
+            'SELECT ' +
+            String.join(new List<String>(queryFields), ', ') +
+            ' FROM ' +
+            String.escapeSingleQuotes(objectDescribe.getName()) +
+            ' WHERE Id = :recordId LIMIT 1';
 
         List<SObject> rows;
         try {
             rows = Database.query(query);
         } catch (System.QueryException e) {
-            throw new RAA_AppException('Unable to query ' + objectDescribe.getLabel() + ' records in this org: ' + sanitize(e.getMessage()));
+            throw new RAA_AppException(
+                'Unable to query ' + objectDescribe.getLabel() + ' records in this org: ' + sanitize(e.getMessage())
+            );
         }
 
         if (rows.isEmpty()) {
@@ -64,9 +72,10 @@ public without sharing class RAA_RecordMetadataResolver {
         result.objectDescribe = objectDescribe;
         result.objectApiName = objectDescribe.getName();
         result.targetRecord = rows[0];
-        result.displayName = nameFieldApi != null && rows[0].get(nameFieldApi) != null
-                ? String.valueOf(rows[0].get(nameFieldApi))
-                : (String) recordId;
+        result.displayName = nameFieldApi != null &&
+            rows[0].get(nameFieldApi) != null
+            ? String.valueOf(rows[0].get(nameFieldApi))
+            : (String) recordId;
         return result;
     }
 
@@ -78,8 +87,7 @@ public without sharing class RAA_RecordMetadataResolver {
             List<UserRecordAccess> probe = [
                 SELECT RecordId, HasReadAccess, MaxAccessLevel
                 FROM UserRecordAccess
-                WHERE RecordId = :recordId
-                AND UserId = :UserInfo.getUserId()
+                WHERE RecordId = :recordId AND UserId = :UserInfo.getUserId()
             ];
             return true;
         } catch (System.QueryException e) {

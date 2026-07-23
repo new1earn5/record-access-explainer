@@ -5,18 +5,24 @@
  * CRUD/FLS on it.
  */
 public without sharing class RAA_SubscriptionRepository {
-
-    public Id createSubscription(Id recordId, String objectApiName, String displayName, Id subscriberId,
-            Boolean includeExternalUsers, Boolean includeInactiveUsers, Boolean notifyOnChange) {
+    public Id createSubscription(
+        Id recordId,
+        String objectApiName,
+        String displayName,
+        Id subscriberId,
+        Boolean includeExternalUsers,
+        Boolean includeInactiveUsers,
+        Boolean notifyOnChange
+    ) {
         RAA_Scan_Subscription__c subscription = new RAA_Scan_Subscription__c(
-                RAA_Record_Id__c = recordId,
-                RAA_Object_API_Name__c = objectApiName,
-                RAA_Record_Display_Name__c = displayName,
-                RAA_Subscriber__c = subscriberId,
-                RAA_Is_Active__c = true,
-                RAA_Include_External_Users__c = includeExternalUsers,
-                RAA_Include_Inactive_Users__c = includeInactiveUsers,
-                RAA_Notify_On_Change__c = notifyOnChange
+            RAA_Record_Id__c = recordId,
+            RAA_Object_API_Name__c = objectApiName,
+            RAA_Record_Display_Name__c = displayName,
+            RAA_Subscriber__c = subscriberId,
+            RAA_Is_Active__c = true,
+            RAA_Include_External_Users__c = includeExternalUsers,
+            RAA_Include_Inactive_Users__c = includeInactiveUsers,
+            RAA_Notify_On_Change__c = notifyOnChange
         );
         insert subscription;
         return subscription.Id;
@@ -24,9 +30,17 @@ public without sharing class RAA_SubscriptionRepository {
 
     public List<RAA_Scan_Subscription__c> getSubscriptionsForUser(Id subscriberId) {
         return [
-            SELECT Id, RAA_Record_Id__c, RAA_Object_API_Name__c, RAA_Record_Display_Name__c, RAA_Is_Active__c,
-                   RAA_Include_External_Users__c, RAA_Include_Inactive_Users__c, RAA_Notify_On_Change__c,
-                   RAA_Last_Run_At__c, RAA_Last_Analysis__c
+            SELECT
+                Id,
+                RAA_Record_Id__c,
+                RAA_Object_API_Name__c,
+                RAA_Record_Display_Name__c,
+                RAA_Is_Active__c,
+                RAA_Include_External_Users__c,
+                RAA_Include_Inactive_Users__c,
+                RAA_Notify_On_Change__c,
+                RAA_Last_Run_At__c,
+                RAA_Last_Analysis__c
             FROM RAA_Scan_Subscription__c
             WHERE RAA_Subscriber__c = :subscriberId
             ORDER BY RAA_Record_Display_Name__c
@@ -35,9 +49,19 @@ public without sharing class RAA_SubscriptionRepository {
 
     public RAA_Scan_Subscription__c getSubscription(Id subscriptionId) {
         List<RAA_Scan_Subscription__c> rows = [
-            SELECT Id, RAA_Record_Id__c, RAA_Object_API_Name__c, RAA_Record_Display_Name__c, RAA_Is_Active__c,
-                   RAA_Include_External_Users__c, RAA_Include_Inactive_Users__c, RAA_Notify_On_Change__c,
-                   RAA_Subscriber__c, RAA_Last_Run_At__c, RAA_Last_Analysis__c, RAA_Pending_Analysis__c
+            SELECT
+                Id,
+                RAA_Record_Id__c,
+                RAA_Object_API_Name__c,
+                RAA_Record_Display_Name__c,
+                RAA_Is_Active__c,
+                RAA_Include_External_Users__c,
+                RAA_Include_Inactive_Users__c,
+                RAA_Notify_On_Change__c,
+                RAA_Subscriber__c,
+                RAA_Last_Run_At__c,
+                RAA_Last_Analysis__c,
+                RAA_Pending_Analysis__c
             FROM RAA_Scan_Subscription__c
             WHERE Id = :subscriptionId
             LIMIT 1
@@ -47,11 +71,19 @@ public without sharing class RAA_SubscriptionRepository {
 
     public List<RAA_Scan_Subscription__c> getActiveSubscriptions(Integer maxRows) {
         return [
-            SELECT Id, RAA_Record_Id__c, RAA_Object_API_Name__c, RAA_Record_Display_Name__c,
-                   RAA_Include_External_Users__c, RAA_Include_Inactive_Users__c, RAA_Notify_On_Change__c,
-                   RAA_Subscriber__c, RAA_Last_Analysis__c, RAA_Pending_Analysis__c
+            SELECT
+                Id,
+                RAA_Record_Id__c,
+                RAA_Object_API_Name__c,
+                RAA_Record_Display_Name__c,
+                RAA_Include_External_Users__c,
+                RAA_Include_Inactive_Users__c,
+                RAA_Notify_On_Change__c,
+                RAA_Subscriber__c,
+                RAA_Last_Analysis__c,
+                RAA_Pending_Analysis__c
             FROM RAA_Scan_Subscription__c
-            WHERE RAA_Is_Active__c = true
+            WHERE RAA_Is_Active__c = TRUE
             LIMIT :maxRows
         ];
     }
@@ -65,10 +97,18 @@ public without sharing class RAA_SubscriptionRepository {
     }
 
     public void setPendingAnalysis(Id subscriptionId, Id pendingAnalysisId) {
-        update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Pending_Analysis__c = pendingAnalysisId, RAA_Last_Run_At__c = System.now());
+        update new RAA_Scan_Subscription__c(
+            Id = subscriptionId,
+            RAA_Pending_Analysis__c = pendingAnalysisId,
+            RAA_Last_Run_At__c = System.now()
+        );
     }
 
     public void advanceBaseline(Id subscriptionId, Id newLastAnalysisId) {
-        update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = newLastAnalysisId, RAA_Pending_Analysis__c = null);
+        update new RAA_Scan_Subscription__c(
+            Id = subscriptionId,
+            RAA_Last_Analysis__c = newLastAnalysisId,
+            RAA_Pending_Analysis__c = null
+        );
     }
 }

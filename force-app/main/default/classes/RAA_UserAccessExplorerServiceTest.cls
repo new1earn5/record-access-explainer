@@ -1,6 +1,5 @@
 @IsTest
 private class RAA_UserAccessExplorerServiceTest {
-
     @IsTest
     static void scansOwnerAcrossMultipleRecordsAndSortsAccessibleFirst() {
         Account owned = new Account(Name = 'RAA Explorer Owned Account');
@@ -15,7 +14,7 @@ private class RAA_UserAccessExplorerServiceTest {
 
         Test.startTest();
         List<RAA_UserRecordAccessSummaryDTO> results = new RAA_UserAccessExplorerService()
-                .scanUserAcrossRecords(UserInfo.getUserId(), 'Account', new List<Id>{ owned.Id, other.Id });
+            .scanUserAcrossRecords(UserInfo.getUserId(), 'Account', new List<Id>{ owned.Id, other.Id });
         Test.stopTest();
 
         System.assertEquals(2, results.size());
@@ -24,7 +23,11 @@ private class RAA_UserAccessExplorerServiceTest {
         for (RAA_UserRecordAccessSummaryDTO dto : results) {
             byRecord.put(dto.recordId, dto);
         }
-        System.assertEquals(true, byRecord.get(owned.Id).hasAnyAccess, 'The owner should have access to their own record.');
+        System.assertEquals(
+            true,
+            byRecord.get(owned.Id).hasAnyAccess,
+            'The owner should have access to their own record.'
+        );
         System.assertEquals('RAA Explorer Owned Account', byRecord.get(owned.Id).recordDisplayName);
     }
 
@@ -34,7 +37,8 @@ private class RAA_UserAccessExplorerServiceTest {
         insert acct;
 
         try {
-            new RAA_UserAccessExplorerService().scanUserAcrossRecords(UserInfo.getUserId(), 'Account', new List<Id>{ acct.Id, UserInfo.getUserId() });
+            new RAA_UserAccessExplorerService()
+                .scanUserAcrossRecords(UserInfo.getUserId(), 'Account', new List<Id>{ acct.Id, UserInfo.getUserId() });
             System.assert(false, 'Expected an exception for mismatched object types.');
         } catch (RAA_AppException e) {
             System.assert(e.getMessage().contains('same object'));
@@ -44,7 +48,12 @@ private class RAA_UserAccessExplorerServiceTest {
     @IsTest
     static void throwsForUnknownObject() {
         try {
-            new RAA_UserAccessExplorerService().scanUserAcrossRecords(UserInfo.getUserId(), 'Not_A_Real_Object__x', new List<Id>{ UserInfo.getUserId() });
+            new RAA_UserAccessExplorerService()
+                .scanUserAcrossRecords(
+                    UserInfo.getUserId(),
+                    'Not_A_Real_Object__x',
+                    new List<Id>{ UserInfo.getUserId() }
+                );
             System.assert(false, 'Expected an exception for an unknown object.');
         } catch (RAA_AppException e) {
             System.assert(e.getMessage().contains('not a recognized object'));
@@ -53,7 +62,8 @@ private class RAA_UserAccessExplorerServiceTest {
 
     @IsTest
     static void returnsEmptyForNoCandidates() {
-        List<RAA_UserRecordAccessSummaryDTO> results = new RAA_UserAccessExplorerService().scanUserAcrossRecords(UserInfo.getUserId(), 'Account', null);
+        List<RAA_UserRecordAccessSummaryDTO> results = new RAA_UserAccessExplorerService()
+            .scanUserAcrossRecords(UserInfo.getUserId(), 'Account', null);
         System.assertEquals(0, results.size());
     }
 
@@ -62,7 +72,8 @@ private class RAA_UserAccessExplorerServiceTest {
         Account acct = new Account(Name = 'RAA Explorer Reasons Account');
         insert acct;
 
-        List<RAA_AccessReasonDTO> reasons = new RAA_UserAccessExplorerService().getAccessReasons(UserInfo.getUserId(), acct.Id);
+        List<RAA_AccessReasonDTO> reasons = new RAA_UserAccessExplorerService()
+            .getAccessReasons(UserInfo.getUserId(), acct.Id);
 
         System.assert(!reasons.isEmpty(), 'The owner should have at least one detected reason.');
     }

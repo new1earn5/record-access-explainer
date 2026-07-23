@@ -8,7 +8,6 @@
  * for that record rather than raising a warning, since the feature simply may not be in use.
  */
 public without sharing class RAA_TeamAnalyzer implements RAA_IReasonAnalyzer {
-
     public String getAnalyzerName() {
         return 'Teams';
     }
@@ -23,38 +22,86 @@ public without sharing class RAA_TeamAnalyzer implements RAA_IReasonAnalyzer {
 
         try {
             if (context.objectApiName == 'Account' && globalDescribe.containsKey('AccountTeamMember')) {
-                analyzeTeam(context, userIds, results, 'AccountTeamMember', 'AccountId', 'UserId',
-                        'TeamMemberRole', 'AccountAccessLevel', 'Account Team');
+                analyzeTeam(
+                    context,
+                    userIds,
+                    results,
+                    'AccountTeamMember',
+                    'AccountId',
+                    'UserId',
+                    'TeamMemberRole',
+                    'AccountAccessLevel',
+                    'Account Team'
+                );
             } else if (context.objectApiName == 'Opportunity' && globalDescribe.containsKey('OpportunityTeamMember')) {
-                analyzeTeam(context, userIds, results, 'OpportunityTeamMember', 'OpportunityId', 'UserId',
-                        'TeamMemberRole', 'OpportunityAccessLevel', 'Opportunity Team');
+                analyzeTeam(
+                    context,
+                    userIds,
+                    results,
+                    'OpportunityTeamMember',
+                    'OpportunityId',
+                    'UserId',
+                    'TeamMemberRole',
+                    'OpportunityAccessLevel',
+                    'Opportunity Team'
+                );
             } else if (context.objectApiName == 'Case' && globalDescribe.containsKey('CaseTeamMember')) {
                 analyzeCaseTeam(context, userIds, results);
             }
         } catch (System.QueryException e) {
-            context.warnings.add('Team analysis could not be completed for ' + context.objectApiName
-                    + ': the relevant team feature may not be enabled in this org.');
+            context.warnings.add(
+                'Team analysis could not be completed for ' +
+                    context.objectApiName +
+                    ': the relevant team feature may not be enabled in this org.'
+            );
         }
 
         return results;
     }
 
-    private void analyzeTeam(RAA_AnalysisContext context, Set<Id> userIds, Map<Id, List<RAA_AccessReasonDTO>> results,
-            String teamObject, String parentField, String userField, String roleField, String accessLevelField, String teamLabel) {
+    private void analyzeTeam(
+        RAA_AnalysisContext context,
+        Set<Id> userIds,
+        Map<Id, List<RAA_AccessReasonDTO>> results,
+        String teamObject,
+        String parentField,
+        String userField,
+        String roleField,
+        String accessLevelField,
+        String teamLabel
+    ) {
         Id recordId = context.recordId;
-        String query = 'SELECT ' + userField + ', ' + roleField + ', ' + accessLevelField
-                + ' FROM ' + teamObject
-                + ' WHERE ' + parentField + ' = :recordId AND ' + userField + ' IN :userIds';
+        String query =
+            'SELECT ' +
+            userField +
+            ', ' +
+            roleField +
+            ', ' +
+            accessLevelField +
+            ' FROM ' +
+            teamObject +
+            ' WHERE ' +
+            parentField +
+            ' = :recordId AND ' +
+            userField +
+            ' IN :userIds';
         for (SObject member : Database.query(query)) {
             Id userId = (Id) member.get(userField);
             String role = (String) member.get(roleField);
             String accessLevel = (String) member.get(accessLevelField);
-            addReason(results, userId, buildReason(context, teamLabel, accessLevel, role,
-                    teamLabel + ' member with role "' + role + '".'));
+            addReason(
+                results,
+                userId,
+                buildReason(context, teamLabel, accessLevel, role, teamLabel + ' member with role "' + role + '".')
+            );
         }
     }
 
-    private void analyzeCaseTeam(RAA_AnalysisContext context, Set<Id> userIds, Map<Id, List<RAA_AccessReasonDTO>> results) {
+    private void analyzeCaseTeam(
+        RAA_AnalysisContext context,
+        Set<Id> userIds,
+        Map<Id, List<RAA_AccessReasonDTO>> results
+    ) {
         Map<Id, String> roleNamesById = new Map<Id, String>();
         if (Schema.getGlobalDescribe().containsKey('CaseTeamRole')) {
             for (SObject role : Database.query('SELECT Id, Name FROM CaseTeamRole')) {
@@ -63,18 +110,29 @@ public without sharing class RAA_TeamAnalyzer implements RAA_IReasonAnalyzer {
         }
 
         Id recordId = context.recordId;
-        for (SObject member : Database.query(
-                'SELECT MemberId, TeamRoleId FROM CaseTeamMember WHERE ParentId = :recordId AND MemberId IN :userIds')) {
+        for (
+            SObject member : Database.query(
+                'SELECT MemberId, TeamRoleId FROM CaseTeamMember WHERE ParentId = :recordId AND MemberId IN :userIds'
+            )
+        ) {
             Id userId = (Id) member.get('MemberId');
             Id roleId = (Id) member.get('TeamRoleId');
             String roleName = roleNamesById.containsKey(roleId) ? roleNamesById.get(roleId) : 'Unknown';
-            addReason(results, userId, buildReason(context, 'Case Team', null, roleName,
-                    'Case team member with role "' + roleName + '".'));
+            addReason(
+                results,
+                userId,
+                buildReason(context, 'Case Team', null, roleName, 'Case team member with role "' + roleName + '".')
+            );
         }
     }
 
-    private RAA_AccessReasonDTO buildReason(RAA_AnalysisContext context, String teamType, String accessLevel,
-            String role, String explanation) {
+    private RAA_AccessReasonDTO buildReason(
+        RAA_AnalysisContext context,
+        String teamType,
+        String accessLevel,
+        String role,
+        String explanation
+    ) {
         RAA_AccessReasonDTO reason = new RAA_AccessReasonDTO();
         reason.category = 'Team';
         reason.accessLevel = accessLevel;

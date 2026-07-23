@@ -5,23 +5,30 @@
  * ancestor record, so context-building logic exists in exactly one place.
  */
 public without sharing class RAA_ContextBuilder {
-
     private final RAA_RecordMetadataResolver metadataResolver;
     private final RAA_ShareObjectResolver shareResolver;
     private final RAA_SharingRecalculationChecker recalculationChecker;
     private final RAA_RestrictionRuleChecker restrictionRuleChecker;
 
     public RAA_ContextBuilder() {
-        this(new RAA_RecordMetadataResolver(), new RAA_ShareObjectResolver(),
-                new RAA_SharingRecalculationChecker(), new RAA_RestrictionRuleChecker());
+        this(
+            new RAA_RecordMetadataResolver(),
+            new RAA_ShareObjectResolver(),
+            new RAA_SharingRecalculationChecker(),
+            new RAA_RestrictionRuleChecker()
+        );
     }
 
     public RAA_ContextBuilder(RAA_RecordMetadataResolver metadataResolver, RAA_ShareObjectResolver shareResolver) {
         this(metadataResolver, shareResolver, new RAA_SharingRecalculationChecker(), new RAA_RestrictionRuleChecker());
     }
 
-    public RAA_ContextBuilder(RAA_RecordMetadataResolver metadataResolver, RAA_ShareObjectResolver shareResolver,
-            RAA_SharingRecalculationChecker recalculationChecker, RAA_RestrictionRuleChecker restrictionRuleChecker) {
+    public RAA_ContextBuilder(
+        RAA_RecordMetadataResolver metadataResolver,
+        RAA_ShareObjectResolver shareResolver,
+        RAA_SharingRecalculationChecker recalculationChecker,
+        RAA_RestrictionRuleChecker restrictionRuleChecker
+    ) {
         this.metadataResolver = metadataResolver;
         this.shareResolver = shareResolver;
         this.recalculationChecker = recalculationChecker;
@@ -33,27 +40,41 @@ public without sharing class RAA_ContextBuilder {
         context.remainingParentDepth = settings.maxParentDepth;
 
         if (recalculationChecker.isRecalculationInProgress()) {
-            context.warnings.add('A sharing recalculation job is currently queued or running for this org; '
-                    + 'results may not reflect very recent role, group, or sharing-rule changes until it finishes.');
+            context.warnings.add(
+                'A sharing recalculation job is currently queued or running for this org; ' +
+                'results may not reflect very recent role, group, or sharing-rule changes until it finishes.'
+            );
         }
 
         Integer restrictionRuleCount = restrictionRuleChecker.countActiveRestrictionRules(context.objectApiName);
         if (restrictionRuleCount != null && restrictionRuleCount > 0) {
-            context.warnings.add(restrictionRuleCount + ' active restriction rule(s) exist on ' + context.objectApiName
-                    + '. Restriction rules can only narrow visibility further and are not evaluated by this scan, '
-                    + 'so some users shown here with access may actually be restricted from seeing this record.');
+            context.warnings.add(
+                restrictionRuleCount +
+                    ' active restriction rule(s) exist on ' +
+                    context.objectApiName +
+                    '. Restriction rules can only narrow visibility further and are not evaluated by this scan, ' +
+                    'so some users shown here with access may actually be restricted from seeing this record.'
+            );
         }
 
         return context;
     }
 
-    public RAA_AnalysisContext buildParentContext(Id parentRecordId, RAA_AnalysisContext childContext, RAA_SettingsService settings) {
+    public RAA_AnalysisContext buildParentContext(
+        Id parentRecordId,
+        RAA_AnalysisContext childContext,
+        RAA_SettingsService settings
+    ) {
         RAA_AnalysisContext parentContext = buildContext(parentRecordId, settings);
         parentContext.visitedParentRecordIds = new Set<Id>(childContext.visitedParentRecordIds);
         parentContext.visitedParentRecordIds.add(childContext.recordId);
         parentContext.remainingParentDepth = childContext.remainingParentDepth - 1;
         parentContext.grantPathPrefix = childContext.prefixedPath(
-                'Controlled by parent through ' + childContext.objectApiName + '.' + childContext.controllingParentFieldApiName);
+            'Controlled by parent through ' +
+                childContext.objectApiName +
+                '.' +
+                childContext.controllingParentFieldApiName
+        );
         return parentContext;
     }
 
@@ -82,8 +103,11 @@ public without sharing class RAA_ContextBuilder {
             context.shareRowCauseField = shareInfo.rowCauseField;
             context.shareRows = queryShareRows(shareInfo, recordId);
         } else {
-            context.warnings.add('No sharing table could be located for ' + resolved.objectApiName
-                    + '; direct share, sharing-rule, and group-share analysis is unavailable for this object.');
+            context.warnings.add(
+                'No sharing table could be located for ' +
+                    resolved.objectApiName +
+                    '; direct share, sharing-rule, and group-share analysis is unavailable for this object.'
+            );
         }
 
         context.controllingParentFieldApiName = findControllingParentField(fieldMap);
@@ -93,13 +117,21 @@ public without sharing class RAA_ContextBuilder {
 
     private List<SObject> queryShareRows(RAA_ShareObjectResolver.ShareObjectInfo shareInfo, Id recordId) {
         Set<String> fields = new Set<String>{
-                'Id', shareInfo.userOrGroupField, shareInfo.rowCauseField, shareInfo.accessLevelField
+            'Id',
+            shareInfo.userOrGroupField,
+            shareInfo.rowCauseField,
+            shareInfo.accessLevelField
         };
         fields.addAll(shareInfo.secondaryAccessLevelFields);
 
-        String query = 'SELECT ' + String.join(new List<String>(fields), ', ')
-                + ' FROM ' + String.escapeSingleQuotes(shareInfo.shareObjectApiName)
-                + ' WHERE ' + String.escapeSingleQuotes(shareInfo.parentField) + ' = :recordId';
+        String query =
+            'SELECT ' +
+            String.join(new List<String>(fields), ', ') +
+            ' FROM ' +
+            String.escapeSingleQuotes(shareInfo.shareObjectApiName) +
+            ' WHERE ' +
+            String.escapeSingleQuotes(shareInfo.parentField) +
+            ' = :recordId';
         try {
             return Database.query(query);
         } catch (System.QueryException e) {

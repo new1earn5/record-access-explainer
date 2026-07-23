@@ -12,9 +12,11 @@
  * than with population size.
  */
 public without sharing class RAA_GroupGraphResolver {
-
     public static final Set<String> UNRESOLVABLE_TYPES = new Set<String>{
-            'RoleAndSubordinates', 'RoleAndSubordinatesInternal', 'Territory', 'TerritoryAndSubordinates'
+        'RoleAndSubordinates',
+        'RoleAndSubordinatesInternal',
+        'Territory',
+        'TerritoryAndSubordinates'
     };
 
     public Map<Id, Group> describeGroups(Set<Id> groupIds) {
@@ -47,9 +49,13 @@ public without sharing class RAA_GroupGraphResolver {
         return resultsByUser;
     }
 
-    private void resolveFromSingleRoot(Id rootId, Group rootGroup, Set<Id> targetUserIds, Integer maxDepth,
-            Map<Id, List<RAA_GroupPathDTO>> resultsByUser) {
-
+    private void resolveFromSingleRoot(
+        Id rootId,
+        Group rootGroup,
+        Set<Id> targetUserIds,
+        Integer maxDepth,
+        Map<Id, List<RAA_GroupPathDTO>> resultsByUser
+    ) {
         if (rootGroup == null) {
             return;
         }
@@ -57,7 +63,7 @@ public without sharing class RAA_GroupGraphResolver {
         Set<Id> remainingTargets = new Set<Id>(targetUserIds);
         Set<Id> visitedGroupIds = new Set<Id>{ rootId };
         Map<Id, List<String>> pathLabelsByGroupId = new Map<Id, List<String>>{
-                rootId => new List<String>{ describeLabel(rootGroup) }
+            rootId => new List<String>{ describeLabel(rootGroup) }
         };
 
         Set<Id> currentLevel = new Set<Id>{ rootId };
@@ -100,7 +106,9 @@ public without sharing class RAA_GroupGraphResolver {
                             existing = new List<RAA_GroupPathDTO>();
                             resultsByUser.put(gm.UserOrGroupId, existing);
                         }
-                        existing.add(new RAA_GroupPathDTO(rootId, rootGroup.Type, describeLabel(rootGroup), parentPath));
+                        existing.add(
+                            new RAA_GroupPathDTO(rootId, rootGroup.Type, describeLabel(rootGroup), parentPath)
+                        );
                     }
                 } else if (memberType == Group.SObjectType) {
                     if (visitedGroupIds.contains(gm.UserOrGroupId)) {

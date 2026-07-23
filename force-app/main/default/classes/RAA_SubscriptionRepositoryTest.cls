@@ -1,12 +1,19 @@
 @IsTest
 private class RAA_SubscriptionRepositoryTest {
-
     @IsTest
     static void createReadUpdateAndDeleteLifecycle() {
         RAA_SubscriptionRepository repo = new RAA_SubscriptionRepository();
 
         Test.startTest();
-        Id subscriptionId = repo.createSubscription(UserInfo.getUserId(), 'User', 'Test Sub', UserInfo.getUserId(), false, false, true);
+        Id subscriptionId = repo.createSubscription(
+            UserInfo.getUserId(),
+            'User',
+            'Test Sub',
+            UserInfo.getUserId(),
+            false,
+            false,
+            true
+        );
         Test.stopTest();
 
         RAA_Scan_Subscription__c fetched = repo.getSubscription(subscriptionId);

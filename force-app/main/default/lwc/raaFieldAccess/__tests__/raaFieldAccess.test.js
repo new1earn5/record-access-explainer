@@ -21,7 +21,9 @@ describe('c-raa-field-access', () => {
     });
 
     function createComponent() {
-        const element = createElement('c-raa-field-access', { is: RaaFieldAccess });
+        const element = createElement('c-raa-field-access', {
+            is: RaaFieldAccess
+        });
         element.userName = 'Jane Doe';
         element.userId = '005000000000001AAA';
         element.objectApiName = 'Account';
@@ -31,28 +33,49 @@ describe('c-raa-field-access', () => {
 
     it('loads field access on connect and renders the datatable', async () => {
         getFieldAccess.mockResolvedValue([
-            { fieldApiName: 'Name', fieldLabel: 'Account Name', readable: true, editable: true },
-            { fieldApiName: 'Website', fieldLabel: 'Website', readable: true, editable: false }
+            {
+                fieldApiName: 'Name',
+                fieldLabel: 'Account Name',
+                readable: true,
+                editable: true
+            },
+            {
+                fieldApiName: 'Website',
+                fieldLabel: 'Website',
+                readable: true,
+                editable: false
+            }
         ]);
 
         const element = createComponent();
         await flushPromises();
 
-        expect(getFieldAccess).toHaveBeenCalledWith({ userId: '005000000000001AAA', objectApiName: 'Account' });
-        const datatable = element.shadowRoot.querySelector('lightning-datatable');
+        expect(getFieldAccess).toHaveBeenCalledWith({
+            userId: '005000000000001AAA',
+            objectApiName: 'Account'
+        });
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
         expect(datatable).not.toBeNull();
         expect(datatable.data).toHaveLength(2);
         expect(element.shadowRoot.textContent).toContain('Jane Doe');
     });
 
     it('shows an error message when the Apex call fails', async () => {
-        getFieldAccess.mockRejectedValue({ body: { message: 'No access to field data.' } });
+        getFieldAccess.mockRejectedValue({
+            body: { message: 'No access to field data.' }
+        });
 
         const element = createComponent();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('No access to field data.');
-        expect(element.shadowRoot.querySelector('lightning-datatable')).toBeNull();
+        expect(element.shadowRoot.textContent).toContain(
+            'No access to field data.'
+        );
+        expect(
+            element.shadowRoot.querySelector('lightning-datatable')
+        ).toBeNull();
     });
 
     it('dispatches a close event when the close button is clicked', async () => {

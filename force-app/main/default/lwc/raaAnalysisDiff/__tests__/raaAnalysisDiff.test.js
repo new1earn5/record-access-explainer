@@ -21,7 +21,9 @@ describe('c-raa-analysis-diff', () => {
     });
 
     function createComponent() {
-        const element = createElement('c-raa-analysis-diff', { is: RaaAnalysisDiff });
+        const element = createElement('c-raa-analysis-diff', {
+            is: RaaAnalysisDiff
+        });
         element.analysisId = 'a00000000000001';
         element.recordDisplayName = 'Acme Corp';
         document.body.appendChild(element);
@@ -33,15 +35,24 @@ describe('c-raa-analysis-diff', () => {
         const element = createComponent();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('no earlier completed scan');
+        expect(element.shadowRoot.textContent).toContain(
+            'no earlier completed scan'
+        );
     });
 
     it('shows the no-changes message when nothing differs', async () => {
-        getAnalysisDiff.mockResolvedValue({ usersAdded: 0, usersRemoved: 0, usersChanged: 0, changes: [] });
+        getAnalysisDiff.mockResolvedValue({
+            usersAdded: 0,
+            usersRemoved: 0,
+            usersChanged: 0,
+            changes: []
+        });
         const element = createComponent();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('No differences were found');
+        expect(element.shadowRoot.textContent).toContain(
+            'No differences were found'
+        );
     });
 
     it('renders each change with the correct badge class', async () => {
@@ -50,9 +61,33 @@ describe('c-raa-analysis-diff', () => {
             usersRemoved: 1,
             usersChanged: 1,
             changes: [
-                { changeType: 'Added', userFullName: 'A User', username: 'a@example.com', previousMaxAccessLevel: null, currentMaxAccessLevel: 'Read', previousReasonSummary: null, currentReasonSummary: 'Ownership' },
-                { changeType: 'Removed', userFullName: 'B User', username: 'b@example.com', previousMaxAccessLevel: 'Read', currentMaxAccessLevel: null, previousReasonSummary: 'Ownership', currentReasonSummary: null },
-                { changeType: 'Changed', userFullName: 'C User', username: 'c@example.com', previousMaxAccessLevel: 'Read', currentMaxAccessLevel: 'Edit', previousReasonSummary: 'Ownership', currentReasonSummary: 'Ownership, Permission' }
+                {
+                    changeType: 'Added',
+                    userFullName: 'A User',
+                    username: 'a@example.com',
+                    previousMaxAccessLevel: null,
+                    currentMaxAccessLevel: 'Read',
+                    previousReasonSummary: null,
+                    currentReasonSummary: 'Ownership'
+                },
+                {
+                    changeType: 'Removed',
+                    userFullName: 'B User',
+                    username: 'b@example.com',
+                    previousMaxAccessLevel: 'Read',
+                    currentMaxAccessLevel: null,
+                    previousReasonSummary: 'Ownership',
+                    currentReasonSummary: null
+                },
+                {
+                    changeType: 'Changed',
+                    userFullName: 'C User',
+                    username: 'c@example.com',
+                    previousMaxAccessLevel: 'Read',
+                    currentMaxAccessLevel: 'Edit',
+                    previousReasonSummary: 'Ownership',
+                    currentReasonSummary: 'Ownership, Permission'
+                }
             ]
         });
 
@@ -63,16 +98,22 @@ describe('c-raa-analysis-diff', () => {
         expect(articles).toHaveLength(3);
         expect(element.shadowRoot.textContent).toContain('1 gained access');
 
-        const badges = element.shadowRoot.querySelectorAll('article span.raa-diff-added, article span.raa-diff-removed, article span.raa-diff-changed');
+        const badges = element.shadowRoot.querySelectorAll(
+            'article span.raa-diff-added, article span.raa-diff-removed, article span.raa-diff-changed'
+        );
         expect(badges).toHaveLength(3);
     });
 
     it('shows an error message when the Apex call fails', async () => {
-        getAnalysisDiff.mockRejectedValue({ body: { message: 'Comparison unavailable.' } });
+        getAnalysisDiff.mockRejectedValue({
+            body: { message: 'Comparison unavailable.' }
+        });
         const element = createComponent();
         await flushPromises();
 
-        expect(element.shadowRoot.textContent).toContain('Comparison unavailable.');
+        expect(element.shadowRoot.textContent).toContain(
+            'Comparison unavailable.'
+        );
     });
 
     it('dispatches a close event when the close button is clicked', async () => {
