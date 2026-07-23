@@ -26,6 +26,37 @@
     font-family: monospace;
 }
 
+.raa-path-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.5rem;
+}
+
+.raa-path-step-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.raa-path-chip {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 1rem;
+    background-color: #eef4ff;
+    border: 1px solid #c9d7f5;
+    color: #01133b;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.raa-path-arrow {
+    margin: 0 0.35rem;
+}
+
+.raa-path-step-wrapper:last-child .raa-path-arrow {
+    display: none;
+}
+
 .success {
     --slds-c-badge-color-background: #4bca81;
     --slds-c-badge-text-color: #03150a;

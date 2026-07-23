@@ -6,6 +6,9 @@
         <members>RAA_AccessScanBatch</members>
         <members>RAA_AccessScanBatchTest</members>
         <members>RAA_AnalysisContext</members>
+        <members>RAA_AnalysisDiffDTO</members>
+        <members>RAA_AnalysisDiffService</members>
+        <members>RAA_AnalysisDiffServiceTest</members>
         <members>RAA_AnalysisOrchestratorService</members>
         <members>RAA_AnalysisOrchestratorServiceTest</members>
         <members>RAA_AnalysisRepository</members>
@@ -13,6 +16,10 @@
         <members>RAA_AnalysisRequestDTO</members>
         <members>RAA_AnalysisSummaryDTO</members>
         <members>RAA_AppException</members>
+        <members>RAA_BatchRunAnalysisSummaryDTO</members>
+        <members>RAA_BatchRunSummaryDTO</members>
+        <members>RAA_BulkScanQueueable</members>
+        <members>RAA_BulkScanQueueableTest</members>
         <members>RAA_CleanupScheduler</members>
         <members>RAA_CleanupSchedulerTest</members>
         <members>RAA_ContextBuilder</members>
@@ -22,6 +29,9 @@
         <members>RAA_EffectiveAccessResult</members>
         <members>RAA_FakeEffectiveAccessProvider</members>
         <members>RAA_FakeReasonAnalyzer</members>
+        <members>RAA_FieldAccessDTO</members>
+        <members>RAA_FieldAccessService</members>
+        <members>RAA_FieldAccessServiceTest</members>
         <members>RAA_GroupGraphResolver</members>
         <members>RAA_GroupGraphResolverTest</members>
         <members>RAA_GroupPathDTO</members>
@@ -39,12 +49,18 @@
         <members>RAA_PermissionAnalyzerTest</members>
         <members>RAA_PermissionChecker</members>
         <members>RAA_PermissionCheckerTest</members>
+        <members>RAA_PermissionSetLookup</members>
+        <members>RAA_PermissionSetLookupTest</members>
         <members>RAA_ReasonAggregator</members>
         <members>RAA_ReasonAggregatorTest</members>
         <members>RAA_RecordAccessExplainerController</members>
         <members>RAA_RecordAccessExplainerControllerTest</members>
         <members>RAA_RecordMetadataResolver</members>
         <members>RAA_RecordMetadataResolverTest</members>
+        <members>RAA_RecurringScanScheduler</members>
+        <members>RAA_RecurringScanSchedulerTest</members>
+        <members>RAA_RestrictionRuleChecker</members>
+        <members>RAA_RestrictionRuleCheckerTest</members>
         <members>RAA_RoleHierarchyAnalyzer</members>
         <members>RAA_RoleHierarchyAnalyzerTest</members>
         <members>RAA_SettingsDTO</members>
@@ -54,6 +70,13 @@
         <members>RAA_ShareObjectResolverTest</members>
         <members>RAA_ShareRowAnalyzer</members>
         <members>RAA_ShareRowAnalyzerTest</members>
+        <members>RAA_SharingRecalculationChecker</members>
+        <members>RAA_SharingRecalculationCheckerTest</members>
+        <members>RAA_SubscriptionDTO</members>
+        <members>RAA_SubscriptionRepository</members>
+        <members>RAA_SubscriptionRepositoryTest</members>
+        <members>RAA_SubscriptionScanQueueable</members>
+        <members>RAA_SubscriptionScanQueueableTest</members>
         <members>RAA_TeamAnalyzer</members>
         <members>RAA_TeamAnalyzerTest</members>
         <members>RAA_TerritoryAnalyzer</members>
@@ -61,16 +84,22 @@
         <members>RAA_TestDataFactory</members>
         <members>RAA_UnresolvedReasonBuilder</members>
         <members>RAA_UnresolvedReasonBuilderTest</members>
+        <members>RAA_UserAccessChangeDTO</members>
+        <members>RAA_UserAccessExplorerService</members>
+        <members>RAA_UserAccessExplorerServiceTest</members>
         <members>RAA_UserPopulationBuilder</members>
         <members>RAA_UserPopulationBuilderTest</members>
         <members>RAA_UserRecordAccessProvider</members>
         <members>RAA_UserRecordAccessProviderTest</members>
+        <members>RAA_UserRecordAccessSummaryDTO</members>
         <name>ApexClass</name>
     </types>
     <types>
         <members>RAA_Analysis__c</members>
         <members>RAA_Access_Result__c</members>
         <members>RAA_Access_Reason__c</members>
+        <members>RAA_Batch_Run__c</members>
+        <members>RAA_Scan_Subscription__c</members>
         <members>RAA_Settings__mdt</members>
         <name>CustomObject</name>
     </types>
@@ -101,6 +130,11 @@
     <types>
         <members>raaRecordAccessExplainer</members>
         <members>raaReasonDetail</members>
+        <members>raaBulkScan</members>
+        <members>raaUserAccessExplorer</members>
+        <members>raaAnalysisDiff</members>
+        <members>raaFieldAccess</members>
+        <members>raaSubscriptions</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

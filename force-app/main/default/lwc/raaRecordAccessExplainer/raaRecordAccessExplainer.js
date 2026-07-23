@@ -29,9 +29,13 @@ const COLUMNS = [
     { label: 'Reason Summary', fieldName: 'reasonSummary', type: 'text', wrapText: true },
     { label: 'Confidence', fieldName: 'overallConfidence', type: 'text', sortable: true },
     {
-        type: 'button',
-        typeAttributes: { label: 'View Reasons', name: 'view_reasons', variant: 'brand-outline' },
-        cellAttributes: { alignment: 'left' }
+        type: 'action',
+        typeAttributes: {
+            rowActions: [
+                { label: 'View Reasons', name: 'view_reasons' },
+                { label: 'View Field Access', name: 'view_field_access' }
+            ]
+        }
     }
 ];
 
@@ -73,6 +77,11 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     // Detail modal
     selectedResult;
+    selectedFieldAccessResult;
+    showDiffModal = false;
+
+    // Top-level mode: 'single', 'bulk', 'byUser', 'subscriptions'
+    activeMode = 'single';
 
     pollingHandle;
     columns = COLUMNS;
@@ -106,6 +115,22 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     get showUnauthorized() {
         return this.permissionChecked && !this.hasPermission;
+    }
+
+    get isSingleMode() {
+        return this.activeMode === 'single';
+    }
+
+    get isBulkMode() {
+        return this.activeMode === 'bulk';
+    }
+
+    get isByUserMode() {
+        return this.activeMode === 'byUser';
+    }
+
+    get isSubscriptionsMode() {
+        return this.activeMode === 'subscriptions';
     }
 
     get showScanForm() {
@@ -443,13 +468,60 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     }
 
     handleRowAction(event) {
-        if (event.detail.action.name === 'view_reasons') {
+        const actionName = event.detail.action.name;
+        if (actionName === 'view_reasons') {
             this.selectedResult = event.detail.row;
+        } else if (actionName === 'view_field_access') {
+            this.selectedFieldAccessResult = event.detail.row;
         }
     }
 
     handleCloseDetail() {
         this.selectedResult = undefined;
+    }
+
+    handleCloseFieldAccess() {
+        this.selectedFieldAccessResult = undefined;
+    }
+
+    handleShowDiff() {
+        this.showDiffModal = true;
+    }
+
+    handleCloseDiff() {
+        this.showDiffModal = false;
+    }
+
+    // ---- Cross-mode navigation ----
+
+    handleModeChange(event) {
+        this.activeMode = event.currentTarget.dataset.mode;
+    }
+
+    get singleModeVariant() {
+        return this.isSingleMode ? 'brand' : 'neutral';
+    }
+
+    get bulkModeVariant() {
+        return this.isBulkMode ? 'brand' : 'neutral';
+    }
+
+    get byUserModeVariant() {
+        return this.isByUserMode ? 'brand' : 'neutral';
+    }
+
+    get subscriptionsModeVariant() {
+        return this.isSubscriptionsMode ? 'brand' : 'neutral';
+    }
+
+    handleViewAnalysisFromBulk(event) {
+        this.activeMode = 'single';
+        this.analysisId = event.detail.analysisId;
+        this.summary = undefined;
+        this.results = [];
+        this.currentPage = 1;
+        this.refreshStatus();
+        this.startPolling();
     }
 
     handleSearchChange(event) {

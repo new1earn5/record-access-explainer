@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Batch_Run__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Batch Run</label>
+    <referenceTo>RAA_Batch_Run__c</referenceTo>
+    <relationshipLabel>RAA Analyses</relationshipLabel>
+    <relationshipName>RAA_Analyses</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+    <description>Set when this analysis was created as part of a bulk scan; null for a single-record scan.</description>
+    <inlineHelpText>The bulk run this analysis belongs to, if any.</inlineHelpText>
+</CustomField>

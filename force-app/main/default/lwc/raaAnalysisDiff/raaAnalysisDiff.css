@@ -1,0 +1,42 @@
+.raa-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9001;
+}
+
+.raa-dt {
+    width: 30%;
+}
+
+.raa-dd {
+    width: 70%;
+    word-break: break-word;
+}
+
+.raa-diff-added,
+.raa-diff-removed,
+.raa-diff-changed {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.raa-diff-added {
+    background-color: #dff5e8;
+    color: #045c33;
+}
+
+.raa-diff-removed {
+    background-color: #fde3e3;
+    color: #7a0916;
+}
+
+.raa-diff-changed {
+    background-color: #fff2d6;
+    color: #6b4600;
+}

@@ -17,6 +17,11 @@ public without sharing class RAA_AnalysisRepository {
 
     public Id createAnalysis(Id recordId, String objectApiName, String displayName, Id requestedById,
             Boolean includeExternalUsers, Boolean includeInactiveUsers) {
+        return createAnalysis(recordId, objectApiName, displayName, requestedById, includeExternalUsers, includeInactiveUsers, null);
+    }
+
+    public Id createAnalysis(Id recordId, String objectApiName, String displayName, Id requestedById,
+            Boolean includeExternalUsers, Boolean includeInactiveUsers, Id batchRunId) {
         RAA_Analysis__c analysis = new RAA_Analysis__c(
                 RAA_Record_Id__c = recordId,
                 RAA_Object_API_Name__c = objectApiName,
@@ -29,7 +34,8 @@ public without sharing class RAA_AnalysisRepository {
                 RAA_Total_Users__c = 0,
                 RAA_Processed_Users__c = 0,
                 RAA_Users_With_Access__c = 0,
-                RAA_Is_Complete__c = false
+                RAA_Is_Complete__c = false,
+                RAA_Batch_Run__c = batchRunId
         );
         insert analysis;
         return analysis.Id;
@@ -53,12 +59,36 @@ public without sharing class RAA_AnalysisRepository {
                    RAA_Requested_By__c, RAA_Requested_At__c, RAA_Started_At__c, RAA_Completed_At__c,
                    RAA_Async_Job_Id__c, RAA_Total_Users__c, RAA_Processed_Users__c, RAA_Users_With_Access__c,
                    RAA_Include_External_Users__c, RAA_Include_Inactive_Users__c, RAA_Warnings__c,
-                   RAA_Error_Details__c, RAA_Is_Complete__c
+                   RAA_Error_Details__c, RAA_Is_Complete__c, RAA_Batch_Run__c
             FROM RAA_Analysis__c
             WHERE Id = :analysisId
             LIMIT 1
         ];
         return rows.isEmpty() ? null : rows[0];
+    }
+
+    /** Most recently completed analysis of the same record, excluding the given analysis itself. */
+    public RAA_Analysis__c findPreviousCompletedAnalysis(Id recordId, Id excludeAnalysisId) {
+        List<RAA_Analysis__c> rows = [
+            SELECT Id, RAA_Completed_At__c
+            FROM RAA_Analysis__c
+            WHERE RAA_Record_Id__c = :recordId
+            AND RAA_Is_Complete__c = true
+            AND Id != :excludeAnalysisId
+            ORDER BY RAA_Completed_At__c DESC
+            LIMIT 1
+        ];
+        return rows.isEmpty() ? null : rows[0];
+    }
+
+    public List<RAA_Analysis__c> getAnalysesForBatchRun(Id batchRunId) {
+        return [
+            SELECT Id, RAA_Record_Id__c, RAA_Record_Display_Name__c, RAA_Status__c, RAA_Is_Complete__c,
+                   RAA_Users_With_Access__c, RAA_Warnings__c, RAA_Error_Details__c
+            FROM RAA_Analysis__c
+            WHERE RAA_Batch_Run__c = :batchRunId
+            ORDER BY RAA_Record_Display_Name__c
+        ];
     }
 
     public List<RAA_Access_Result__c> getResultsWithReasons(Id analysisId) {
@@ -127,6 +157,77 @@ public without sharing class RAA_AnalysisRepository {
 
     public void deleteAnalysis(Id analysisId) {
         delete new RAA_Analysis__c(Id = analysisId);
+    }
+
+    public Id createBatchRun(String objectApiName, Integer totalRecords, String recordIdsText, Id requestedById,
+            Boolean includeExternalUsers, Boolean includeInactiveUsers) {
+        RAA_Batch_Run__c run = new RAA_Batch_Run__c(
+                RAA_Object_API_Name__c = objectApiName,
+                RAA_Total_Records__c = totalRecords,
+                RAA_Record_Ids__c = recordIdsText,
+                RAA_Status__c = 'Queued',
+                RAA_Requested_By__c = requestedById,
+                RAA_Requested_At__c = System.now(),
+                RAA_Include_External_Users__c = includeExternalUsers,
+                RAA_Include_Inactive_Users__c = includeInactiveUsers
+        );
+        insert run;
+        return run.Id;
+    }
+
+    public RAA_Batch_Run__c getBatchRun(Id batchRunId) {
+        List<RAA_Batch_Run__c> rows = [
+            SELECT Id, RAA_Object_API_Name__c, RAA_Total_Records__c, RAA_Status__c, RAA_Requested_By__c,
+                   RAA_Requested_At__c, RAA_Include_External_Users__c, RAA_Include_Inactive_Users__c
+            FROM RAA_Batch_Run__c
+            WHERE Id = :batchRunId
+            LIMIT 1
+        ];
+        return rows.isEmpty() ? null : rows[0];
+    }
+
+    /** Recomputes the batch run's status from its child analyses and persists it, then returns the fresh row. */
+    public RAA_Batch_Run__c refreshAndGetBatchRunStatus(Id batchRunId) {
+        RAA_Batch_Run__c run = getBatchRun(batchRunId);
+        if (run == null) {
+            return null;
+        }
+
+        List<RAA_Analysis__c> children = getAnalysesForBatchRun(batchRunId);
+        Integer completedCount = 0;
+        Integer failedCount = 0;
+        Integer warningCount = 0;
+        for (RAA_Analysis__c child : children) {
+            if (child.RAA_Is_Complete__c) {
+                completedCount++;
+            }
+            if (child.RAA_Status__c == 'Failed') {
+                failedCount++;
+            }
+            if (child.RAA_Status__c == 'Completed with Warnings') {
+                warningCount++;
+            }
+        }
+
+        String status;
+        Integer totalRecords = run.RAA_Total_Records__c != null ? Integer.valueOf(run.RAA_Total_Records__c) : children.size();
+        if (children.isEmpty()) {
+            status = 'Queued';
+        } else if (completedCount < children.size() || completedCount < totalRecords) {
+            status = 'Running';
+        } else if (failedCount == children.size()) {
+            status = 'Failed';
+        } else if (failedCount > 0 || warningCount > 0) {
+            status = 'Completed with Warnings';
+        } else {
+            status = 'Completed';
+        }
+
+        if (status != run.RAA_Status__c) {
+            update new RAA_Batch_Run__c(Id = batchRunId, RAA_Status__c = status);
+            run.RAA_Status__c = status;
+        }
+        return run;
     }
 
     public List<RAA_Analysis__c> findCompletedOlderThan(Datetime threshold, Integer maxRows) {

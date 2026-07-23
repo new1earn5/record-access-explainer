@@ -122,4 +122,93 @@ private class RAA_AnalysisOrchestratorServiceTest {
             System.assert(e.getMessage().contains('could not be found'));
         }
     }
+
+    @IsTest
+    static void startBulkAnalysisDispatchesOneScanPerRecord() {
+        Account acctOne = new Account(Name = 'RAA Orchestrator Bulk 1');
+        Account acctTwo = new Account(Name = 'RAA Orchestrator Bulk 2');
+        insert new List<Account>{ acctOne, acctTwo };
+
+        RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
+
+        Test.startTest();
+        RAA_BatchRunSummaryDTO summary = service.startBulkAnalysis(
+                new List<String>{ String.valueOf(acctOne.Id), String.valueOf(acctTwo.Id) }, false, false, UserInfo.getUserId());
+        Test.stopTest();
+
+        RAA_BatchRunSummaryDTO finalStatus = service.getBatchRunStatus(summary.batchRunId);
+        System.assertEquals(2, finalStatus.analyses.size());
+        System.assertEquals(2, finalStatus.completedRecords);
+    }
+
+    @IsTest
+    static void startBulkAnalysisRejectsMixedObjectTypes() {
+        Account acct = new Account(Name = 'RAA Orchestrator Mixed');
+        insert acct;
+
+        try {
+            new RAA_AnalysisOrchestratorService().startBulkAnalysis(
+                    new List<String>{ String.valueOf(acct.Id), String.valueOf(UserInfo.getUserId()) }, false, false, UserInfo.getUserId());
+            System.assert(false, 'Expected an exception for mixed object types.');
+        } catch (RAA_AppException e) {
+            System.assert(e.getMessage().contains('same object type'));
+        }
+    }
+
+    @IsTest
+    static void getDiffAgainstPreviousReturnsNullForFirstScan() {
+        Account acct = new Account(Name = 'RAA Orchestrator Diff Account');
+        insert acct;
+
+        RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
+
+        Test.startTest();
+        RAA_AnalysisSummaryDTO summary = service.startAnalysis(buildRequest(acct.Id), UserInfo.getUserId());
+        Test.stopTest();
+
+        RAA_AnalysisDiffDTO diff = service.getDiffAgainstPrevious(summary.analysisId);
+        System.assertEquals(null, diff);
+    }
+
+    @IsTest
+    static void subscriptionLifecycleCreateListToggleDelete() {
+        Account acct = new Account(Name = 'RAA Orchestrator Subscription Account');
+        insert acct;
+
+        RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
+
+        Test.startTest();
+        Id subscriptionId = service.createSubscription(String.valueOf(acct.Id), false, false, true, UserInfo.getUserId());
+        Test.stopTest();
+
+        List<RAA_SubscriptionDTO> mine = service.listMySubscriptions(UserInfo.getUserId());
+        System.assertEquals(1, mine.size());
+        System.assertEquals(true, mine[0].isActive);
+
+        service.setSubscriptionActive(subscriptionId, false);
+        List<RAA_SubscriptionDTO> afterPause = service.listMySubscriptions(UserInfo.getUserId());
+        System.assertEquals(false, afterPause[0].isActive);
+
+        service.deleteSubscription(subscriptionId);
+        System.assertEquals(0, service.listMySubscriptions(UserInfo.getUserId()).size());
+    }
+
+    @IsTest
+    static void scanUserAccessAndFieldAccessReturnData() {
+        Account acct = new Account(Name = 'RAA Orchestrator User Access Account');
+        insert acct;
+
+        RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
+
+        List<RAA_UserRecordAccessSummaryDTO> accessResults = service.scanUserAccess(
+                UserInfo.getUserId(), 'Account', new List<String>{ String.valueOf(acct.Id) }, null);
+        System.assertEquals(1, accessResults.size());
+        System.assertEquals(true, accessResults[0].hasAnyAccess);
+
+        List<RAA_AccessReasonDTO> reasons = service.getUserAccessReasons(UserInfo.getUserId(), acct.Id);
+        System.assert(!reasons.isEmpty());
+
+        List<RAA_FieldAccessDTO> fields = service.getFieldAccess(UserInfo.getUserId(), 'Account');
+        System.assert(!fields.isEmpty());
+    }
 }

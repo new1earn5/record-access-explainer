@@ -19,7 +19,8 @@ export default class RaaReasonDetail extends LightningElement {
             key: reason.recordId || index,
             confidenceVariant: this.confidenceVariant(reason.confidence),
             directLabel: reason.isDirect ? 'Direct' : 'Indirect',
-            hasEvidence: !!reason.evidence
+            hasEvidence: !!reason.evidence,
+            pathSteps: this.buildPathSteps(reason.grantPath)
         }));
     }
 
@@ -31,6 +32,17 @@ export default class RaaReasonDetail extends LightningElement {
             return 'warning';
         }
         return 'error';
+    }
+
+    buildPathSteps(grantPath) {
+        if (!grantPath) {
+            return [];
+        }
+        return grantPath
+            .split('->')
+            .map((segment) => segment.trim())
+            .filter((segment) => segment.length > 0)
+            .map((segment, index) => ({ key: index, label: segment }));
     }
 
     handleClose() {

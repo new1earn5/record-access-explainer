@@ -22,6 +22,27 @@
                     until Salesforce finishes sharing recalculation.
                 </div>
 
+                <!-- Mode switcher -->
+                <div class="slds-button-group slds-m-bottom_medium" role="group" aria-label="Scan mode">
+                    <lightning-button label="Single Record" data-mode="single" variant={singleModeVariant} onclick={handleModeChange}></lightning-button>
+                    <lightning-button label="Bulk Scan" data-mode="bulk" variant={bulkModeVariant} onclick={handleModeChange}></lightning-button>
+                    <lightning-button label="By User" data-mode="byUser" variant={byUserModeVariant} onclick={handleModeChange}></lightning-button>
+                    <lightning-button label="Subscriptions" data-mode="subscriptions" variant={subscriptionsModeVariant} onclick={handleModeChange}></lightning-button>
+                </div>
+
+                <template if:true={isBulkMode}>
+                    <c-raa-bulk-scan onviewanalysis={handleViewAnalysisFromBulk}></c-raa-bulk-scan>
+                </template>
+
+                <template if:true={isByUserMode}>
+                    <c-raa-user-access-explorer></c-raa-user-access-explorer>
+                </template>
+
+                <template if:true={isSubscriptionsMode}>
+                    <c-raa-subscriptions></c-raa-subscriptions>
+                </template>
+
+                <template if:true={isSingleMode}>
                 <!-- Scan input -->
                 <template if:true={showScanForm}>
                     <div class="slds-grid slds-wrap slds-gutters">
@@ -126,6 +147,7 @@
                         </div>
                         <div class="slds-col slds-grid raa-toolbar">
                             <lightning-button label="Refresh" icon-name="utility:refresh" onclick={handleRefresh} class="slds-m-right_x-small"></lightning-button>
+                            <lightning-button label="Compare to Previous Scan" onclick={handleShowDiff} class="slds-m-right_x-small"></lightning-button>
                             <lightning-button label="Export Results CSV" onclick={handleExportResults} class="slds-m-right_x-small"></lightning-button>
                             <lightning-button label="Export Reasons CSV" onclick={handleExportReasons} class="slds-m-right_x-small"></lightning-button>
                             <lightning-button label="New Analysis" onclick={handleNewAnalysis} class="slds-m-right_x-small"></lightning-button>
@@ -219,6 +241,7 @@
                 <template if:true={isLoading}>
                     <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
                 </template>
+                </template>
             </template>
         </div>
     </lightning-card>
@@ -230,5 +253,22 @@
             reasons={selectedResult.reasons}
             onclose={handleCloseDetail}
         ></c-raa-reason-detail>
+    </template>
+
+    <template if:true={selectedFieldAccessResult}>
+        <c-raa-field-access
+            user-name={selectedFieldAccessResult.userFullName}
+            user-id={selectedFieldAccessResult.userId}
+            object-api-name={summary.objectApiName}
+            onclose={handleCloseFieldAccess}
+        ></c-raa-field-access>
+    </template>
+
+    <template if:true={showDiffModal}>
+        <c-raa-analysis-diff
+            analysis-id={analysisId}
+            record-display-name={summary.recordDisplayName}
+            onclose={handleCloseDiff}
+        ></c-raa-analysis-diff>
     </template>
 </template>

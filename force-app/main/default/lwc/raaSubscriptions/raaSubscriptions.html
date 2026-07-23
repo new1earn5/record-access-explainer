@@ -1,0 +1,51 @@
+<template>
+    <div class="slds-p-around_medium">
+        <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info slds-m-bottom_medium" role="alert">
+            Subscriptions are only processed while an administrator has an RAA_RecurringScanScheduler job scheduled. See the
+            README's "Cleanup Scheduler Setup" section for the equivalent recurring-scan scheduling command.
+        </div>
+
+        <p class="slds-text-heading_small slds-m-bottom_small">New subscription</p>
+        <div class="slds-grid slds-wrap slds-gutters">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                <lightning-input label="Record ID" value={recordIdInput} onchange={handleRecordIdChange} placeholder="e.g. 001XXXXXXXXXXXXXXX"></lightning-input>
+                <template if:true={validationMessage}>
+                    <p class="slds-text-color_error slds-m-top_xx-small">{validationMessage}</p>
+                </template>
+            </div>
+        </div>
+        <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                <lightning-input type="checkbox" label="Include external users" checked={includeExternalUsers} onchange={handleIncludeExternalChange}></lightning-input>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                <lightning-input type="checkbox" label="Include inactive users" checked={includeInactiveUsers} onchange={handleIncludeInactiveChange}></lightning-input>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                <lightning-input type="checkbox" label="Email me when access changes" checked={notifyOnChange} onchange={handleNotifyOnChangeChange}></lightning-input>
+            </div>
+        </div>
+        <div class="slds-m-top_small">
+            <lightning-button variant="brand" label="Create Subscription" onclick={handleCreate} disabled={isSaving}></lightning-button>
+        </div>
+
+        <p class="slds-text-heading_small slds-m-top_large slds-m-bottom_small">My subscriptions</p>
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+        <template if:false={hasSubscriptions}>
+            <template if:false={isLoading}>
+                <p class="slds-text-body_regular slds-text-color_weak">You have no subscriptions yet.</p>
+            </template>
+        </template>
+        <template if:true={hasSubscriptions}>
+            <lightning-datatable
+                key-field="subscriptionId"
+                data={subscriptions}
+                columns={columns}
+                onrowaction={handleRowAction}
+                hide-checkbox-column
+            ></lightning-datatable>
+        </template>
+    </div>
+</template>

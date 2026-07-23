@@ -8,19 +8,42 @@ public without sharing class RAA_ContextBuilder {
 
     private final RAA_RecordMetadataResolver metadataResolver;
     private final RAA_ShareObjectResolver shareResolver;
+    private final RAA_SharingRecalculationChecker recalculationChecker;
+    private final RAA_RestrictionRuleChecker restrictionRuleChecker;
 
     public RAA_ContextBuilder() {
-        this(new RAA_RecordMetadataResolver(), new RAA_ShareObjectResolver());
+        this(new RAA_RecordMetadataResolver(), new RAA_ShareObjectResolver(),
+                new RAA_SharingRecalculationChecker(), new RAA_RestrictionRuleChecker());
     }
 
     public RAA_ContextBuilder(RAA_RecordMetadataResolver metadataResolver, RAA_ShareObjectResolver shareResolver) {
+        this(metadataResolver, shareResolver, new RAA_SharingRecalculationChecker(), new RAA_RestrictionRuleChecker());
+    }
+
+    public RAA_ContextBuilder(RAA_RecordMetadataResolver metadataResolver, RAA_ShareObjectResolver shareResolver,
+            RAA_SharingRecalculationChecker recalculationChecker, RAA_RestrictionRuleChecker restrictionRuleChecker) {
         this.metadataResolver = metadataResolver;
         this.shareResolver = shareResolver;
+        this.recalculationChecker = recalculationChecker;
+        this.restrictionRuleChecker = restrictionRuleChecker;
     }
 
     public RAA_AnalysisContext buildTopLevelContext(Id recordId, RAA_SettingsService settings) {
         RAA_AnalysisContext context = buildContext(recordId, settings);
         context.remainingParentDepth = settings.maxParentDepth;
+
+        if (recalculationChecker.isRecalculationInProgress()) {
+            context.warnings.add('A sharing recalculation job is currently queued or running for this org; '
+                    + 'results may not reflect very recent role, group, or sharing-rule changes until it finishes.');
+        }
+
+        Integer restrictionRuleCount = restrictionRuleChecker.countActiveRestrictionRules(context.objectApiName);
+        if (restrictionRuleCount != null && restrictionRuleCount > 0) {
+            context.warnings.add(restrictionRuleCount + ' active restriction rule(s) exist on ' + context.objectApiName
+                    + '. Restriction rules can only narrow visibility further and are not evaluated by this scan, '
+                    + 'so some users shown here with access may actually be restricted from seeing this record.');
+        }
+
         return context;
     }
 

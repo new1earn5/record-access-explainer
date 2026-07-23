@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Max_Records_Per_Bulk_Run__c</fullName>
+    <externalId>false</externalId>
+    <label>Max Records Per Bulk Run</label>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Maximum number of records a single bulk scan request may include. Requests exceeding this are rejected before any work is queued.</description>
+    <inlineHelpText>Maximum records allowed in one bulk scan.</inlineHelpText>
+</CustomField>

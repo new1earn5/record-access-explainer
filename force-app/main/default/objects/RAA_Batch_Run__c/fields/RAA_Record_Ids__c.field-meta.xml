@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Record_Ids__c</fullName>
+    <externalId>false</externalId>
+    <label>Record Ids</label>
+    <length>32768</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>10</visibleLines>
+    <description>The originally submitted list of record IDs, one per line, kept for reference and troubleshooting.</description>
+    <inlineHelpText>Record IDs submitted with this bulk run.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Last_Analysis__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Last Analysis</label>
+    <referenceTo>RAA_Analysis__c</referenceTo>
+    <relationshipLabel>RAA Scan Subscriptions</relationshipLabel>
+    <relationshipName>RAA_Scan_Subscriptions</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+    <description>The most recent completed analysis produced by this subscription, used as the baseline for change detection on the next run.</description>
+    <inlineHelpText>Most recent analysis produced by this subscription.</inlineHelpText>
+</CustomField>

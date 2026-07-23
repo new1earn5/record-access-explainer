@@ -5,6 +5,8 @@ import getDefaultSettings from '@salesforce/apex/RAA_RecordAccessExplainerContro
 import startAnalysis from '@salesforce/apex/RAA_RecordAccessExplainerController.startAnalysis';
 import getAnalysisStatus from '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisStatus';
 import getResults from '@salesforce/apex/RAA_RecordAccessExplainerController.getResults';
+import getFieldAccess from '@salesforce/apex/RAA_RecordAccessExplainerController.getFieldAccess';
+import getAnalysisDiff from '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisDiff';
 
 jest.mock(
     '@salesforce/apex/RAA_RecordAccessExplainerController.hasRunPermission',
@@ -48,6 +50,56 @@ jest.mock(
 );
 jest.mock(
     '@salesforce/apex/RAA_RecordAccessExplainerController.exportReasonsCsv',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getFieldAccess',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisDiff',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.startBulkAnalysis',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getBatchRunStatus',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.scanUserAccess',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getUserAccessReasons',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.listMySubscriptions',
+    () => ({ default: jest.fn(() => Promise.resolve([])) }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.createSubscription',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.setSubscriptionActive',
+    () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.deleteSubscription',
     () => ({ default: jest.fn() }),
     { virtual: true }
 );
@@ -308,5 +360,142 @@ describe('c-raa-record-access-explainer', () => {
         await flushPromises();
 
         expect(element.shadowRoot.textContent).toContain('You do not have access to this record type.');
+    });
+
+    it('switches to bulk mode and hides the single-record form', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector('c-raa-bulk-scan')).toBeNull();
+
+        element.shadowRoot.querySelector('[data-mode="bulk"]').click();
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector('c-raa-bulk-scan')).not.toBeNull();
+        expect(element.shadowRoot.querySelector('[data-id="record-id-input"]')).toBeNull();
+    });
+
+    it('switches to by-user mode', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        element.shadowRoot.querySelector('[data-mode="byUser"]').click();
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector('c-raa-user-access-explorer')).not.toBeNull();
+    });
+
+    it('switches to subscriptions mode', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        element.shadowRoot.querySelector('[data-mode="subscriptions"]').click();
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector('c-raa-subscriptions')).not.toBeNull();
+    });
+
+    it('switches back to single mode and loads the analysis when a bulk row is opened', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        getAnalysisStatus.mockResolvedValue({
+            analysisId: 'a00000000000002',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'From Bulk'
+        });
+        getResults.mockResolvedValue([SAMPLE_RESULT]);
+
+        element.shadowRoot.querySelector('[data-mode="bulk"]').click();
+        await flushPromises();
+
+        const bulkScan = element.shadowRoot.querySelector('c-raa-bulk-scan');
+        bulkScan.dispatchEvent(new CustomEvent('viewanalysis', { detail: { analysisId: 'a00000000000002' } }));
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector('c-raa-bulk-scan')).toBeNull();
+        expect(getAnalysisStatus).toHaveBeenCalledWith({ analysisId: 'a00000000000002' });
+        expect(element.shadowRoot.textContent).toContain('From Bulk');
+    });
+
+    it('opens the field access modal from a row action', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'Acme Corp'
+        });
+        getResults.mockResolvedValue([SAMPLE_RESULT]);
+
+        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+        await flushPromises();
+
+        getFieldAccess.mockResolvedValue([]);
+        const datatable = element.shadowRoot.querySelector('lightning-datatable');
+        datatable.dispatchEvent(new CustomEvent('rowaction', { detail: { action: { name: 'view_field_access' }, row: SAMPLE_RESULT } }));
+        await flushPromises();
+
+        const fieldAccess = element.shadowRoot.querySelector('c-raa-field-access');
+        expect(fieldAccess).not.toBeNull();
+        expect(fieldAccess.userId).toBe(SAMPLE_RESULT.userId);
+        expect(fieldAccess.objectApiName).toBe('Account');
+
+        fieldAccess.dispatchEvent(new CustomEvent('close'));
+        await flushPromises();
+        expect(element.shadowRoot.querySelector('c-raa-field-access')).toBeNull();
+    });
+
+    it('opens the compare-to-previous-scan diff modal', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'Acme Corp'
+        });
+        getResults.mockResolvedValue([SAMPLE_RESULT]);
+
+        const input = element.shadowRoot.querySelector('[data-id="record-id-input"]');
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+        await flushPromises();
+
+        getAnalysisDiff.mockResolvedValue(null);
+        const buttons = [...element.shadowRoot.querySelectorAll('lightning-button')];
+        const diffButton = buttons.find((b) => b.label === 'Compare to Previous Scan');
+        diffButton.click();
+        await flushPromises();
+
+        const diffModal = element.shadowRoot.querySelector('c-raa-analysis-diff');
+        expect(diffModal).not.toBeNull();
+        expect(diffModal.analysisId).toBe('a00000000000001');
+
+        diffModal.dispatchEvent(new CustomEvent('close'));
+        await flushPromises();
+        expect(element.shadowRoot.querySelector('c-raa-analysis-diff')).toBeNull();
     });
 });

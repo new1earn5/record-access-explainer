@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Notify_On_Change__c</fullName>
+    <defaultValue>true</defaultValue>
+    <externalId>false</externalId>
+    <label>Notify On Change</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>When true, the subscriber receives an email summarizing what changed whenever a recurring run detects a difference from the previous analysis.</description>
+    <inlineHelpText>Whether to email the subscriber when access changes are detected.</inlineHelpText>
+</CustomField>

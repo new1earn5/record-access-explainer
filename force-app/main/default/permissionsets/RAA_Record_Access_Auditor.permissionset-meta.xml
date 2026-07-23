@@ -55,6 +55,24 @@
         <viewAllRecords>false</viewAllRecords>
         <modifyAllRecords>false</modifyAllRecords>
     </objectPermissions>
+    <objectPermissions>
+        <object>RAA_Batch_Run__c</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>true</allowEdit>
+        <allowDelete>true</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>RAA_Scan_Subscription__c</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>true</allowEdit>
+        <allowDelete>true</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
 
     <fieldPermissions>
         <field>RAA_Analysis__c.RAA_Object_API_Name__c</field>
@@ -128,6 +146,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <field>RAA_Analysis__c.RAA_Is_Complete__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Analysis__c.RAA_Batch_Run__c</field>
         <readable>true</readable>
         <editable>true</editable>
     </fieldPermissions>
@@ -259,6 +282,93 @@
     </fieldPermissions>
     <fieldPermissions>
         <field>RAA_Access_Reason__c.RAA_Evidence__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Requested_By__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Requested_At__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Object_API_Name__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Total_Records__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Include_External_Users__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Include_Inactive_Users__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Batch_Run__c.RAA_Record_Ids__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Object_API_Name__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Record_Display_Name__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Subscriber__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Is_Active__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Include_External_Users__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Include_Inactive_Users__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Last_Analysis__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Last_Run_At__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Notify_On_Change__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Pending_Analysis__c</field>
         <readable>true</readable>
         <editable>true</editable>
     </fieldPermissions>

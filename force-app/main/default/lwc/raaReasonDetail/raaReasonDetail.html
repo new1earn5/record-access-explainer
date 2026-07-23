@@ -50,9 +50,20 @@
                                     <dd class="slds-item_detail raa-dd">{reason.sourceName}</dd>
                                     <dt class="slds-item_label slds-text-color_weak raa-dt">Row cause</dt>
                                     <dd class="slds-item_detail raa-dd">{reason.rowCause}</dd>
-                                    <dt class="slds-item_label slds-text-color_weak raa-dt">Grant path</dt>
-                                    <dd class="slds-item_detail raa-dd">{reason.grantPath}</dd>
                                 </dl>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Grant path</p>
+                                <div class="raa-path-flow" role="list" aria-label="Grant path">
+                                    <template for:each={reason.pathSteps} for:item="step">
+                                        <span key={step.key} class="raa-path-step-wrapper" role="listitem">
+                                            <span class="raa-path-chip">{step.label}</span>
+                                            <lightning-icon
+                                                icon-name="utility:forward"
+                                                size="xx-small"
+                                                class="raa-path-arrow"
+                                            ></lightning-icon>
+                                        </span>
+                                    </template>
+                                </div>
                                 <p class="slds-text-body_regular slds-m-top_x-small">{reason.explanation}</p>
                                 <template if:true={reason.hasEvidence}>
                                     <details class="slds-m-top_x-small">

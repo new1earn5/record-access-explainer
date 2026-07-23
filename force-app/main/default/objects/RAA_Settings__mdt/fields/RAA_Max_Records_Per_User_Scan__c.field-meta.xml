@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Max_Records_Per_User_Scan__c</fullName>
+    <externalId>false</externalId>
+    <label>Max Records Per User Scan</label>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Maximum number of candidate records evaluated in one "reverse" (by-user) access scan. This runs synchronously, so the cap keeps it within governor limits.</description>
+    <inlineHelpText>Maximum records checked in one by-user access scan.</inlineHelpText>
+</CustomField>

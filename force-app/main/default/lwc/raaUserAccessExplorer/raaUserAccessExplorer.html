@@ -1,0 +1,55 @@
+<template>
+    <div class="slds-p-around_medium">
+        <p class="slds-text-body_regular slds-m-bottom_small">
+            See which records a specific user can access, and why. Provide explicit record IDs for full control, or leave
+            them blank to check the first N records of the object instead.
+        </p>
+        <div class="slds-grid slds-wrap slds-gutters">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                <lightning-input data-id="user-id-input" label="User ID" value={userIdInput} onchange={handleUserIdChange} placeholder="e.g. 005XXXXXXXXXXXXXXX"></lightning-input>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                <lightning-input label="Object API Name" value={objectApiNameInput} onchange={handleObjectApiNameChange} placeholder="e.g. Account"></lightning-input>
+            </div>
+        </div>
+        <template if:true={validationMessage}>
+            <p class="slds-text-color_error slds-m-top_xx-small">{validationMessage}</p>
+        </template>
+        <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
+                <lightning-textarea label="Record IDs (optional, one per line or comma-separated)" value={recordIdsInput} onchange={handleRecordIdsChange}></lightning-textarea>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                <lightning-input type="number" label="Or check first N records" value={limitInput} onchange={handleLimitChange}></lightning-input>
+            </div>
+        </div>
+        <div class="slds-m-top_medium">
+            <lightning-button data-id="user-scan-button" variant="brand" label="Check Access" onclick={handleScan} disabled={isScanning}></lightning-button>
+        </div>
+
+        <template if:true={hasResults}>
+            <div class="slds-m-top_medium">
+                <lightning-datatable
+                    key-field="recordId"
+                    data={results}
+                    columns={columns}
+                    onrowaction={handleRowAction}
+                    hide-checkbox-column
+                ></lightning-datatable>
+            </div>
+        </template>
+
+        <template if:true={isLoadingReasons}>
+            <lightning-spinner alternative-text="Loading reasons" size="medium"></lightning-spinner>
+        </template>
+
+        <template if:true={showReasonModal}>
+            <c-raa-reason-detail
+                user-name={selectedRecordName}
+                username=""
+                reasons={selectedReasons}
+                onclose={handleCloseReasonModal}
+            ></c-raa-reason-detail>
+        </template>
+    </div>
+</template>

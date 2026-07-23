@@ -30,4 +30,12 @@
         <field>RAA_Retention_Days__c</field>
         <value xsi:type="xsd:double">90</value>
     </values>
+    <values>
+        <field>RAA_Max_Records_Per_Bulk_Run__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>RAA_Max_Records_Per_User_Scan__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
 </CustomMetadata>

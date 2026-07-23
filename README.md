@@ -9,9 +9,15 @@ population, reports Salesforce's own computed effective access for every user (v
 sharing mechanisms it can prove are responsible: ownership, role hierarchy, direct and group
 shares, sharing rules, permission bypasses, teams, territories, and controlled-by-parent chains.
 
-This project was built, deployed to a live scratch org, and test-verified (106/106 Apex tests
-passing) during generation. Every SOQL/Schema behavior described below — including several
-platform restrictions that are easy to get wrong — was confirmed against a real org, not assumed.
+This project was built, deployed to a live scratch org, and test-verified (144/144 Apex tests,
+42/42 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
+including several platform restrictions that are easy to get wrong — was confirmed against a real
+org, not assumed.
+
+Beyond the core single-record scan, it also includes bulk/list scanning, a reverse "by user" mode,
+analysis history diffing, field-level security tracing, a live sharing-recalculation warning,
+best-effort Restriction Rule detection, and optional scheduled recurring scans with email change
+alerts — see §8.
 
 ---
 
@@ -97,14 +103,20 @@ Key design decisions, all verified empirically against a live org rather than as
 | Export | `RAA_CsvExportService` | RFC 4180 CSV formatting. |
 | Settings | `RAA_SettingsService` | `RAA_Settings__mdt` reader with safe fallbacks. |
 | Security | `RAA_PermissionChecker`, `RAA_IdValidationUtil` | Custom permission wrapper (test-overridable), ID validation. |
-| DTOs | `RAA_Analysis*DTO`, `RAA_AccessResultDTO`, `RAA_AccessReasonDTO`, `RAA_SettingsDTO`, `RAA_GroupPathDTO` | No raw SObjects cross the Aura boundary. |
+| DTOs | `RAA_Analysis*DTO`, `RAA_AccessResultDTO`, `RAA_AccessReasonDTO`, `RAA_SettingsDTO`, `RAA_GroupPathDTO`, `RAA_FieldAccessDTO`, `RAA_UserRecordAccessSummaryDTO`, `RAA_BatchRunSummaryDTO`, `RAA_SubscriptionDTO`, `RAA_UserAccessChangeDTO` | No raw SObjects cross the Aura boundary. |
 | Test support | `RAA_TestDataFactory`, `RAA_FakeEffectiveAccessProvider`, `RAA_FakeReasonAnalyzer` | `@IsTest` fakes for dependency injection. |
+| Bulk scan | `RAA_BulkScanQueueable` | Governor-safe 5-at-a-time fan-out over `Database.executeBatch`, self-chained; see §8. |
+| By-user scan | `RAA_UserAccessExplorerService` | Reverse-mode bulk `UserRecordAccess` query (`UserId = single, RecordId IN list`); see §8. |
+| Field access | `RAA_FieldAccessService`, `RAA_PermissionSetLookup` | Permissive-union FLS computation across a user's assigned permission sets and profile; see §8. |
+| Diffing | `RAA_AnalysisDiffService` | Compares two completed analyses of the same record; see §8. |
+| Live warnings | `RAA_SharingRecalculationChecker`, `RAA_RestrictionRuleChecker` | Best-effort, defensively-guarded scan-time signals; see §8. |
+| Recurring scans | `RAA_RecurringScanScheduler`, `RAA_SubscriptionScanQueueable`, `RAA_SubscriptionRepository` | Optional two-phase scheduled re-scan + email change alert; see §8, §19. |
 
 ---
 
 ## 2. Data Model
 
-All three objects are package-owned, **organization-wide default: Private**, and are not meant to
+All five objects are package-owned, **organization-wide default: Private**, and are not meant to
 be seen by ordinary users.
 
 ### `RAA_Analysis__c` (one row per scan)
@@ -133,10 +145,27 @@ Controlled / Organization-Wide Default / Unresolved), `RAA_Access_Level__c`, `RA
 `RAA_Source_Object__c`, `RAA_Principal_Id__c`, `RAA_Principal_Type__c`, `RAA_Row_Cause__c`,
 `RAA_Grant_Path__c`, `RAA_Explanation__c`, `RAA_Evidence__c`.
 
+### `RAA_Batch_Run__c` (one row per bulk scan submission — §8)
+Fields: `RAA_Requested_By__c` (lookup User), `RAA_Requested_At__c`, `RAA_Object_API_Name__c`,
+`RAA_Total_Records__c`, `RAA_Status__c` (picklist: Queued / Running / Completed / Completed with
+Warnings / Failed / Cancelled — computed from the status of its child analyses, not stored
+independently), `RAA_Include_External_Users__c`, `RAA_Include_Inactive_Users__c`,
+`RAA_Record_Ids__c` (LongTextArea 32768, the originally submitted list). Each individual record's
+scan is a normal `RAA_Analysis__c` row, linked back via `RAA_Analysis__c.RAA_Batch_Run__c`.
+
+### `RAA_Scan_Subscription__c` (one row per "watch this record" subscription — §8)
+Fields: `RAA_Record_Id__c`, `RAA_Object_API_Name__c`, `RAA_Record_Display_Name__c`,
+`RAA_Subscriber__c` (lookup User), `RAA_Is_Active__c` (default true),
+`RAA_Include_External_Users__c`, `RAA_Include_Inactive_Users__c`, `RAA_Last_Analysis__c` (lookup
+`RAA_Analysis__c` — the baseline used for diffing), `RAA_Last_Run_At__c`,
+`RAA_Notify_On_Change__c` (default true), `RAA_Pending_Analysis__c` (lookup `RAA_Analysis__c` —
+the scan started this cycle, diffed against the baseline on the *next* scheduler firing).
+
 ### `RAA_Settings__mdt` (custom metadata type, one packaged record: `RAA_Default`)
 `RAA_Default_Batch_Scope__c` (20), `RAA_Max_Group_Depth__c` (6), `RAA_Max_Parent_Depth__c` (5),
 `RAA_Retention_Days__c` (90), `RAA_Default_Include_External__c` (false),
-`RAA_Default_Include_Inactive__c` (false), `RAA_Max_Users_Per_Scan__c` (0 = unlimited).
+`RAA_Default_Include_Inactive__c` (false), `RAA_Max_Users_Per_Scan__c` (0 = unlimited),
+`RAA_Max_Records_Per_Bulk_Run__c` (200), `RAA_Max_Records_Per_User_Scan__c` (200).
 
 ---
 
@@ -145,7 +174,7 @@ Controlled / Organization-Wide Default / Unresolved), `RAA_Access_Level__c`, `RA
 - **Custom permission**: `RAA_Run_Record_Access_Analysis`. Every server-side entry point checks it
   via `RAA_PermissionChecker.hasRunPermission()` before doing anything else.
 - **Permission set**: `RAA_Record_Access_Auditor` — grants the custom permission, access to the
-  single Apex controller class, CRUD on the three RAA objects (with field-level security on every
+  single Apex controller class, CRUD on all five RAA objects (with field-level security on every
   non-required field), the `RAA_Settings__mdt` type, and the tab/app. **It does not include View
   All Data, Modify All Data, or any object-wide bypass on business objects.**
 - **Two-layer authorization on every read/write of a specific analysis**: the controller (1) checks
@@ -213,12 +242,19 @@ and each such reason's explanation states in the record itself whether it bypass
 
 ## 5. Known Limitations
 
-1. **Restriction rules are not evaluated.** `UserRecordAccess` reflects the record-level sharing
-   model but does not account for restriction rules, which can further narrow what a user actually
-   sees. The UI displays a persistent banner saying so.
+1. **Restriction rules are not evaluated by `UserRecordAccess`.** It reflects the record-level
+   sharing model but does not account for restriction rules, which can further narrow what a user
+   actually sees. `RAA_RestrictionRuleChecker` (§8) best-effort detects *whether any are active* on
+   the scanned object and surfaces a count-aware warning when it can determine one — but this is a
+   presence check, not an evaluation of which specific users are restricted, and it degrades to
+   silence (not an error) in any org/API context where `RestrictionRule` isn't queryable via plain
+   SOQL. The UI still displays a persistent banner regardless.
 2. **Sharing recalculation timing.** Recently changed roles, groups, or sharing rules may not be
    fully reflected in `UserRecordAccess` until Salesforce finishes its asynchronous recalculation.
-   The UI banner discloses this too.
+   `RAA_SharingRecalculationChecker` (§8) checks `AsyncApexJob` for an in-progress
+   `SharingRecalculation` job at scan time and raises an active warning when one is running: a real,
+   checked signal for that specific scan, not just a standing disclaimer. The UI banner discloses
+   the general limitation regardless of whether one was detected running.
 3. **Muting permission sets are not represented.** `MutingPermissionSet` does not expose a
    queryable field linking it back to a specific `PermissionSetGroup` or `PermissionSet` in the
    current API — this was verified directly against a live org's schema. Permission-set-group
@@ -272,7 +308,87 @@ reason's confidence level (High / Medium / Low) tells you how directly it was pr
 
 ---
 
-## 8. Deployment Instructions
+## 8. Additional Capabilities
+
+Seven further capabilities, all built on the same effective-access/reason-attribution foundation as
+the core single-record scan described above.
+
+### Bulk / list scan mode
+Paste any number of record IDs of the *same* object type and submit them as one batch
+(`RAA_Batch_Run__c`, `raaBulkScan`). Each record still runs through the exact same single-record
+pipeline (`RAA_AccessScanBatch`) unchanged — this mode only orchestrates submitting the list and
+reporting aggregate progress. Because a single Apex transaction can call `Database.executeBatch` at
+most 5 times, `RAA_BulkScanQueueable` processes records in chunks of 5 and chains itself via
+`System.enqueueJob` for the remainder, a standard governor-safe fan-out pattern. A single record's
+failure (deleted record, unsupported object) is caught and recorded as a `Failed` child analysis
+without aborting the rest of the run. Capped by `RAA_Max_Records_Per_Bulk_Run__c` (§14).
+
+### Reverse "by user" mode
+Given one user and a candidate set of records of the same object (explicit IDs, or the first N
+records if none are given), reports that user's effective access to each one in a single scan
+(`RAA_UserAccessExplorerService`, `raaUserAccessExplorer`). This is the mirror image of the normal
+"one record, many users" scan, so it hits the same `UserRecordAccess` filter-shape restriction from
+the opposite side: the object supports `UserId = [single] AND RecordId IN [list]`, so this mode is
+bulk-safe in a way the normal per-record scan is not (see §1). Reasons for a specific record are
+fetched lazily, only when an admin clicks into that row, to stay governor-safe against even a few
+hundred candidate records. Capped by `RAA_Max_Records_Per_User_Scan__c` (§14) when no explicit
+record list is supplied.
+
+### Analysis history / diffing
+Every completed scan of a record can be compared to the most recent earlier completed scan of that
+*same* record (`RAA_AnalysisDiffService`, `raaAnalysisDiff`), reporting which users gained access,
+lost access, or had their max access level or reason summary change. "Compare to Previous Scan" is
+available from any completed single-record analysis; the first scan of a record naturally has
+nothing to compare against and says so plainly rather than erroring.
+
+### Field-level security tracing
+For any user in a scan's results, "View Field Access" (`RAA_FieldAccessService`, `raaFieldAccess`)
+shows a permissive union of that user's field-level readable/editable state across every assigned
+permission set and their profile — any single grant makes a field accessible, matching how
+Salesforce itself resolves FLS. This is deliberately independent of the record-level reason list: a
+user can have record access and still be denied specific fields, or vice versa.
+
+### Live sharing-recalculation warning
+`RAA_SharingRecalculationChecker` queries `AsyncApexJob WHERE JobType = 'SharingRecalculation' AND
+Status IN (...)` at the top of every scan. If Salesforce's own asynchronous sharing recalculation is
+currently in flight for the org, the scan surfaces a warning that its results may not yet reflect a
+very recent role, group, or sharing-rule change.
+
+### Restriction Rule detection
+`RAA_RestrictionRuleChecker` best-effort probes for active Restriction Rules on the scanned object.
+`RestrictionRule` is a Tooling/Metadata API type that is not guaranteed queryable through plain Apex
+SOQL in every org or API context; the class checks `Schema.getGlobalDescribe()` first and wraps the
+query itself in a `try`/`catch`, degrading to "unknown" (no warning) rather than guessing when the
+probe isn't possible. This was deliberately built defensive-by-construction, and in the Developer
+Edition scratch org used to validate this package, `RestrictionRule` was not present in the global
+describe at all — so the guarded early-exit path, not the query itself, is what was actually
+exercised during test validation; the query's own shape (`EntityDefinitionId`/`Active` filter)
+remains empirically unverified against a live org where the object is reachable. Restriction rules
+only ever narrow access, never grant it, so a detected count is always surfaced as a scan-level
+warning, never as an access reason.
+
+### Scheduled recurring scans with change alerts
+An admin (or the requesting user) can subscribe to a record (`RAA_Scan_Subscription__c`,
+`raaSubscriptions`) so that, once `RAA_RecurringScanScheduler` is scheduled (§19), it is
+periodically re-scanned automatically and the subscriber is emailed a summary if anything changed
+since the last cycle. Each firing does two things in one pass: (1) for any subscription whose
+*previous* cycle's scan has now completed, diffs it against the prior baseline and emails a change
+summary if `RAA_Notify_On_Change__c` is set and something actually changed; (2) starts a new scan
+for every active subscription that isn't already waiting on one. A notification is therefore sent on
+the firing *after* the one that started the scan, once that scan has had time to complete — a
+deliberate two-cycle design so the scheduler never blocks on a long-running scan.
+`RAA_Scan_Subscription__c.RAA_Pending_Analysis__c` tracks the in-flight scan between cycles;
+`RAA_Last_Analysis__c` is the baseline. Notification uses native `Messaging.SingleEmailMessage`
+(not a callout).
+
+### Visual grant-path rendering
+The reason detail modal renders each reason's grant path (for example `Owner -> Manager -> VP of
+Sales`) as a sequence of chips with directional arrows between them, instead of a single text blob —
+purely a presentational change (`raaReasonDetail`), with no effect on the underlying data.
+
+---
+
+## 9. Deployment Instructions
 
 Requires the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`).
 
@@ -291,12 +407,12 @@ sf project deploy start --manifest manifest/package.xml --target-org my-org
 ```
 
 This project was deployed to and verified against a live Salesforce scratch org
-(`Developer` edition, API v62.0) during generation with zero manual fixes required after the
-verification pass documented in §14.
+(`Developer` edition, API v67.0) during generation with zero manual fixes required after the
+verification pass documented in §15.
 
 ---
 
-## 9. Test Execution Instructions
+## 10. Test Execution Instructions
 
 ```bash
 # Apex tests
@@ -307,13 +423,17 @@ npm install
 npm run test:unit
 ```
 
-At last verification: **106/106 Apex tests passing, 84–85% org-wide coverage.** Every class
-directly involved in the request/response path, persistence, and reason logic is at or above 90%;
-the two exceptions (`RAA_TerritoryAnalyzer`, `RAA_TeamAnalyzer`) are explained in §5 and §10.
+At last verification: **144/144 Apex tests passing, 84% org-wide coverage; 42/42 LWC Jest tests
+passing across 7 component suites.** Every class directly involved in the request/response path,
+persistence, and reason logic is at or above 85%; the exceptions (`RAA_TerritoryAnalyzer`,
+`RAA_TeamAnalyzer` — explained in §5; `RAA_RestrictionRuleChecker`,
+`RAA_RecurringScanScheduler`) reflect branches that require a platform feature or a second
+scheduler firing that this particular org/test run could not exercise, not untested logic paths —
+see §8's per-feature notes for exactly which branch is affected in each case.
 
 ---
 
-## 10. Permission Set Assignment Instructions
+## 11. Permission Set Assignment Instructions
 
 ```bash
 sf org assign permset --name RAA_Record_Access_Auditor --target-org my-org
@@ -323,7 +443,7 @@ Or in Setup: **Permission Sets → RAA Record Access Auditor → Manage Assignme
 
 ---
 
-## 11. Lightning Application Setup Instructions
+## 12. Lightning Application Setup Instructions
 
 The package deploys a Lightning app named **Record Access Explainer**
 (`RAA_Record_Access_Explainer`) containing the **Record Access Explainer** tab
@@ -339,7 +459,7 @@ hosts the `raaRecordAccessExplainer` component. To make it available to auditors
 
 ---
 
-## 12. Creating and Uploading the Unmanaged Package
+## 13. Creating and Uploading the Unmanaged Package
 
 Source generation alone **cannot produce an installation URL** — that only exists once a package
 version has been uploaded from inside a real Salesforce packaging org. To create one:
@@ -347,16 +467,16 @@ version has been uploaded from inside a real Salesforce packaging org. To create
 1. Deploy this project to your packaging org: `sf project deploy start --source-dir force-app --target-org my-packaging-org`.
 2. In that org, open **Setup → Package Manager**.
 3. Click **New** to create an unmanaged package named **Record Access Explainer**.
-4. Click **Add** and add every component listed in `manifest/package.xml` (all Apex classes, the
-   three custom objects, `RAA_Settings__mdt` and its `RAA_Default` record, the custom permission,
-   the permission set, the tab, the application, the Lightning page, both Lightning web components,
-   and the five custom labels).
+4. Click **Add** and add every component listed in `manifest/package.xml` (all Apex classes, all
+   five custom objects, `RAA_Settings__mdt` and its `RAA_Default` record, the custom permission,
+   the permission set, the tab, the application, the Lightning page, all seven Lightning web
+   components, and the five custom labels).
 5. Click **Verify Dependencies** to confirm nothing is missing.
 6. Click **Upload**, choose a release type, and Salesforce will generate the installation URL.
 
 ---
 
-## 13. Configuring `RAA_Settings__mdt`
+## 14. Configuring `RAA_Settings__mdt`
 
 Setup → Custom Metadata Types → RAA Settings → Manage Records → **RAA_Default**. All fields are
 editable in place; no deployment is required to change them:
@@ -370,10 +490,12 @@ editable in place; no deployment is required to change them:
 | Default Include External | false | Pre-fills the "Include external users" checkbox |
 | Default Include Inactive | false | Pre-fills the "Include inactive users" checkbox |
 | Max Users Per Scan | 0 (unlimited) | Scans that would exceed this are rejected before any batch job starts |
+| Max Records Per Bulk Run | 200 | A bulk scan submission (§8) larger than this is rejected before any queueable job starts |
+| Max Records Per User Scan | 200 | Reverse "by user" mode's (§8) implicit record-limit ceiling when no explicit record ID list is given |
 
 ---
 
-## 14. Performance Guidance for Large Organizations
+## 15. Performance Guidance for Large Organizations
 
 - Keep **Default Batch Scope** at or near 20–50. `UserRecordAccess` is queried once per user per
   chunk (the one unavoidable per-user query — see §1), so a larger scope directly increases SOQL
@@ -384,37 +506,46 @@ editable in place; no deployment is required to change them:
 - Group graph and controlled-by-parent recursion are both depth-bounded and reused across the whole
   batch chunk (never per user), so their cost scales with the record's own sharing complexity, not
   with population size.
-- Enable the cleanup scheduler (§16) so completed analyses don't accumulate indefinitely.
+- Enable the cleanup scheduler (§18) so completed analyses don't accumulate indefinitely.
+- Bulk scans and the recurring-scan scheduler both fan out via the same chunk-of-5-then-chain
+  `Queueable` pattern (`RAA_BulkScanQueueable`, `RAA_SubscriptionScanQueueable`) rather than one
+  giant transaction, so a large submission spreads its `executeBatch` calls across multiple queue
+  cycles instead of hitting the 5-per-transaction ceiling in one go.
 
 ---
 
-## 15. Troubleshooting Guidance
+## 16. Troubleshooting Guidance
 
 | Symptom | Likely cause | What to check |
 |---|---|---|
-| "You do not have permission to use Record Access Explainer" | Custom permission not assigned | Assign `RAA_Record_Access_Auditor` (§10) |
+| "You do not have permission to use Record Access Explainer" | Custom permission not assigned | Assign `RAA_Record_Access_Auditor` (§11) |
 | "The requested analysis could not be found, or you do not have access to it" | Either the ID is wrong, or (correctly) it belongs to another user under Private OWD | Confirm you are the original requester, or have it shared/an admin can see it |
 | Scan finishes as "Completed with Warnings" | One or more analyzers hit a platform limitation (unsupported group type, feature not enabled, chunk failure) | Read `RAA_Warnings__c` on the analysis, or the warning banner in the UI |
 | Scan status stays "Queued" for a long time | Org's async Apex queue is busy | Check **Setup → Apex Jobs**; this package does not control platform-wide async concurrency |
 | "This scan would include more than N users..." | `RAA_Max_Users_Per_Scan__c` ceiling hit | Narrow filters, or raise/clear the ceiling in `RAA_Settings__mdt` |
 | Object not supported | `UserRecordAccess` does not expose data for that object type | Confirmed via a live probe query in `RAA_RecordMetadataResolver.supportsUserRecordAccess` before a scan is even started |
+| "Enter a record ID for each line" / bulk scan rejects the whole list | One or more pasted IDs don't share the same object type as the rest | Bulk scan (§8) requires every record to be the same object; split mixed lists into separate submissions |
+| A subscription never sends an email | `RAA_RecurringScanScheduler` isn't scheduled, or `RAA_Notify_On_Change__c` is off, or nothing actually changed between cycles | See §19; check **Setup → Scheduled Jobs** for the job, and that the subscription's `RAA_Last_Analysis__c` is advancing between firings |
 
 ---
 
-## 16. Scan Status Reference
+## 17. Scan Status Reference
 
 | Status | Meaning |
 |---|---|
 | **Queued** | Accepted; waiting for a batch execution slot. |
 | **Running** | Actively evaluating the user population. |
 | **Completed** | Finished with no warnings. |
-| **Completed with Warnings** | Finished, but see §15 — some reasons may be incomplete. |
+| **Completed with Warnings** | Finished, but see §16 — some reasons may be incomplete. |
 | **Failed** | Could not complete (see `RAA_Error_Details__c`, sanitized). |
 | **Cancelled** | Cancelled by the requester before/while running; the batch will not overwrite this status even if it was already mid-flight. |
 
+`RAA_Batch_Run__c.RAA_Status__c` (§8 bulk scan mode) uses this same set of values, computed from
+the aggregate status of its child `RAA_Analysis__c` rows rather than stored independently.
+
 ---
 
-## 17. Cleanup Scheduler Setup
+## 18. Cleanup Scheduler Setup
 
 `RAA_CleanupScheduler` is **not** scheduled automatically on install. To enable it:
 
@@ -428,14 +559,33 @@ field to 0 to disable cleanup without unscheduling the job.
 
 ---
 
-## 18. Upgrade Considerations for an Unmanaged Package
+## 19. Recurring Scan Scheduler Setup
+
+`RAA_RecurringScanScheduler` (§8) is **not** scheduled automatically on install — subscriptions
+created via `raaSubscriptions` only register the request; nothing runs until an admin schedules it:
+
+```apex
+System.schedule('RAA Recurring Scan Cycle', '0 0 * * * ?', new RAA_RecurringScanScheduler());
+```
+
+Run once from **Setup → Apex → Execute Anonymous** (or via `sf apex run`). The cron expression above
+fires hourly; pick an interval that matches how promptly subscribers need to know about changes
+versus the org's overall async Apex load. Every firing processes up to
+`RAA_RecurringScanScheduler.MAX_SUBSCRIPTIONS_PER_RUN` (200) active subscriptions in one pass. See
+§8's "Scheduled recurring scans" entry for the two-cycle start-then-diff design and why a
+notification always lags the scan that produced it by exactly one firing.
+
+---
+
+## 20. Upgrade Considerations for an Unmanaged Package
 
 Unmanaged packages have no upgrade path — a new version is a brand-new package install, and
 existing customizations (list views, page layout placements, additional field permissions) are not
 automatically carried forward. Before re-uploading a new version:
 
-- Export/back up `RAA_Analysis__c` / `RAA_Access_Result__c` / `RAA_Access_Reason__c` data if it
-  needs to survive, since reinstalling does not touch existing data but a full uninstall would.
+- Export/back up `RAA_Analysis__c` / `RAA_Access_Result__c` / `RAA_Access_Reason__c` /
+  `RAA_Batch_Run__c` / `RAA_Scan_Subscription__c` data if it needs to survive, since reinstalling
+  does not touch existing data but a full uninstall would.
 - Re-verify field-level security on the permission set after any new fields are added upstream.
 - `RAA_Settings__mdt.RAA_Default` values are metadata, not data — they will be reset to the
   package's shipped defaults on a fresh install of a new version.
@@ -444,11 +594,12 @@ automatically carried forward. Before re-uploading a new version:
 
 ## Complete list of package components
 
-See `manifest/package.xml` for the authoritative list. Summary: 64 Apex classes (33 production
-classes + 3 test-support/fake classes + 28 test classes — see the class table in §1 and the
-project file tree), 3 custom objects with 46 custom fields total, 1 custom metadata type with 7
-fields and 1 default record, 1 custom permission, 1 permission set, 1 custom tab, 1 Lightning
-application, 1 Lightning page, 2 Lightning web components, and 5 custom labels.
+See `manifest/package.xml` for the authoritative list. Summary: 91 Apex classes (production,
+test-support/fake, and test classes — see the class tables in §1 and §8 and the project file tree),
+5 custom objects (`RAA_Analysis__c`, `RAA_Access_Result__c`, `RAA_Access_Reason__c`,
+`RAA_Batch_Run__c`, `RAA_Scan_Subscription__c`), 1 custom metadata type with 9 fields and 1 default
+record, 1 custom permission, 1 permission set, 1 custom tab, 1 Lightning application, 1 Lightning
+page, 7 Lightning web components, and 5 custom labels.
 
 ## Acceptance-criteria self-check
 
@@ -471,10 +622,14 @@ application, 1 Lightning page, 2 Lightning web components, and 5 custom labels.
 - Unauthorized users cannot run or view analyses: custom permission gate + record-visibility gate,
   both covered by dedicated tests.
 - Unsupported objects handled gracefully: `supportsUserRecordAccess` probe before a scan starts.
-- Restriction-rule and attribution limitations disclosed in the UI and here.
-- No `SeeAllData=true` anywhere; 106/106 tests passing against a live scratch org.
-- Metadata deploys successfully to a clean org — verified live, not assumed (see §14 of this
-  document's development history: multiple real defects were found and fixed this way, including
-  an invalid `UserRecordAccess` bulk-query assumption, a `Schema.SharingModel` API that does not
-  actually exist, several field-metadata rule violations, and a real production race condition in
-  batch cancellation).
+- Restriction-rule and attribution limitations disclosed in the UI and here, and (§8) actively
+  checked at scan time where the platform allows it, rather than only stated as a standing caveat.
+- No `SeeAllData=true` anywhere; 144/144 Apex tests and 42/42 LWC Jest tests passing against a live
+  scratch org.
+- Metadata deploys successfully to a clean org — verified live, not assumed: multiple real defects
+  were found and fixed this way across both the original build and the §8 additions, including an
+  invalid `UserRecordAccess` bulk-query assumption, a `Schema.SharingModel` API that does not
+  actually exist, several field-metadata rule violations, a real production race condition in batch
+  cancellation, a permission set referencing FLS on required fields (rejected by the platform), and
+  the test-only `System.AsyncException: Maximum stack depth has been reached` restriction on
+  chaining Queueable Apex jobs inside `Test.startTest()`/`Test.stopTest()`.
