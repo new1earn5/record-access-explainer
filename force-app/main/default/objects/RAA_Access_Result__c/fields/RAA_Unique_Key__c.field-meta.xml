@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Unique_Key__c</fullName>
+    <caseSensitive>true</caseSensitive>
+    <externalId>true</externalId>
+    <label>Unique Key</label>
+    <length>60</length>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+    <description>Deterministic key of AnalysisId-UserId used as an external ID / unique constraint to prevent duplicate access results for the same analysis and user, and to support idempotent upserts across batch retries.</description>
+    <inlineHelpText>System-generated key (Analysis Id + User Id) enforcing one result per user per analysis.</inlineHelpText>
+</CustomField>

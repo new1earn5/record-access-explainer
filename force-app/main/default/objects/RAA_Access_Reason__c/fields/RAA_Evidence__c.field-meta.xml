@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Evidence__c</fullName>
+    <externalId>false</externalId>
+    <label>Evidence</label>
+    <length>32768</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>10</visibleLines>
+    <description>Raw supporting evidence collected by the analyzer (queried field values, IDs, and record snapshots) that back this reason, retained for audit purposes.</description>
+    <inlineHelpText>Raw evidence supporting this reason, for audit purposes.</inlineHelpText>
+</CustomField>

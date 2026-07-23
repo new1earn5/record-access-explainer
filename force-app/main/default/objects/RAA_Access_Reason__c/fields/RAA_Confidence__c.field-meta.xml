@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Confidence__c</fullName>
+    <externalId>false</externalId>
+    <label>Confidence</label>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>High</fullName><default>false</default><label>High</label></value>
+            <value><fullName>Medium</fullName><default>false</default><label>Medium</label></value>
+            <value><fullName>Low</fullName><default>true</default><label>Low</label></value>
+        </valueSetDefinition>
+    </valueSet>
+    <description>High: supported by direct evidence. Medium: supported by strong indirect evidence. Low: Salesforce confirms access but the exact source cannot be proven with supported APIs.</description>
+    <inlineHelpText>Confidence that this reason is the true source of access.</inlineHelpText>
+</CustomField>

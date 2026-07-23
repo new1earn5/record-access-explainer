@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Category__c</fullName>
+    <externalId>false</externalId>
+    <label>Category</label>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Ownership</fullName><default>false</default><label>Ownership</label></value>
+            <value><fullName>Role Hierarchy</fullName><default>false</default><label>Role Hierarchy</label></value>
+            <value><fullName>Direct Share</fullName><default>false</default><label>Direct Share</label></value>
+            <value><fullName>Group Share</fullName><default>false</default><label>Group Share</label></value>
+            <value><fullName>Sharing Rule</fullName><default>false</default><label>Sharing Rule</label></value>
+            <value><fullName>Permission</fullName><default>false</default><label>Permission</label></value>
+            <value><fullName>Team</fullName><default>false</default><label>Team</label></value>
+            <value><fullName>Territory</fullName><default>false</default><label>Territory</label></value>
+            <value><fullName>Implicit</fullName><default>false</default><label>Implicit</label></value>
+            <value><fullName>Parent Controlled</fullName><default>false</default><label>Parent Controlled</label></value>
+            <value><fullName>Organization-Wide Default</fullName><default>false</default><label>Organization-Wide Default</label></value>
+            <value><fullName>Unresolved</fullName><default>false</default><label>Unresolved</label></value>
+        </valueSetDefinition>
+    </valueSet>
+    <description>The category of access mechanism this reason represents.</description>
+    <inlineHelpText>Category of the detected access path.</inlineHelpText>
+</CustomField>

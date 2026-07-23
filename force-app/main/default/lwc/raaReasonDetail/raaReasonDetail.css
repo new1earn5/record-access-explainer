@@ -1,0 +1,42 @@
+.raa-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9001;
+}
+
+.raa-reason-card {
+    background-color: #fff;
+}
+
+.raa-dt {
+    width: 30%;
+}
+
+.raa-dd {
+    width: 70%;
+    word-break: break-word;
+}
+
+.raa-evidence {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: monospace;
+}
+
+.success {
+    --slds-c-badge-color-background: #4bca81;
+    --slds-c-badge-text-color: #03150a;
+}
+
+.warning {
+    --slds-c-badge-color-background: #ffb75d;
+    --slds-c-badge-text-color: #2e1a00;
+}
+
+.error {
+    --slds-c-badge-color-background: #ea001e;
+    --slds-c-badge-text-color: #ffffff;
+}

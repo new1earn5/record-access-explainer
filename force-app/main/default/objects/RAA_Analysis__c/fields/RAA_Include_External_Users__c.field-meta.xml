@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Include_External_Users__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Include External Users</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>Whether active external or Experience Cloud users were included in the scan population.</description>
+    <inlineHelpText>Whether external/Experience Cloud users were included in this scan.</inlineHelpText>
+</CustomField>

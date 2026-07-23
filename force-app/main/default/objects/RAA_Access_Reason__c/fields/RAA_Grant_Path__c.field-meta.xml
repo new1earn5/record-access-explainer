@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Grant_Path__c</fullName>
+    <externalId>false</externalId>
+    <label>Grant Path</label>
+    <length>4000</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>5</visibleLines>
+    <description>Full arrow-delimited path from the ultimate source to the user, for example "Sharing Rule -&gt; Public Group: North America Sales -&gt; Public Group: West Sales -&gt; User".</description>
+    <inlineHelpText>Full path from the source of access to the user.</inlineHelpText>
+</CustomField>

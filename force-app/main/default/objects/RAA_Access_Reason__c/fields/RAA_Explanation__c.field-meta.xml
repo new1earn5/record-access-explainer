@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Explanation__c</fullName>
+    <externalId>false</externalId>
+    <label>Explanation</label>
+    <length>4000</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>5</visibleLines>
+    <description>Human readable explanation of this reason, written for an auditor, including any caveats about what the analyzer could and could not prove.</description>
+    <inlineHelpText>Plain-language explanation of this access reason.</inlineHelpText>
+</CustomField>

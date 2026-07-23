@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Default_Include_External__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Default Include External</label>
+    <type>Checkbox</type>
+    <description>Default value pre-populated in the UI for whether to include active external/Experience Cloud users in a new scan.</description>
+    <inlineHelpText>Default state of the Include External Users checkbox.</inlineHelpText>
+</CustomField>

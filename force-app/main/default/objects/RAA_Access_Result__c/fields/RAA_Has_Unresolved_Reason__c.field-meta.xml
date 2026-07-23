@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Has_Unresolved_Reason__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Has Unresolved Reason</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>True when UserRecordAccess verified effective access for this user but no analyzer could conclusively prove the source, so a Low-confidence unresolved reason was recorded instead of a guess.</description>
+    <inlineHelpText>True when at least one access reason for this user could not be conclusively determined.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Access_Result__c</fullName>
+    <externalId>false</externalId>
+    <label>Access Result</label>
+    <referenceTo>RAA_Access_Result__c</referenceTo>
+    <relationshipLabel>RAA Access Reasons</relationshipLabel>
+    <relationshipName>RAA_Access_Reasons</relationshipName>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <trackTrending>false</trackTrending>
+    <type>MasterDetail</type>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+    <description>Parent access result that this reason explains.</description>
+</CustomField>

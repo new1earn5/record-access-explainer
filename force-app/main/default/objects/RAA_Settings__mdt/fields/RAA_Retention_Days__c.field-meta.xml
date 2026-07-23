@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Retention_Days__c</fullName>
+    <externalId>false</externalId>
+    <label>Retention Days</label>
+    <precision>5</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Number of days a completed analysis (and its child results and reasons) is retained before the optional cleanup scheduler deletes it. Zero disables cleanup.</description>
+    <inlineHelpText>Days to retain completed analyses before optional cleanup.</inlineHelpText>
+</CustomField>

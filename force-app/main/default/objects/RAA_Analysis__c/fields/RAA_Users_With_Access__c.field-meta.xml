@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Users_With_Access__c</fullName>
+    <externalId>false</externalId>
+    <label>Users With Access</label>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Count of users found to have effective access to the analyzed record according to UserRecordAccess.</description>
+    <inlineHelpText>Number of users found with effective access.</inlineHelpText>
+</CustomField>

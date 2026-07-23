@@ -1,0 +1,17 @@
+{
+  "name": "record-access-explainer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Record Access Explainer - Salesforce administrator/auditor application",
+  "scripts": {
+    "test:unit": "sfdx-lwc-jest",
+    "test:unit:watch": "sfdx-lwc-jest --watch",
+    "test:unit:coverage": "sfdx-lwc-jest --coverage"
+  },
+  "devDependencies": {
+    "@salesforce/eslint-config-lwc": "^3.5.3",
+    "@salesforce/sfdx-lwc-jest": "^5.0.1",
+    "@lwc/eslint-plugin-lwc": "^2.0.0",
+    "eslint": "^8.57.0"
+  }
+}

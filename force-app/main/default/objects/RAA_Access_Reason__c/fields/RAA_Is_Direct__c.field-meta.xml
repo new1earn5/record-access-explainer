@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Is_Direct__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Is Direct</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>True when access is granted directly to the user (for example a direct manual share or a permission set assigned directly). False when access flows through an intermediary such as a group, role, or team.</description>
+    <inlineHelpText>Whether this reason grants access directly to the user rather than through an intermediary.</inlineHelpText>
+</CustomField>

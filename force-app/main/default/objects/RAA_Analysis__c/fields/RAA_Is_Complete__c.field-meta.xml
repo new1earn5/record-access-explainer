@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Is_Complete__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Is Complete</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>Set to true when Status reaches a terminal value (Completed, Completed with Warnings, Failed, or Cancelled). Used by the cleanup scheduler to identify eligible analyses.</description>
+    <inlineHelpText>True once this analysis has reached a terminal status.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_User_Name__c</fullName>
+    <externalId>false</externalId>
+    <label>User Name</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>Denormalized full name of the user at the time of the scan, for display and export without extra lookups.</description>
+    <inlineHelpText>Full name of the user at scan time.</inlineHelpText>
+</CustomField>

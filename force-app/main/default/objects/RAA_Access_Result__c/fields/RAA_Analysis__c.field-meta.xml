@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Analysis__c</fullName>
+    <externalId>false</externalId>
+    <label>Analysis</label>
+    <referenceTo>RAA_Analysis__c</referenceTo>
+    <relationshipLabel>RAA Access Results</relationshipLabel>
+    <relationshipName>RAA_Access_Results</relationshipName>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <trackTrending>false</trackTrending>
+    <type>MasterDetail</type>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+    <description>Parent analysis that produced this per-user access result.</description>
+</CustomField>

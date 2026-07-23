@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Source_Object__c</fullName>
+    <externalId>false</externalId>
+    <label>Source Object</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>API name of the sObject that RAA_Source_Id__c refers to, for example Group, UserRole, PermissionSet, or the dynamic share object name.</description>
+    <inlineHelpText>Object type of the source record.</inlineHelpText>
+</CustomField>

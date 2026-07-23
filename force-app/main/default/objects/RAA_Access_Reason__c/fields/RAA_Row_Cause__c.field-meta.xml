@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Row_Cause__c</fullName>
+    <externalId>false</externalId>
+    <label>Row Cause</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>Value of the RowCause field from the underlying share row, when this reason originates from a share row.</description>
+    <inlineHelpText>RowCause value from the underlying share row, if applicable.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Requested_By__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Requested By</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>RAA Analyses Requested</relationshipLabel>
+    <relationshipName>RAA_Analyses_Requested</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+    <description>The user who submitted this analysis request.</description>
+    <inlineHelpText>User who requested this analysis.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Access_Level__c</fullName>
+    <externalId>false</externalId>
+    <label>Access Level</label>
+    <length>100</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>The access level granted by this specific reason (for example Read, Edit, All), where determinable from the underlying evidence.</description>
+    <inlineHelpText>Access level associated with this specific reason.</inlineHelpText>
+</CustomField>

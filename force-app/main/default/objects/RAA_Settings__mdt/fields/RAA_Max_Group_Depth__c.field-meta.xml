@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Max_Group_Depth__c</fullName>
+    <externalId>false</externalId>
+    <label>Max Group Depth</label>
+    <precision>3</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Maximum nesting depth traversed by the group graph resolver when following nested public group membership. Prevents runaway recursion in pathological group structures.</description>
+    <inlineHelpText>Maximum nested-group traversal depth.</inlineHelpText>
+</CustomField>

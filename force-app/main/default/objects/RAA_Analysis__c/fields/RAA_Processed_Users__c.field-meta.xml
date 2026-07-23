@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Processed_Users__c</fullName>
+    <externalId>false</externalId>
+    <label>Processed Users</label>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Running count of users processed so far by the batch scan.</description>
+    <inlineHelpText>Number of users processed so far.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Default_Batch_Scope__c</fullName>
+    <externalId>false</externalId>
+    <label>Default Batch Scope</label>
+    <precision>3</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Number of users processed per batch execute() invocation by RAA_AccessScanBatch. Salesforce enforces a hard ceiling of 2000; keep this modest (for example 20) so per-chunk SOQL and CPU stay well within governor limits.</description>
+    <inlineHelpText>Batch Apex scope size used for user scans.</inlineHelpText>
+</CustomField>

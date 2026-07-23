@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>RAA_Warning_Restriction_Rules</fullName>
+        <categories>Record Access Explainer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Restriction rule limitation disclosure</shortDescription>
+        <value>UserRecordAccess reflects Salesforce-computed effective access and does not account for restriction rules, which can further narrow what a user can see.</value>
+    </labels>
+    <labels>
+        <fullName>RAA_Warning_Sharing_Recalculation</fullName>
+        <categories>Record Access Explainer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Sharing recalculation timing disclosure</shortDescription>
+        <value>Recently changed sharing rules, roles, or group memberships may not be fully reflected until Salesforce finishes asynchronous sharing recalculation.</value>
+    </labels>
+    <labels>
+        <fullName>RAA_Warning_Potentially_Incomplete</fullName>
+        <categories>Record Access Explainer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Potentially incomplete banner label</shortDescription>
+        <value>Potentially Incomplete</value>
+    </labels>
+    <labels>
+        <fullName>RAA_App_Title</fullName>
+        <categories>Record Access Explainer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Application title</shortDescription>
+        <value>Record Access Explainer</value>
+    </labels>
+    <labels>
+        <fullName>RAA_Generic_Error</fullName>
+        <categories>Record Access Explainer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Generic sanitized error message</shortDescription>
+        <value>An unexpected error occurred. Please try again, and contact your administrator if the problem continues.</value>
+    </labels>
+</CustomLabels>

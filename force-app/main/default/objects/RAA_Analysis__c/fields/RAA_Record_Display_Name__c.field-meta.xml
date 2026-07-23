@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Record_Display_Name__c</fullName>
+    <externalId>false</externalId>
+    <label>Record Display Name</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>Best-effort human readable name of the analyzed record, resolved via its Name or name-like field.</description>
+    <inlineHelpText>Display name of the analyzed record, when it can be determined.</inlineHelpText>
+</CustomField>

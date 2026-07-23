@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Source_Name__c</fullName>
+    <externalId>false</externalId>
+    <label>Source Name</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>Display name of the source that granted access, for example a permission set label, group name, role name, or territory name.</description>
+    <inlineHelpText>Name of the record or metadata component that is the source of this reason.</inlineHelpText>
+</CustomField>

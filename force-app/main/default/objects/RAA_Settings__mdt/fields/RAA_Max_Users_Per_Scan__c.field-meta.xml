@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Max_Users_Per_Scan__c</fullName>
+    <externalId>false</externalId>
+    <label>Max Users Per Scan</label>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Maximum number of users a single scan is allowed to include. Zero means no configured maximum. Scans that would exceed this limit are rejected with a clear validation message before any batch job is enqueued.</description>
+    <inlineHelpText>Maximum users allowed per scan. Zero means unlimited.</inlineHelpText>
+</CustomField>

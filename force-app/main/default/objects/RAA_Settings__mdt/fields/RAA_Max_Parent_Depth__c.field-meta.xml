@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Max_Parent_Depth__c</fullName>
+    <externalId>false</externalId>
+    <label>Max Parent Depth</label>
+    <precision>3</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <type>Number</type>
+    <unique>false</unique>
+    <description>Maximum number of controlled-by-parent hops the parent-controlled analyzer will recursively follow before stopping, with cycle detection applied at every hop.</description>
+    <inlineHelpText>Maximum controlled-by-parent recursion depth.</inlineHelpText>
+</CustomField>

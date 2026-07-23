@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Principal_Type__c</fullName>
+    <externalId>false</externalId>
+    <label>Principal Type</label>
+    <length>100</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+    <description>Type of the principal referenced by RAA_Principal_Id__c, for example User, PublicGroup, Queue, RoleAndSubordinates, Territory2, or RoleAndSubordinatesInternal.</description>
+    <inlineHelpText>Type of the principal that was granted access.</inlineHelpText>
+</CustomField>
