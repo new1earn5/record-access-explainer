@@ -36,8 +36,9 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
 
     public Iterable<Id> start(Database.BatchableContext bc) {
         RAA_Analysis__c current = repository.getAnalysis(analysisId);
-        if (current == null || current.RAA_Status__c == 'Cancelled') {
-            // Cancelled after being enqueued but before the platform picked the job up; do no work.
+        if (current == null || current.RAA_Is_Complete__c) {
+            // Cancelled (or otherwise already marked terminal by some other path) after being
+            // enqueued but before the platform picked the job up; do no work.
             return new List<Id>();
         }
 
@@ -86,8 +87,17 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
 
     public void finish(Database.BatchableContext bc) {
         RAA_Analysis__c current = repository.getAnalysis(analysisId);
-        if (current == null || current.RAA_Status__c == 'Cancelled') {
-            return; // cancellation already finalized the record; never overwrite a terminal cancelled state
+        if (current == null) {
+            return;
+        }
+        if (current.RAA_Is_Complete__c) {
+            // Already finalized before this job's own finish() ran - either cancelled, or
+            // start() itself already marked this analysis Failed (for example, exceeding
+            // RAA_Max_Users_Per_Scan__c) and returned before any chunks executed. Either way,
+            // never overwrite an already-terminal status, but still let subscribers waiting on
+            // this analysis know the terminal state has been reached.
+            publishStatusEvent(current.RAA_Status__c, true);
+            return;
         }
 
         Integer jobErrorCount = 0;
@@ -100,6 +110,17 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
             analysisId,
             hasWarnings,
             String.join(new List<String>(new Set<String>(warnings)), '\n')
+        );
+        publishStatusEvent(hasWarnings ? 'Completed with Warnings' : 'Completed', true);
+    }
+
+    private void publishStatusEvent(String status, Boolean isComplete) {
+        EventBus.publish(
+            new RAA_Scan_Status_Event__e(
+                RAA_Analysis_Id__c = analysisId,
+                RAA_Status__c = status,
+                RAA_Is_Complete__c = isComplete
+            )
         );
     }
 

@@ -18,6 +18,8 @@
         <members>RAA_AppException</members>
         <members>RAA_BatchRunAnalysisSummaryDTO</members>
         <members>RAA_BatchRunSummaryDTO</members>
+        <members>RAA_BulkScanFailureFinalizer</members>
+        <members>RAA_BulkScanFailureFinalizerTest</members>
         <members>RAA_BulkScanQueueable</members>
         <members>RAA_BulkScanQueueableTest</members>
         <members>RAA_CleanupScheduler</members>
@@ -100,6 +102,7 @@
         <members>RAA_Access_Reason__c</members>
         <members>RAA_Batch_Run__c</members>
         <members>RAA_Scan_Subscription__c</members>
+        <members>RAA_Scan_Status_Event__e</members>
         <members>RAA_Settings__mdt</members>
         <name>CustomObject</name>
     </types>

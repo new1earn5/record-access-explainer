@@ -1,5 +1,6 @@
 import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { subscribe, unsubscribe, onError } from 'lightning/empApi';
 import hasRunPermission from '@salesforce/apex/RAA_RecordAccessExplainerController.hasRunPermission';
 import getDefaultSettings from '@salesforce/apex/RAA_RecordAccessExplainerController.getDefaultSettings';
 import startAnalysis from '@salesforce/apex/RAA_RecordAccessExplainerController.startAnalysis';
@@ -10,7 +11,11 @@ import deleteAnalysis from '@salesforce/apex/RAA_RecordAccessExplainerController
 import exportResultsCsv from '@salesforce/apex/RAA_RecordAccessExplainerController.exportResultsCsv';
 import exportReasonsCsv from '@salesforce/apex/RAA_RecordAccessExplainerController.exportReasonsCsv';
 
-const POLL_INTERVAL_MS = 3000;
+// RAA_Scan_Status_Event__e push (see subscribeToScanEvents) is the primary, near-instant signal;
+// polling only exists as a slower safety net for a missed or not-yet-established subscription,
+// so this can be much less frequent than it needed to be when it was the only mechanism.
+const POLL_INTERVAL_MS = 10000;
+const SCAN_STATUS_EVENT_CHANNEL = '/event/RAA_Scan_Status_Event__e';
 const TERMINAL_STATUSES = [
     'Completed',
     'Completed with Warnings',
@@ -134,6 +139,7 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     activeMode = 'single';
 
     pollingHandle;
+    eventSubscription;
     columns = COLUMNS;
 
     connectedCallback() {
@@ -157,10 +163,50 @@ export default class RaaRecordAccessExplainer extends LightningElement {
             .catch(() => {
                 // Defaults simply stay at their initial values if this call is not permitted.
             });
+
+        this.subscribeToScanEvents();
     }
 
     disconnectedCallback() {
         this.stopPolling();
+        this.unsubscribeFromScanEvents();
+    }
+
+    // Subscribes once for the component's lifetime, not per-scan - the channel carries every
+    // analysis's status, so the handler filters to the one this component currently cares about.
+    // A subscribe/callback failure is never fatal: polling (see startPolling) still covers it.
+    subscribeToScanEvents() {
+        onError(() => {
+            // Swallowed deliberately: polling remains the fallback for a broken push channel.
+        });
+        subscribe(SCAN_STATUS_EVENT_CHANNEL, -1, (message) => {
+            this.handleScanStatusEvent(message);
+        })
+            .then((subscription) => {
+                this.eventSubscription = subscription;
+            })
+            .catch(() => {
+                // Subscribing itself failed (for example, empApi unavailable in this context);
+                // polling remains the fallback.
+            });
+    }
+
+    unsubscribeFromScanEvents() {
+        if (this.eventSubscription) {
+            unsubscribe(this.eventSubscription);
+            this.eventSubscription = undefined;
+        }
+    }
+
+    handleScanStatusEvent(message) {
+        const payload = message && message.data && message.data.payload;
+        if (!payload || !this.analysisId) {
+            return;
+        }
+        if (payload.RAA_Analysis_Id__c !== this.analysisId) {
+            return;
+        }
+        this.refreshStatus();
     }
 
     // ---- Getters for template ----

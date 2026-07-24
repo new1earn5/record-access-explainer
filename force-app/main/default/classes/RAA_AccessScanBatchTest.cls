@@ -96,4 +96,68 @@ private class RAA_AccessScanBatchTest {
             'finish() must not overwrite a status that was explicitly set to Cancelled.'
         );
     }
+
+    @IsTest
+    static void finishDoesNotOverwriteAnAnalysisThatFailedBeforeItRan() {
+        Account acct = new Account(Name = 'RAA Batch Already Failed Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Batch Already Failed Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        RAA_UserPopulationBuilder.PopulationFilter filter = new RAA_UserPopulationBuilder.PopulationFilter();
+
+        Test.startTest();
+        Database.executeBatch(new RAA_AccessScanBatch(analysisId, acct.Id, filter), 20);
+        // Simulates start() itself already marking this Failed (for example, exceeding
+        // RAA_Max_Users_Per_Scan__c) and returning before any chunk ran - finish() still fires
+        // afterward regardless, and must not silently turn this back into "Completed".
+        repo.markFailed(analysisId, 'simulated failure before any chunk ran');
+        Test.stopTest();
+
+        System.assertEquals(
+            'Failed',
+            repo.getAnalysis(analysisId).RAA_Status__c,
+            'finish() must not overwrite a status that was already terminal when it ran.'
+        );
+    }
+
+    @IsTest
+    static void finishPublishesAScanStatusEventOnNormalCompletion() {
+        Account acct = new Account(Name = 'RAA Batch Event Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Batch Event Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        RAA_UserPopulationBuilder.PopulationFilter filter = new RAA_UserPopulationBuilder.PopulationFilter();
+
+        Test.startTest();
+        Database.executeBatch(new RAA_AccessScanBatch(analysisId, acct.Id, filter), 20);
+        Test.stopTest();
+        // EventBus.publish inside finish() queues the platform event for delivery; Test.getEventBus().deliver()
+        // forces that delivery to run synchronously so a subscriber trigger would fire within this test - there
+        // is no Apex-side subscriber here, so this only confirms publishing and delivery complete without error.
+        Test.getEventBus().deliver();
+
+        RAA_Analysis__c completed = repo.getAnalysis(analysisId);
+        System.assert(
+            completed.RAA_Status__c == 'Completed' || completed.RAA_Status__c == 'Completed with Warnings',
+            'Sanity check that the batch actually completed, independent of the event.'
+        );
+    }
 }

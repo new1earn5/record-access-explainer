@@ -7,6 +7,7 @@ import getAnalysisStatus from '@salesforce/apex/RAA_RecordAccessExplainerControl
 import getResults from '@salesforce/apex/RAA_RecordAccessExplainerController.getResults';
 import getFieldAccess from '@salesforce/apex/RAA_RecordAccessExplainerController.getFieldAccess';
 import getAnalysisDiff from '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisDiff';
+import { subscribe, unsubscribe } from 'lightning/empApi';
 
 jest.mock(
     '@salesforce/apex/RAA_RecordAccessExplainerController.hasRunPermission',
@@ -299,7 +300,7 @@ describe('c-raa-record-access-explainer', () => {
         });
         getResults.mockResolvedValue([SAMPLE_RESULT]);
 
-        await jest.advanceTimersByTimeAsync(3000);
+        await jest.advanceTimersByTimeAsync(10000);
 
         expect(getAnalysisStatus).toHaveBeenCalled();
         expect(getResults).toHaveBeenCalled();
@@ -577,5 +578,99 @@ describe('c-raa-record-access-explainer', () => {
         expect(
             element.shadowRoot.querySelector('c-raa-analysis-diff')
         ).toBeNull();
+    });
+
+    it('subscribes to the scan status event channel on connect', async () => {
+        createComponent();
+        await flushPromises();
+
+        expect(subscribe).toHaveBeenCalledWith(
+            '/event/RAA_Scan_Status_Event__e',
+            -1,
+            expect.any(Function)
+        );
+    });
+
+    it('refreshes status when a matching scan status event arrives', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Running',
+            totalUsers: 1,
+            processedUsers: 0,
+            usersWithAccess: 0,
+            isComplete: false
+        });
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+
+        getAnalysisStatus.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'Acme Corp'
+        });
+        getResults.mockResolvedValue([]);
+
+        const eventHandler = subscribe.mock.calls[0][2];
+        eventHandler({
+            data: { payload: { RAA_Analysis_Id__c: 'a00000000000001' } }
+        });
+        await flushPromises();
+
+        expect(getAnalysisStatus).toHaveBeenCalledWith({
+            analysisId: 'a00000000000001'
+        });
+    });
+
+    it('ignores a scan status event for a different analysis', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Running',
+            totalUsers: 1,
+            processedUsers: 0,
+            usersWithAccess: 0,
+            isComplete: false
+        });
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+
+        getAnalysisStatus.mockClear();
+        const eventHandler = subscribe.mock.calls[0][2];
+        eventHandler({
+            data: { payload: { RAA_Analysis_Id__c: 'a09999999999999' } }
+        });
+        await flushPromises();
+
+        expect(getAnalysisStatus).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes from the scan status channel when removed from the DOM', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        document.body.removeChild(element);
+        await flushPromises();
+
+        expect(unsubscribe).toHaveBeenCalled();
     });
 });

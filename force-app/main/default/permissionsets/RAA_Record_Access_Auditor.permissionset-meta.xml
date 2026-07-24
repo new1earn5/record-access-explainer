@@ -73,6 +73,19 @@
         <viewAllRecords>false</viewAllRecords>
         <modifyAllRecords>false</modifyAllRecords>
     </objectPermissions>
+    <objectPermissions>
+        <!-- Platform Event: allowRead grants Subscribe (needed for the LWC's lightning/empApi
+             push subscription); allowCreate grants Publish, unused by client code today since
+             publishing happens from the elevated, system-mode scan pipeline, but included for
+             completeness. Edit/Delete/viewAll/modifyAll don't apply to Platform Events. -->
+        <object>RAA_Scan_Status_Event__e</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
 
     <fieldPermissions>
         <field>RAA_Analysis__c.RAA_Object_API_Name__c</field>

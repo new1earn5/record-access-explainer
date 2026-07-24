@@ -83,6 +83,17 @@ Key design decisions, all verified empirically against a live org rather than as
   Apex all ignore CRUD/FLS regardless. `RAA_AccessScanBatch` is declared `without sharing`
   deliberately so the scan itself sees the full picture, independent of the requesting operator's
   own object permissions — the operator only needs the custom permission to trigger it.
+- **Scan status reaches the UI by push, not just polling.** `RAA_AccessScanBatch.finish()`
+  publishes a platform event (`RAA_Scan_Status_Event__e`) whenever an analysis reaches a terminal
+  status; `raaRecordAccessExplainer` subscribes via `lightning/empApi` and refreshes immediately
+  on a matching event instead of waiting for its next poll tick. Polling (every 10s) still runs
+  as a fallback for a missed or not-yet-established subscription, so nothing depends on the push
+  channel being reliable. Finding and fixing this also surfaced a real, previously-untested bug:
+  both `start()` and `finish()` guarded only against a `Cancelled` status specifically, so an
+  analysis that `start()` itself had already marked `Failed` (for example, exceeding
+  `RAA_Max_Users_Per_Scan__c`) could be silently overwritten back to `Running`/`Completed` by the
+  rest of the batch running anyway. Both methods now guard on `RAA_Is_Complete__c` instead of one
+  named status, which covers every terminal state uniformly.
 
 ### Apex components
 
@@ -657,12 +668,13 @@ automatically carried forward. Before re-uploading a new version:
 
 ## Complete list of package components
 
-See `manifest/package.xml` for the authoritative list. Summary: 91 Apex classes (production,
+See `manifest/package.xml` for the authoritative list. Summary: 93 Apex classes (production,
 test-support/fake, and test classes — see the class tables in §1 and §8 and the project file tree),
 5 custom objects (`RAA_Analysis__c`, `RAA_Access_Result__c`, `RAA_Access_Reason__c`,
-`RAA_Batch_Run__c`, `RAA_Scan_Subscription__c`), 1 custom metadata type with 9 fields and 1 default
-record, 1 custom permission, 1 permission set, 1 custom tab, 1 Lightning application, 1 Lightning
-page, 7 Lightning web components, and 5 custom labels.
+`RAA_Batch_Run__c`, `RAA_Scan_Subscription__c`), 1 platform event (`RAA_Scan_Status_Event__e`),
+1 custom metadata type with 9 fields and 1 default record, 1 custom permission, 1 permission set,
+1 custom tab, 1 Lightning application, 1 Lightning page, 7 Lightning web components, and 5 custom
+labels.
 
 ## Acceptance-criteria self-check
 
