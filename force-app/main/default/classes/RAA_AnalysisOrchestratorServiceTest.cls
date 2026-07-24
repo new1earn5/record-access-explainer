@@ -254,4 +254,28 @@ private class RAA_AnalysisOrchestratorServiceTest {
         List<RAA_FieldAccessDTO> fields = service.getFieldAccess(UserInfo.getUserId(), 'Account');
         System.assert(!fields.isEmpty());
     }
+
+    @IsTest
+    static void getRiskInsightsDelegatesToTheRiskInsightsService() {
+        Account acct = new Account(Name = 'RAA Orchestrator Risk Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Orchestrator Risk Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        repo.markCompleted(analysisId, false, null);
+
+        Test.startTest();
+        List<RAA_RiskInsightDTO> insights = new RAA_AnalysisOrchestratorService().getRiskInsights(UserInfo.getUserId());
+        Test.stopTest();
+
+        System.assertEquals(1, insights.size());
+        System.assertEquals(analysisId, insights[0].analysisId);
+    }
 }

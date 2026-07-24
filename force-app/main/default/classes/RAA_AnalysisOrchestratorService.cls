@@ -296,4 +296,9 @@ public without sharing class RAA_AnalysisOrchestratorService {
     public void deleteSubscription(Id subscriptionId) {
         new RAA_SubscriptionRepository().deleteSubscription(subscriptionId);
     }
+
+    /** Feature: Risk Insights - ranks the requesting user's own already-scanned records. */
+    public List<RAA_RiskInsightDTO> getRiskInsights(Id requestedById) {
+        return new RAA_RiskInsightsService().getRiskInsights(requestedById);
+    }
 }

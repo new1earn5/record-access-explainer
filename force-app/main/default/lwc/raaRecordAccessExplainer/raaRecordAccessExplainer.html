@@ -73,11 +73,17 @@
                         variant={subscriptionsModeVariant}
                         onclick={handleModeChange}
                     ></lightning-button>
+                    <lightning-button
+                        label="Risk Insights"
+                        data-mode="riskInsights"
+                        variant={riskInsightsModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
                 </div>
 
                 <template if:true={isBulkMode}>
                     <c-raa-bulk-scan
-                        onviewanalysis={handleViewAnalysisFromBulk}
+                        onviewanalysis={handleViewAnalysis}
                     ></c-raa-bulk-scan>
                 </template>
 
@@ -87,6 +93,12 @@
 
                 <template if:true={isSubscriptionsMode}>
                     <c-raa-subscriptions></c-raa-subscriptions>
+                </template>
+
+                <template if:true={isRiskInsightsMode}>
+                    <c-raa-risk-insights
+                        onviewanalysis={handleViewAnalysis}
+                    ></c-raa-risk-insights>
                 </template>
 
                 <template if:true={isSingleMode}>

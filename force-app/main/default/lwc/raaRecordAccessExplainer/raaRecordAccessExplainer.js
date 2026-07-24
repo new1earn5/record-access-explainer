@@ -231,6 +231,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
         return this.activeMode === 'subscriptions';
     }
 
+    get isRiskInsightsMode() {
+        return this.activeMode === 'riskInsights';
+    }
+
     get showScanForm() {
         return this.permissionChecked && this.hasPermission && !this.analysisId;
     }
@@ -655,7 +659,13 @@ export default class RaaRecordAccessExplainer extends LightningElement {
         return this.isSubscriptionsMode ? 'brand' : 'neutral';
     }
 
-    handleViewAnalysisFromBulk(event) {
+    get riskInsightsModeVariant() {
+        return this.isRiskInsightsMode ? 'brand' : 'neutral';
+    }
+
+    // Shared by both raaBulkScan's and raaRiskInsights' "View Analysis" row action - both dispatch
+    // the same { detail: { analysisId } } shape.
+    handleViewAnalysis(event) {
         this.activeMode = 'single';
         this.analysisId = event.detail.analysisId;
         this.summary = undefined;

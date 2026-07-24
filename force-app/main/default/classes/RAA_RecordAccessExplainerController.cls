@@ -268,6 +268,17 @@ public with sharing class RAA_RecordAccessExplainerController {
         }
     }
 
+    /** Feature: Risk Insights. */
+    @AuraEnabled(cacheable=true)
+    public static List<RAA_RiskInsightDTO> getRiskInsights() {
+        enforceRunPermission();
+        try {
+            return new RAA_AnalysisOrchestratorService().getRiskInsights(UserInfo.getUserId());
+        } catch (Exception e) {
+            throw toAuraException(genericErrorMessage());
+        }
+    }
+
     private static void enforceRunPermission() {
         if (!RAA_PermissionChecker.hasRunPermission()) {
             throw toAuraException(

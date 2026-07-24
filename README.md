@@ -9,15 +9,15 @@ population, reports Salesforce's own computed effective access for every user (v
 sharing mechanisms it can prove are responsible: ownership, role hierarchy, direct and group
 shares, sharing rules, permission bypasses, teams, territories, and controlled-by-parent chains.
 
-This project was built, deployed to a live scratch org, and test-verified (147/147 Apex tests,
-42/42 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
+This project was built, deployed to a live scratch org, and test-verified (156/156 Apex tests,
+54/54 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
 including several platform restrictions that are easy to get wrong — was confirmed against a real
 org, not assumed.
 
 Beyond the core single-record scan, it also includes bulk/list scanning, a reverse "by user" mode,
 analysis history diffing, field-level security tracing, a live sharing-recalculation warning,
-best-effort Restriction Rule detection, and optional scheduled recurring scans with email change
-alerts — see §8.
+best-effort Restriction Rule detection, a Risk Insights view ranking already-scanned records, and
+optional scheduled recurring scans with email and/or Chatter change alerts — see §8.
 
 ---
 
@@ -417,6 +417,27 @@ The reason detail modal renders each reason's grant path (for example `Owner -> 
 Sales`) as a sequence of chips with directional arrows between them, instead of a single text blob —
 purely a presentational change (`raaReasonDetail`), with no effect on the underlying data.
 
+### Risk Insights
+
+A fifth mode (`raaRiskInsights`, `RAA_RiskInsightsService`) ranks records the current user has
+already scanned — directly, in bulk, or via a subscription — by risk signals already present in
+each record's own most recent completed scan. Nothing here triggers a new scan; it is purely a
+read/aggregate over existing `RAA_Access_Result__c`/`RAA_Access_Reason__c` rows, scoped to
+`RAA_Requested_By__c = ` the requesting user (the same self-scoping `listMySubscriptions` already
+uses, appropriate given `RAA_Analysis__c`'s Private OWD). Three signals feed a transparent, weighted
+Risk Score — never an opaque number, since every contributing count is shown alongside it:
+
+| Signal         | Definition                                                                                                                                                  | Weight |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| External users | Users with access whose `UserType` isn't `'Standard'` — the same internal/external distinction `RAA_UserPopulationBuilder` already uses for scan population | 3      |
+| Bypass holders | Distinct users whose access includes a `Permission`-category reason (View/Modify All Data or View/Modify All Records)                                       | 2      |
+| Unresolved     | Users whose access `RAA_ReasonAggregator` could not fully attribute to a specific mechanism — an audit blind spot, not itself a risk signal                 | 1      |
+
+Only the latest completed analysis per distinct record is considered (older re-scans of the same
+record are superseded, not summed), and the view is capped at the top 50 by score. Clicking "View
+Analysis" on any row jumps straight into the single-record view for that analysis, reusing the same
+navigation the bulk scan view already uses for its own "View Details" action.
+
 ---
 
 ## 9. Deployment Instructions
@@ -466,7 +487,7 @@ npm run format          # rewrite in place
 npm run analyze:apex
 ```
 
-At last verification: **147/147 Apex tests passing, 84% org-wide coverage; 42/42 LWC Jest tests
+At last verification: **156/156 Apex tests passing, 84% org-wide coverage; 54/54 LWC Jest tests
 passing across 7 component suites; zero ESLint errors; the full tree Prettier-clean; zero Code
 Analyzer findings at High severity or above.** Every class directly involved in the
 request/response path, persistence, and reason logic is at or above 85%; the exceptions
@@ -668,12 +689,12 @@ automatically carried forward. Before re-uploading a new version:
 
 ## Complete list of package components
 
-See `manifest/package.xml` for the authoritative list. Summary: 93 Apex classes (production,
+See `manifest/package.xml` for the authoritative list. Summary: 96 Apex classes (production,
 test-support/fake, and test classes — see the class tables in §1 and §8 and the project file tree),
 5 custom objects (`RAA_Analysis__c`, `RAA_Access_Result__c`, `RAA_Access_Reason__c`,
 `RAA_Batch_Run__c`, `RAA_Scan_Subscription__c`), 1 platform event (`RAA_Scan_Status_Event__e`),
 1 custom metadata type with 9 fields and 1 default record, 1 custom permission, 1 permission set,
-1 custom tab, 1 Lightning application, 1 Lightning page, 7 Lightning web components, and 5 custom
+1 custom tab, 1 Lightning application, 1 Lightning page, 8 Lightning web components, and 5 custom
 labels.
 
 ## Acceptance-criteria self-check
@@ -699,7 +720,7 @@ labels.
 - Unsupported objects handled gracefully: `supportsUserRecordAccess` probe before a scan starts.
 - Restriction-rule and attribution limitations disclosed in the UI and here, and (§8) actively
   checked at scan time where the platform allows it, rather than only stated as a standing caveat.
-- No `SeeAllData=true` anywhere; 147/147 Apex tests and 42/42 LWC Jest tests passing against a live
+- No `SeeAllData=true` anywhere; 156/156 Apex tests and 54/54 LWC Jest tests passing against a live
   scratch org.
 - Metadata deploys successfully to a clean org — verified live, not assumed: multiple real defects
   were found and fixed this way across both the original build and the §8 additions, including an

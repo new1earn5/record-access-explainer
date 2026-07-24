@@ -7,6 +7,7 @@ import getAnalysisStatus from '@salesforce/apex/RAA_RecordAccessExplainerControl
 import getResults from '@salesforce/apex/RAA_RecordAccessExplainerController.getResults';
 import getFieldAccess from '@salesforce/apex/RAA_RecordAccessExplainerController.getFieldAccess';
 import getAnalysisDiff from '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisDiff';
+import getRiskInsights from '@salesforce/apex/RAA_RecordAccessExplainerController.getRiskInsights';
 import { subscribe, unsubscribe } from 'lightning/empApi';
 
 jest.mock(
@@ -102,6 +103,11 @@ jest.mock(
 jest.mock(
     '@salesforce/apex/RAA_RecordAccessExplainerController.deleteSubscription',
     () => ({ default: jest.fn() }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getRiskInsights',
+    () => ({ default: jest.fn(() => Promise.resolve([])) }),
     { virtual: true }
 );
 
@@ -444,6 +450,70 @@ describe('c-raa-record-access-explainer', () => {
         expect(
             element.shadowRoot.querySelector('c-raa-subscriptions')
         ).not.toBeNull();
+    });
+
+    it('switches to risk insights mode', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        element.shadowRoot.querySelector('[data-mode="riskInsights"]').click();
+        await flushPromises();
+
+        expect(
+            element.shadowRoot.querySelector('c-raa-risk-insights')
+        ).not.toBeNull();
+    });
+
+    it('switches back to single mode and loads the analysis when a risk insights row is opened', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        getRiskInsights.mockResolvedValue([
+            {
+                analysisId: 'a00000000000003',
+                recordId: '001000000000003AAA',
+                objectApiName: 'Account',
+                recordDisplayName: 'From Risk Insights',
+                completedAt: '2026-07-20T00:00:00.000Z',
+                usersWithAccess: 4,
+                externalUserCount: 2,
+                bypassHolderCount: 0,
+                unresolvedCount: 0,
+                riskScore: 6
+            }
+        ]);
+        getAnalysisStatus.mockResolvedValue({
+            analysisId: 'a00000000000003',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'From Risk Insights'
+        });
+        getResults.mockResolvedValue([SAMPLE_RESULT]);
+
+        element.shadowRoot.querySelector('[data-mode="riskInsights"]').click();
+        await flushPromises();
+
+        const riskInsights = element.shadowRoot.querySelector(
+            'c-raa-risk-insights'
+        );
+        riskInsights.dispatchEvent(
+            new CustomEvent('viewanalysis', {
+                detail: { analysisId: 'a00000000000003' }
+            })
+        );
+        await flushPromises();
+
+        expect(
+            element.shadowRoot.querySelector('c-raa-risk-insights')
+        ).toBeNull();
+        expect(getAnalysisStatus).toHaveBeenCalledWith({
+            analysisId: 'a00000000000003'
+        });
+        expect(element.shadowRoot.textContent).toContain('From Risk Insights');
     });
 
     it('switches back to single mode and loads the analysis when a bulk row is opened', async () => {

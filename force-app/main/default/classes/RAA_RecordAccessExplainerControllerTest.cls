@@ -338,4 +338,29 @@ private class RAA_RecordAccessExplainerControllerTest {
         }
         Test.stopTest();
     }
+
+    @IsTest
+    static void getRiskInsightsRequiresPermissionAndReturnsOnlyOwnAnalyses() {
+        RAA_PermissionChecker.testOverride = true;
+        Account acct = new Account(Name = 'RAA Controller Risk Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Controller Risk Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        repo.markCompleted(analysisId, false, null);
+
+        Test.startTest();
+        List<RAA_RiskInsightDTO> insights = RAA_RecordAccessExplainerController.getRiskInsights();
+        Test.stopTest();
+
+        System.assertEquals(1, insights.size());
+        System.assertEquals(analysisId, insights[0].analysisId);
+    }
 }

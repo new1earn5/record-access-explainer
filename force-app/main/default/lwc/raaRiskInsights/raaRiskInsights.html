@@ -1,0 +1,43 @@
+<template>
+    <div class="slds-p-around_medium">
+        <div class="slds-grid slds-grid_align-spread slds-m-bottom_small">
+            <p class="slds-text-body_regular">
+                Ranks records you've already scanned - directly, in bulk, or via
+                a subscription - by risk signals present in each one's own most
+                recent completed scan. Nothing here triggers a new scan. Risk
+                Score weights external users highest, then users holding a
+                View/Modify All bypass, then unresolved reasons, in that order.
+            </p>
+            <lightning-button
+                label="Refresh"
+                onclick={handleRefresh}
+                disabled={isLoading}
+            ></lightning-button>
+        </div>
+
+        <template if:true={isLoading}>
+            <lightning-spinner
+                alternative-text="Loading"
+                size="medium"
+            ></lightning-spinner>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:false={hasInsights}>
+                <p class="slds-text-body_regular slds-text-color_weak">
+                    No completed scans yet. Run a single-record, bulk, or
+                    subscription scan first, then check back here.
+                </p>
+            </template>
+            <template if:true={hasInsights}>
+                <lightning-datatable
+                    key-field="analysisId"
+                    data={insights}
+                    columns={columns}
+                    onrowaction={handleRowAction}
+                    hide-checkbox-column
+                ></lightning-datatable>
+            </template>
+        </template>
+    </div>
+</template>

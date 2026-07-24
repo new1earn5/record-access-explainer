@@ -63,6 +63,9 @@
         <members>RAA_RecurringScanSchedulerTest</members>
         <members>RAA_RestrictionRuleChecker</members>
         <members>RAA_RestrictionRuleCheckerTest</members>
+        <members>RAA_RiskInsightDTO</members>
+        <members>RAA_RiskInsightsService</members>
+        <members>RAA_RiskInsightsServiceTest</members>
         <members>RAA_RoleHierarchyAnalyzer</members>
         <members>RAA_RoleHierarchyAnalyzerTest</members>
         <members>RAA_SettingsDTO</members>
@@ -138,6 +141,7 @@
         <members>raaAnalysisDiff</members>
         <members>raaFieldAccess</members>
         <members>raaSubscriptions</members>
+        <members>raaRiskInsights</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
