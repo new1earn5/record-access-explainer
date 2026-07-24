@@ -130,6 +130,20 @@ public with sharing class RAA_RecordAccessExplainerController {
         }
     }
 
+    /** Feature: plain-English summary. */
+    @AuraEnabled(cacheable=true)
+    public static String getPlainEnglishSummary(String analysisId) {
+        enforceRunPermission();
+        Id normalizedId = normalizeAndCheckVisibility(analysisId);
+        try {
+            return new RAA_AnalysisOrchestratorService().getPlainEnglishSummary(normalizedId);
+        } catch (RAA_AppException e) {
+            throw toAuraException(e.getMessage());
+        } catch (Exception e) {
+            throw toAuraException(genericErrorMessage());
+        }
+    }
+
     /** Feature: bulk scan mode. */
     @AuraEnabled
     public static RAA_BatchRunSummaryDTO startBulkAnalysis(

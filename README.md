@@ -9,15 +9,16 @@ population, reports Salesforce's own computed effective access for every user (v
 sharing mechanisms it can prove are responsible: ownership, role hierarchy, direct and group
 shares, sharing rules, permission bypasses, teams, territories, and controlled-by-parent chains.
 
-This project was built, deployed to a live scratch org, and test-verified (156/156 Apex tests,
-54/54 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
+This project was built, deployed to a live scratch org, and test-verified (162/162 Apex tests,
+58/58 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
 including several platform restrictions that are easy to get wrong — was confirmed against a real
 org, not assumed.
 
 Beyond the core single-record scan, it also includes bulk/list scanning, a reverse "by user" mode,
 analysis history diffing, field-level security tracing, a live sharing-recalculation warning,
-best-effort Restriction Rule detection, a Risk Insights view ranking already-scanned records, and
-optional scheduled recurring scans with email and/or Chatter change alerts — see §8.
+best-effort Restriction Rule detection, a Risk Insights view ranking already-scanned records, a
+deterministic plain-English scan summary, and optional scheduled recurring scans with email and/or
+Chatter change alerts — see §8.
 
 ---
 
@@ -438,6 +439,17 @@ record are superseded, not summed), and the view is capped at the top 50 by scor
 Analysis" on any row jumps straight into the single-record view for that analysis, reusing the same
 navigation the bulk scan view already uses for its own "View Details" action.
 
+### Plain-English summary
+
+A "Plain-English Summary" button on a completed single-record scan opens a modal
+(`raaPlainEnglishSummary`) with a short paragraph describing the result — who has access, the
+access-level breakdown, the dominant reason category, and any unresolved or low-confidence
+attributions — built entirely from the same structured `RAA_Access_Result__c`/
+`RAA_Access_Reason__c` data the results grid already shows. `RAA_PlainEnglishSummaryService`
+assembles it from fixed sentence templates and real tallies; it is **not** a generative-AI call —
+no callout, no LLM, no additional licensing, and fully covered by deterministic unit tests. The
+modal discloses this explicitly so nobody mistakes the wording for an AI-generated summary.
+
 ---
 
 ## 9. Deployment Instructions
@@ -487,8 +499,8 @@ npm run format          # rewrite in place
 npm run analyze:apex
 ```
 
-At last verification: **156/156 Apex tests passing, 84% org-wide coverage; 54/54 LWC Jest tests
-passing across 7 component suites; zero ESLint errors; the full tree Prettier-clean; zero Code
+At last verification: **162/162 Apex tests passing, 84% org-wide coverage; 58/58 LWC Jest tests
+passing across 9 component suites; zero ESLint errors; the full tree Prettier-clean; zero Code
 Analyzer findings at High severity or above.** Every class directly involved in the
 request/response path, persistence, and reason logic is at or above 85%; the exceptions
 (`RAA_TerritoryAnalyzer`, `RAA_TeamAnalyzer` — explained in §5; `RAA_RestrictionRuleChecker`,
@@ -689,12 +701,12 @@ automatically carried forward. Before re-uploading a new version:
 
 ## Complete list of package components
 
-See `manifest/package.xml` for the authoritative list. Summary: 96 Apex classes (production,
+See `manifest/package.xml` for the authoritative list. Summary: 98 Apex classes (production,
 test-support/fake, and test classes — see the class tables in §1 and §8 and the project file tree),
 5 custom objects (`RAA_Analysis__c`, `RAA_Access_Result__c`, `RAA_Access_Reason__c`,
 `RAA_Batch_Run__c`, `RAA_Scan_Subscription__c`), 1 platform event (`RAA_Scan_Status_Event__e`),
 1 custom metadata type with 9 fields and 1 default record, 1 custom permission, 1 permission set,
-1 custom tab, 1 Lightning application, 1 Lightning page, 8 Lightning web components, and 5 custom
+1 custom tab, 1 Lightning application, 1 Lightning page, 9 Lightning web components, and 5 custom
 labels.
 
 ## Acceptance-criteria self-check
@@ -720,7 +732,7 @@ labels.
 - Unsupported objects handled gracefully: `supportsUserRecordAccess` probe before a scan starts.
 - Restriction-rule and attribution limitations disclosed in the UI and here, and (§8) actively
   checked at scan time where the platform allows it, rather than only stated as a standing caveat.
-- No `SeeAllData=true` anywhere; 156/156 Apex tests and 54/54 LWC Jest tests passing against a live
+- No `SeeAllData=true` anywhere; 162/162 Apex tests and 58/58 LWC Jest tests passing against a live
   scratch org.
 - Metadata deploys successfully to a clean org — verified live, not assumed: multiple real defects
   were found and fixed this way across both the original build and the §8 additions, including an

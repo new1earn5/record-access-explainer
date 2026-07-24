@@ -37,6 +37,12 @@ public class RAA_AnalysisSummaryDTO {
     @AuraEnabled
     public Boolean potentiallyIncomplete;
 
+    // Used by RAA_PlainEnglishSummaryServiceTest to build a fixture field-by-field, without
+    // needing a full RAA_Analysis__c row for logic that only reads a handful of these fields.
+    @SuppressWarnings('PMD.EmptyStatementBlock')
+    public RAA_AnalysisSummaryDTO() {
+    }
+
     public RAA_AnalysisSummaryDTO(RAA_Analysis__c analysis) {
         this.analysisId = analysis.Id;
         this.recordId = analysis.RAA_Record_Id__c;

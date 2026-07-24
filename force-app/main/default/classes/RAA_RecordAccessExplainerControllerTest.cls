@@ -363,4 +363,28 @@ private class RAA_RecordAccessExplainerControllerTest {
         System.assertEquals(1, insights.size());
         System.assertEquals(analysisId, insights[0].analysisId);
     }
+
+    @IsTest
+    static void getPlainEnglishSummaryRequiresPermissionAndVisibility() {
+        RAA_PermissionChecker.testOverride = true;
+        Account acct = new Account(Name = 'RAA Controller Summary Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Controller Summary Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        repo.markCompleted(analysisId, false, null);
+
+        Test.startTest();
+        String summaryText = RAA_RecordAccessExplainerController.getPlainEnglishSummary(String.valueOf(analysisId));
+        Test.stopTest();
+
+        System.assert(summaryText.contains('RAA Controller Summary Account'), summaryText);
+    }
 }

@@ -278,4 +278,47 @@ private class RAA_AnalysisOrchestratorServiceTest {
         System.assertEquals(1, insights.size());
         System.assertEquals(analysisId, insights[0].analysisId);
     }
+
+    @IsTest
+    static void getPlainEnglishSummaryDelegatesToTheSummaryService() {
+        Account acct = new Account(Name = 'RAA Orchestrator Summary Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Orchestrator Summary Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        repo.markCompleted(analysisId, false, null);
+
+        Test.startTest();
+        String summaryText = new RAA_AnalysisOrchestratorService().getPlainEnglishSummary(analysisId);
+        Test.stopTest();
+
+        System.assert(summaryText.contains('RAA Orchestrator Summary Account'), summaryText);
+    }
+
+    @IsTest
+    static void getPlainEnglishSummaryThrowsForAnIncompleteAnalysis() {
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            UserInfo.getUserId(),
+            'User',
+            'Still Running',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        try {
+            new RAA_AnalysisOrchestratorService().getPlainEnglishSummary(analysisId);
+            System.assert(false, 'Expected an exception for an incomplete analysis.');
+        } catch (RAA_AppException e) {
+            System.assert(e.getMessage().contains('has not finished'));
+        }
+    }
 }

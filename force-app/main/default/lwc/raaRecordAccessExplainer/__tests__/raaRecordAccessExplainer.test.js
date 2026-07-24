@@ -8,6 +8,7 @@ import getResults from '@salesforce/apex/RAA_RecordAccessExplainerController.get
 import getFieldAccess from '@salesforce/apex/RAA_RecordAccessExplainerController.getFieldAccess';
 import getAnalysisDiff from '@salesforce/apex/RAA_RecordAccessExplainerController.getAnalysisDiff';
 import getRiskInsights from '@salesforce/apex/RAA_RecordAccessExplainerController.getRiskInsights';
+import getPlainEnglishSummary from '@salesforce/apex/RAA_RecordAccessExplainerController.getPlainEnglishSummary';
 import { subscribe, unsubscribe } from 'lightning/empApi';
 
 jest.mock(
@@ -108,6 +109,11 @@ jest.mock(
 jest.mock(
     '@salesforce/apex/RAA_RecordAccessExplainerController.getRiskInsights',
     () => ({ default: jest.fn(() => Promise.resolve([])) }),
+    { virtual: true }
+);
+jest.mock(
+    '@salesforce/apex/RAA_RecordAccessExplainerController.getPlainEnglishSummary',
+    () => ({ default: jest.fn() }),
     { virtual: true }
 );
 
@@ -647,6 +653,56 @@ describe('c-raa-record-access-explainer', () => {
         await flushPromises();
         expect(
             element.shadowRoot.querySelector('c-raa-analysis-diff')
+        ).toBeNull();
+    });
+
+    it('opens the plain-english summary modal', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            objectApiName: 'Account',
+            recordDisplayName: 'Acme Corp'
+        });
+        getResults.mockResolvedValue([SAMPLE_RESULT]);
+
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+        await flushPromises();
+
+        getPlainEnglishSummary.mockResolvedValue(
+            '1 user has access to Acme Corp (Account).'
+        );
+        const buttons = [
+            ...element.shadowRoot.querySelectorAll('lightning-button')
+        ];
+        const summaryButton = buttons.find(
+            (b) => b.label === 'Plain-English Summary'
+        );
+        summaryButton.click();
+        await flushPromises();
+
+        const summaryModal = element.shadowRoot.querySelector(
+            'c-raa-plain-english-summary'
+        );
+        expect(summaryModal).not.toBeNull();
+        expect(summaryModal.analysisId).toBe('a00000000000001');
+
+        summaryModal.dispatchEvent(new CustomEvent('close'));
+        await flushPromises();
+        expect(
+            element.shadowRoot.querySelector('c-raa-plain-english-summary')
         ).toBeNull();
     });
 

@@ -92,6 +92,20 @@ public without sharing class RAA_AnalysisOrchestratorService {
         return dtos;
     }
 
+    /** Feature: plain-English summary. */
+    public String getPlainEnglishSummary(Id analysisId) {
+        RAA_Analysis__c analysis = repository.getAnalysis(analysisId);
+        if (analysis == null) {
+            throw new RAA_AppException('The requested analysis could not be found, or you do not have access to it.');
+        }
+        if (!analysis.RAA_Is_Complete__c) {
+            throw new RAA_AppException('This analysis has not finished yet, so no summary is available.');
+        }
+        RAA_AnalysisSummaryDTO summary = new RAA_AnalysisSummaryDTO(analysis);
+        List<RAA_AccessResultDTO> results = getResults(analysisId);
+        return new RAA_PlainEnglishSummaryService().buildSummary(summary, results);
+    }
+
     // The empty catch below (System.abortJob) is deliberate: see its own inline comment.
     @SuppressWarnings('PMD.EmptyCatchBlock')
     public RAA_AnalysisSummaryDTO cancelAnalysis(Id analysisId) {

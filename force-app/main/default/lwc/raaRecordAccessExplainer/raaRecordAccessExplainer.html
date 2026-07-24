@@ -276,6 +276,11 @@
                                     class="slds-m-right_x-small"
                                 ></lightning-button>
                                 <lightning-button
+                                    label="Plain-English Summary"
+                                    onclick={handleShowPlainEnglishSummary}
+                                    class="slds-m-right_x-small"
+                                ></lightning-button>
+                                <lightning-button
                                     label="Export Results CSV"
                                     onclick={handleExportResults}
                                     class="slds-m-right_x-small"
@@ -497,5 +502,13 @@
             record-display-name={summary.recordDisplayName}
             onclose={handleCloseDiff}
         ></c-raa-analysis-diff>
+    </template>
+
+    <template if:true={showPlainEnglishSummary}>
+        <c-raa-plain-english-summary
+            analysis-id={analysisId}
+            record-display-name={summary.recordDisplayName}
+            onclose={handleClosePlainEnglishSummary}
+        ></c-raa-plain-english-summary>
     </template>
 </template>

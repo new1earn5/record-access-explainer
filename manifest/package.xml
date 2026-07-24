@@ -53,6 +53,8 @@
         <members>RAA_PermissionCheckerTest</members>
         <members>RAA_PermissionSetLookup</members>
         <members>RAA_PermissionSetLookupTest</members>
+        <members>RAA_PlainEnglishSummaryService</members>
+        <members>RAA_PlainEnglishSummaryServiceTest</members>
         <members>RAA_ReasonAggregator</members>
         <members>RAA_ReasonAggregatorTest</members>
         <members>RAA_RecordAccessExplainerController</members>
@@ -142,6 +144,7 @@
         <members>raaFieldAccess</members>
         <members>raaSubscriptions</members>
         <members>raaRiskInsights</members>
+        <members>raaPlainEnglishSummary</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

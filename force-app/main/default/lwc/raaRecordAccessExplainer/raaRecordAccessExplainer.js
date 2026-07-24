@@ -134,6 +134,7 @@ export default class RaaRecordAccessExplainer extends LightningElement {
     selectedResult;
     selectedFieldAccessResult;
     showDiffModal = false;
+    showPlainEnglishSummary = false;
 
     // Top-level mode: 'single', 'bulk', 'byUser', 'subscriptions'
     activeMode = 'single';
@@ -635,6 +636,14 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     handleCloseDiff() {
         this.showDiffModal = false;
+    }
+
+    handleShowPlainEnglishSummary() {
+        this.showPlainEnglishSummary = true;
+    }
+
+    handleClosePlainEnglishSummary() {
+        this.showPlainEnglishSummary = false;
     }
 
     // ---- Cross-mode navigation ----
