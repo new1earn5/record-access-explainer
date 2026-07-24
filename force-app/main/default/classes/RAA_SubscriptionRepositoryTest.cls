@@ -12,7 +12,8 @@ private class RAA_SubscriptionRepositoryTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
         Test.stopTest();
 

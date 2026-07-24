@@ -19,6 +19,8 @@ public class RAA_SubscriptionDTO {
     @AuraEnabled
     public Boolean notifyOnChange;
     @AuraEnabled
+    public Boolean postToChatter;
+    @AuraEnabled
     public Datetime lastRunAt;
 
     public RAA_SubscriptionDTO(RAA_Scan_Subscription__c subscription) {
@@ -30,6 +32,7 @@ public class RAA_SubscriptionDTO {
         this.includeExternalUsers = subscription.RAA_Include_External_Users__c;
         this.includeInactiveUsers = subscription.RAA_Include_Inactive_Users__c;
         this.notifyOnChange = subscription.RAA_Notify_On_Change__c;
+        this.postToChatter = subscription.RAA_Post_To_Chatter__c;
         this.lastRunAt = subscription.RAA_Last_Run_At__c;
     }
 }

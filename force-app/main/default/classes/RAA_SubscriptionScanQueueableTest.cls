@@ -13,7 +13,8 @@ private class RAA_SubscriptionScanQueueableTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
 
         Test.startTest();
@@ -39,7 +40,8 @@ private class RAA_SubscriptionScanQueueableTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
         delete new RAA_Scan_Subscription__c(Id = subscriptionId);
 

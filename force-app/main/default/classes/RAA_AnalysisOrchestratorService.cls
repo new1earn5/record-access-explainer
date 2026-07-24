@@ -260,6 +260,7 @@ public without sharing class RAA_AnalysisOrchestratorService {
         Boolean includeExternalUsers,
         Boolean includeInactiveUsers,
         Boolean notifyOnChange,
+        Boolean postToChatter,
         Id subscriberId
     ) {
         Id recordId = RAA_IdValidationUtil.normalizeRecordId(rawRecordId);
@@ -272,7 +273,8 @@ public without sharing class RAA_AnalysisOrchestratorService {
                 subscriberId,
                 includeExternalUsers == true,
                 includeInactiveUsers == true,
-                notifyOnChange != false
+                notifyOnChange != false,
+                postToChatter == true
             );
     }
 

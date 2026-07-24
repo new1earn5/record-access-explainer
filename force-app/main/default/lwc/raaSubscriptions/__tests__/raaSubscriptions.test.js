@@ -36,6 +36,7 @@ const SAMPLE_SUBSCRIPTION = {
     objectApiName: 'Account',
     isActive: true,
     notifyOnChange: true,
+    postToChatter: false,
     lastRunAt: '2026-07-20T00:00:00.000Z'
 };
 
@@ -123,9 +124,33 @@ describe('c-raa-subscriptions', () => {
             recordId: '001000000000001AAA',
             includeExternalUsers: false,
             includeInactiveUsers: false,
-            notifyOnChange: true
+            notifyOnChange: true,
+            postToChatter: false
         });
         expect(listMySubscriptions).toHaveBeenCalledTimes(2);
+    });
+
+    it('includes postToChatter when the Chatter checkbox is checked', async () => {
+        createSubscription.mockResolvedValue('s00000000000001');
+        const element = createComponent();
+        await flushPromises();
+
+        const input = recordIdInput(element);
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change'));
+
+        const chatterCheckbox = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Post to Chatter when access changes');
+        chatterCheckbox.checked = true;
+        chatterCheckbox.dispatchEvent(new CustomEvent('change'));
+
+        createButton(element).click();
+        await flushPromises();
+
+        expect(createSubscription).toHaveBeenCalledWith(
+            expect.objectContaining({ postToChatter: true })
+        );
     });
 
     it('pauses a subscription via row action', async () => {

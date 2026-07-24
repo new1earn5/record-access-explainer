@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
                 <lightning-input
                     type="checkbox"
                     label="Include external users"
@@ -37,7 +37,7 @@
                     onchange={handleIncludeExternalChange}
                 ></lightning-input>
             </div>
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
                 <lightning-input
                     type="checkbox"
                     label="Include inactive users"
@@ -45,12 +45,20 @@
                     onchange={handleIncludeInactiveChange}
                 ></lightning-input>
             </div>
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
                 <lightning-input
                     type="checkbox"
                     label="Email me when access changes"
                     checked={notifyOnChange}
                     onchange={handleNotifyOnChangeChange}
+                ></lightning-input>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                <lightning-input
+                    type="checkbox"
+                    label="Post to Chatter when access changes"
+                    checked={postToChatter}
+                    onchange={handlePostToChatterChange}
                 ></lightning-input>
             </div>
         </div>

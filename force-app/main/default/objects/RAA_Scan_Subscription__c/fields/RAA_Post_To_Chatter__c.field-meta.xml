@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Post_To_Chatter__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Post To Chatter</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>When true, a recurring run that detects a change also posts a Chatter feed item on the watched record summarizing what changed, alongside (not instead of) the email if Notify On Change is also set.</description>
+    <inlineHelpText>Whether to post a Chatter update on the watched record when access changes are detected.</inlineHelpText>
+</CustomField>

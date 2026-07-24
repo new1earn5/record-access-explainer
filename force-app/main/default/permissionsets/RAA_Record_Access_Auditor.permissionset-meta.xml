@@ -368,6 +368,11 @@
         <editable>true</editable>
     </fieldPermissions>
     <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Post_To_Chatter__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
         <field>RAA_Scan_Subscription__c.RAA_Pending_Analysis__c</field>
         <readable>true</readable>
         <editable>true</editable>

@@ -215,7 +215,8 @@ public with sharing class RAA_RecordAccessExplainerController {
         String recordId,
         Boolean includeExternalUsers,
         Boolean includeInactiveUsers,
-        Boolean notifyOnChange
+        Boolean notifyOnChange,
+        Boolean postToChatter
     ) {
         enforceRunPermission();
         try {
@@ -225,6 +226,7 @@ public with sharing class RAA_RecordAccessExplainerController {
                     includeExternalUsers,
                     includeInactiveUsers,
                     notifyOnChange,
+                    postToChatter,
                     UserInfo.getUserId()
                 );
         } catch (RAA_AppException e) {

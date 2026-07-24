@@ -13,7 +13,8 @@ private class RAA_RecurringScanSchedulerTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
 
         Test.startTest();
@@ -56,7 +57,8 @@ private class RAA_RecurringScanSchedulerTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
 
         RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
@@ -137,7 +139,8 @@ private class RAA_RecurringScanSchedulerTest {
             UserInfo.getUserId(),
             false,
             false,
-            true
+            true,
+            false
         );
         subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
         update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
@@ -156,6 +159,90 @@ private class RAA_RecurringScanSchedulerTest {
             null,
             afterCycle.RAA_Pending_Analysis__c,
             'Pending should be cleared once diffed and notified.'
+        );
+    }
+
+    @IsTest
+    static void completedCycleWithChangesPostsToChatterWhenEnabled() {
+        Account acct = new Account(Name = 'RAA Recurring Chatter Account');
+        insert acct;
+
+        RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
+        Id baselineAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Chatter Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        Id pendingAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Chatter Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        User addedUser = RAA_TestDataFactory.createUser('Chatter', 'Added');
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id = :addedUser.Id]
+        );
+
+        RAA_ReasonAggregator.AggregatedUserResult addedResult = new RAA_ReasonAggregator.AggregatedUserResult();
+        addedResult.userId = addedUser.Id;
+        addedResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(addedUser.Id);
+        addedResult.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+
+        analysisRepo.saveResults(
+            baselineAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>(),
+            new Map<Id, User>()
+        );
+        analysisRepo.markCompleted(baselineAnalysisId, false, null);
+        analysisRepo.saveResults(
+            pendingAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult },
+            userInfoMap
+        );
+        analysisRepo.markCompleted(pendingAnalysisId, false, null);
+
+        RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
+        // notifyOnChange is deliberately false here, to isolate Chatter from the email path
+        // already covered by completedCycleWithChangesSendsNotificationAndAdvancesBaseline.
+        Id subscriptionId = subscriptionRepo.createSubscription(
+            acct.Id,
+            'Account',
+            'RAA Recurring Chatter Account',
+            UserInfo.getUserId(),
+            false,
+            false,
+            false,
+            true
+        );
+        subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
+        update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
+
+        Test.startTest();
+        new RAA_RecurringScanScheduler().execute(null);
+        Test.stopTest();
+
+        RAA_Scan_Subscription__c afterCycle = subscriptionRepo.getSubscription(subscriptionId);
+        System.assertEquals(
+            pendingAnalysisId,
+            afterCycle.RAA_Last_Analysis__c,
+            'The baseline should advance to the analysis that was just diffed, regardless of the Chatter post outcome.'
+        );
+
+        // Confirmed directly against a live scratch org: Chatter Feed Tracking on Account is
+        // enabled by default, so this is a real assertion, not an assumption - the defensive
+        // try/catch in postChatterUpdate exists for objects where that isn't true, not this one.
+        List<FeedItem> posts = [SELECT Id, Body FROM FeedItem WHERE ParentId = :acct.Id];
+        System.assertEquals(1, posts.size(), 'A Chatter post should have been created on the watched record.');
+        System.assert(
+            posts[0].Body.contains('access change'),
+            'The Chatter post should summarize the detected change.'
         );
     }
 }

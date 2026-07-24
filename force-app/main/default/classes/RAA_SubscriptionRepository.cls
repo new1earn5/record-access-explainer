@@ -16,7 +16,8 @@ public without sharing class RAA_SubscriptionRepository {
         Id subscriberId,
         Boolean includeExternalUsers,
         Boolean includeInactiveUsers,
-        Boolean notifyOnChange
+        Boolean notifyOnChange,
+        Boolean postToChatter
     ) {
         RAA_Scan_Subscription__c subscription = new RAA_Scan_Subscription__c(
             RAA_Record_Id__c = recordId,
@@ -26,7 +27,8 @@ public without sharing class RAA_SubscriptionRepository {
             RAA_Is_Active__c = true,
             RAA_Include_External_Users__c = includeExternalUsers,
             RAA_Include_Inactive_Users__c = includeInactiveUsers,
-            RAA_Notify_On_Change__c = notifyOnChange
+            RAA_Notify_On_Change__c = notifyOnChange,
+            RAA_Post_To_Chatter__c = postToChatter
         );
         insert subscription;
         return subscription.Id;
@@ -43,6 +45,7 @@ public without sharing class RAA_SubscriptionRepository {
                 RAA_Include_External_Users__c,
                 RAA_Include_Inactive_Users__c,
                 RAA_Notify_On_Change__c,
+                RAA_Post_To_Chatter__c,
                 RAA_Last_Run_At__c,
                 RAA_Last_Analysis__c
             FROM RAA_Scan_Subscription__c
@@ -83,6 +86,7 @@ public without sharing class RAA_SubscriptionRepository {
                 RAA_Include_External_Users__c,
                 RAA_Include_Inactive_Users__c,
                 RAA_Notify_On_Change__c,
+                RAA_Post_To_Chatter__c,
                 RAA_Subscriber__c,
                 RAA_Last_Analysis__c,
                 RAA_Pending_Analysis__c

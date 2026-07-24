@@ -163,8 +163,9 @@ Fields: `RAA_Record_Id__c`, `RAA_Object_API_Name__c`, `RAA_Record_Display_Name__
 `RAA_Subscriber__c` (lookup User), `RAA_Is_Active__c` (default true),
 `RAA_Include_External_Users__c`, `RAA_Include_Inactive_Users__c`, `RAA_Last_Analysis__c` (lookup
 `RAA_Analysis__c` — the baseline used for diffing), `RAA_Last_Run_At__c`,
-`RAA_Notify_On_Change__c` (default true), `RAA_Pending_Analysis__c` (lookup `RAA_Analysis__c` —
-the scan started this cycle, diffed against the baseline on the _next_ scheduler firing).
+`RAA_Notify_On_Change__c` (default true), `RAA_Post_To_Chatter__c` (default false),
+`RAA_Pending_Analysis__c` (lookup `RAA_Analysis__c` — the scan started this cycle, diffed against
+the baseline on the _next_ scheduler firing).
 
 ### `RAA_Settings__mdt` (custom metadata type, one packaged record: `RAA_Default`)
 
@@ -383,16 +384,21 @@ warning, never as an access reason.
 
 An admin (or the requesting user) can subscribe to a record (`RAA_Scan_Subscription__c`,
 `raaSubscriptions`) so that, once `RAA_RecurringScanScheduler` is scheduled (§19), it is
-periodically re-scanned automatically and the subscriber is emailed a summary if anything changed
-since the last cycle. Each firing does two things in one pass: (1) for any subscription whose
-_previous_ cycle's scan has now completed, diffs it against the prior baseline and emails a change
-summary if `RAA_Notify_On_Change__c` is set and something actually changed; (2) starts a new scan
-for every active subscription that isn't already waiting on one. A notification is therefore sent on
-the firing _after_ the one that started the scan, once that scan has had time to complete — a
-deliberate two-cycle design so the scheduler never blocks on a long-running scan.
-`RAA_Scan_Subscription__c.RAA_Pending_Analysis__c` tracks the in-flight scan between cycles;
-`RAA_Last_Analysis__c` is the baseline. Notification uses native `Messaging.SingleEmailMessage`
-(not a callout).
+periodically re-scanned automatically and the subscriber is notified if anything changed since the
+last cycle — by email (`RAA_Notify_On_Change__c`), a Chatter post on the watched record
+(`RAA_Post_To_Chatter__c`), or both independently; either can be on without the other. Each firing
+does two things in one pass: (1) for any subscription whose _previous_ cycle's scan has now
+completed, diffs it against the prior baseline and sends whichever notifications are enabled if
+something actually changed; (2) starts a new scan for every active subscription that isn't already
+waiting on one. A notification is therefore sent on the firing _after_ the one that started the
+scan, once that scan has had time to complete — a deliberate two-cycle design so the scheduler
+never blocks on a long-running scan. `RAA_Scan_Subscription__c.RAA_Pending_Analysis__c` tracks the
+in-flight scan between cycles; `RAA_Last_Analysis__c` is the baseline. Email uses native
+`Messaging.SingleEmailMessage`; the Chatter post is a plain `FeedItem` insert with
+`ParentId` set to the watched record — neither is a callout. The Chatter post is best-effort: if
+Chatter Feed Tracking isn't enabled for the watched object, the insert fails and is caught
+silently, the same defensive pattern used for Restriction Rule detection (§8) — it never blocks
+the email notification (if also enabled) or the baseline advance.
 
 ### Visual grant-path rendering
 
@@ -572,16 +578,17 @@ editable in place; no deployment is required to change them:
 
 ## 16. Troubleshooting Guidance
 
-| Symptom                                                                      | Likely cause                                                                                                                  | What to check                                                                                                                          |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| "You do not have permission to use Record Access Explainer"                  | Custom permission not assigned                                                                                                | Assign `RAA_Record_Access_Auditor` (§11)                                                                                               |
-| "The requested analysis could not be found, or you do not have access to it" | Either the ID is wrong, or (correctly) it belongs to another user under Private OWD                                           | Confirm you are the original requester, or have it shared/an admin can see it                                                          |
-| Scan finishes as "Completed with Warnings"                                   | One or more analyzers hit a platform limitation (unsupported group type, feature not enabled, chunk failure)                  | Read `RAA_Warnings__c` on the analysis, or the warning banner in the UI                                                                |
-| Scan status stays "Queued" for a long time                                   | Org's async Apex queue is busy                                                                                                | Check **Setup → Apex Jobs**; this package does not control platform-wide async concurrency                                             |
-| "This scan would include more than N users..."                               | `RAA_Max_Users_Per_Scan__c` ceiling hit                                                                                       | Narrow filters, or raise/clear the ceiling in `RAA_Settings__mdt`                                                                      |
-| Object not supported                                                         | `UserRecordAccess` does not expose data for that object type                                                                  | Confirmed via a live probe query in `RAA_RecordMetadataResolver.supportsUserRecordAccess` before a scan is even started                |
-| "Enter a record ID for each line" / bulk scan rejects the whole list         | One or more pasted IDs don't share the same object type as the rest                                                           | Bulk scan (§8) requires every record to be the same object; split mixed lists into separate submissions                                |
-| A subscription never sends an email                                          | `RAA_RecurringScanScheduler` isn't scheduled, or `RAA_Notify_On_Change__c` is off, or nothing actually changed between cycles | See §19; check **Setup → Scheduled Jobs** for the job, and that the subscription's `RAA_Last_Analysis__c` is advancing between firings |
+| Symptom                                                                      | Likely cause                                                                                                                                                  | What to check                                                                                                                          |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| "You do not have permission to use Record Access Explainer"                  | Custom permission not assigned                                                                                                                                | Assign `RAA_Record_Access_Auditor` (§11)                                                                                               |
+| "The requested analysis could not be found, or you do not have access to it" | Either the ID is wrong, or (correctly) it belongs to another user under Private OWD                                                                           | Confirm you are the original requester, or have it shared/an admin can see it                                                          |
+| Scan finishes as "Completed with Warnings"                                   | One or more analyzers hit a platform limitation (unsupported group type, feature not enabled, chunk failure)                                                  | Read `RAA_Warnings__c` on the analysis, or the warning banner in the UI                                                                |
+| Scan status stays "Queued" for a long time                                   | Org's async Apex queue is busy                                                                                                                                | Check **Setup → Apex Jobs**; this package does not control platform-wide async concurrency                                             |
+| "This scan would include more than N users..."                               | `RAA_Max_Users_Per_Scan__c` ceiling hit                                                                                                                       | Narrow filters, or raise/clear the ceiling in `RAA_Settings__mdt`                                                                      |
+| Object not supported                                                         | `UserRecordAccess` does not expose data for that object type                                                                                                  | Confirmed via a live probe query in `RAA_RecordMetadataResolver.supportsUserRecordAccess` before a scan is even started                |
+| "Enter a record ID for each line" / bulk scan rejects the whole list         | One or more pasted IDs don't share the same object type as the rest                                                                                           | Bulk scan (§8) requires every record to be the same object; split mixed lists into separate submissions                                |
+| A subscription never sends an email or Chatter post                          | `RAA_RecurringScanScheduler` isn't scheduled, both `RAA_Notify_On_Change__c` and `RAA_Post_To_Chatter__c` are off, or nothing actually changed between cycles | See §19; check **Setup → Scheduled Jobs** for the job, and that the subscription's `RAA_Last_Analysis__c` is advancing between firings |
+| Email arrives but no Chatter post appears (or vice versa)                    | Chatter Feed Tracking isn't enabled for the watched object, so the `FeedItem` insert fails and is caught silently                                             | **Setup → Feed Tracking**, enable it for that object; the two channels are independent and one failing never blocks the other          |
 
 ---
 

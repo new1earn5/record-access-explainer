@@ -1,11 +1,12 @@
 /**
  * Optional recurring-scan scheduler. Not scheduled automatically on install; an administrator
  * opts in (see README). Each firing does two things: (1) for any subscription whose previous
- * cycle's scan has now completed, compares it against the prior baseline and emails the
- * subscriber a summary if anything changed and RAA_Notify_On_Change__c is set; (2) starts a new
- * scan for every active subscription that isn't already waiting on one. This means a
- * notification is sent on the scheduled run *after* the one that started the scan, once that
- * scan has had time to complete - by design, so this never blocks on a long-running scan.
+ * cycle's scan has now completed, compares it against the prior baseline and, if anything
+ * changed, emails the subscriber (RAA_Notify_On_Change__c) and/or posts a Chatter update on the
+ * watched record (RAA_Post_To_Chatter__c) - independently, either or both; (2) starts a new scan
+ * for every active subscription that isn't already waiting on one. This means a notification is
+ * sent on the scheduled run *after* the one that started the scan, once that scan has had time to
+ * complete - by design, so this never blocks on a long-running scan.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: a scheduled job operating on the
 // package's own subscription/analysis data (see README.md §1, "Batch Apex runs in system
@@ -53,11 +54,17 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         RAA_AnalysisDiffService diffService,
         RAA_SubscriptionRepository subscriptionRepo
     ) {
-        if (subscription.RAA_Last_Analysis__c != null && subscription.RAA_Notify_On_Change__c) {
+        Boolean wantsAnyNotification = subscription.RAA_Notify_On_Change__c || subscription.RAA_Post_To_Chatter__c;
+        if (subscription.RAA_Last_Analysis__c != null && wantsAnyNotification) {
             try {
                 RAA_AnalysisDiffDTO diff = diffService.compare(subscription.RAA_Last_Analysis__c, pendingAnalysis.Id);
                 if (diff != null && !diff.changes.isEmpty()) {
-                    sendChangeNotification(subscription, diff);
+                    if (subscription.RAA_Notify_On_Change__c) {
+                        sendChangeNotification(subscription, diff);
+                    }
+                    if (subscription.RAA_Post_To_Chatter__c) {
+                        postChatterUpdate(subscription, diff);
+                    }
                 }
             } catch (Exception e) {
                 // A notification failure must never block the baseline from advancing.
@@ -88,6 +95,52 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         email.setPlainTextBody(buildEmailBody(subscription, diff));
         email.setSaveAsActivity(false);
         Messaging.sendEmail(new List<Messaging.SingleEmailMessage>{ email });
+    }
+
+    // RestrictionRule-style defensive probe: FeedItem/Chatter Feed Tracking may not be enabled
+    // for the watched object, which surfaces as an insert failure, not a describe-absence - a
+    // failed post must never block the email notification (already sent above, if enabled) or
+    // the baseline advance in the caller's own catch.
+    @SuppressWarnings('PMD.EmptyCatchBlock')
+    private void postChatterUpdate(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
+        if (!Schema.getGlobalDescribe().containsKey('FeedItem')) {
+            return;
+        }
+        try {
+            FeedItem post = new FeedItem(
+                ParentId = subscription.RAA_Record_Id__c,
+                Body = buildChatterBody(subscription, diff)
+            );
+            insert post;
+        } catch (Exception e) {
+            // Chatter Feed Tracking is likely not enabled for this object; nothing further to do.
+        }
+    }
+
+    private String buildChatterBody(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
+        List<String> lines = new List<String>();
+        lines.add(
+            'Record Access Explainer detected an access change on this record: ' +
+                diff.usersAdded +
+                ' user(s) gained access, ' +
+                diff.usersRemoved +
+                ' user(s) lost access, ' +
+                diff.usersChanged +
+                ' user(s) had their access change.'
+        );
+        Integer previewCount = Math.min(5, diff.changes.size());
+        for (Integer i = 0; i < previewCount; i++) {
+            RAA_UserAccessChangeDTO change = diff.changes[i];
+            lines.add('- ' + change.changeType + ': ' + change.userFullName);
+        }
+        if (diff.changes.size() > previewCount) {
+            lines.add(
+                '...and ' +
+                    (diff.changes.size() - previewCount) +
+                    ' more. See Record Access Explainer for full details.'
+            );
+        }
+        return String.join(lines, '\n');
     }
 
     private String buildEmailBody(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {

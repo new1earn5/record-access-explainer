@@ -20,6 +20,7 @@ const COLUMNS = [
     },
     { label: 'Active', fieldName: 'isActive', type: 'boolean', sortable: true },
     { label: 'Notify On Change', fieldName: 'notifyOnChange', type: 'boolean' },
+    { label: 'Post To Chatter', fieldName: 'postToChatter', type: 'boolean' },
     { label: 'Last Run', fieldName: 'lastRunAt', type: 'date', sortable: true },
     {
         type: 'action',
@@ -45,6 +46,7 @@ export default class RaaSubscriptions extends LightningElement {
     includeExternalUsers = false;
     includeInactiveUsers = false;
     notifyOnChange = true;
+    postToChatter = false;
     validationMessage = '';
     isSaving = false;
     columns = COLUMNS;
@@ -86,6 +88,10 @@ export default class RaaSubscriptions extends LightningElement {
         this.notifyOnChange = event.target.checked;
     }
 
+    handlePostToChatterChange(event) {
+        this.postToChatter = event.target.checked;
+    }
+
     handleCreate() {
         const recordId = (this.recordIdInput || '').trim();
         if (!/^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$/.test(recordId)) {
@@ -99,7 +105,8 @@ export default class RaaSubscriptions extends LightningElement {
             recordId,
             includeExternalUsers: this.includeExternalUsers,
             includeInactiveUsers: this.includeInactiveUsers,
-            notifyOnChange: this.notifyOnChange
+            notifyOnChange: this.notifyOnChange,
+            postToChatter: this.postToChatter
         })
             .then(() => {
                 this.recordIdInput = '';

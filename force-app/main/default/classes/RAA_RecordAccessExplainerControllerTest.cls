@@ -317,7 +317,8 @@ private class RAA_RecordAccessExplainerControllerTest {
                 String.valueOf(owner.Id),
                 false,
                 false,
-                true
+                true,
+                false
             );
         }
 
