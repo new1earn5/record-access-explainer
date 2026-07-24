@@ -1,3 +1,5 @@
+// Test fixture setup only - describe performance doesn't matter here.
+@SuppressWarnings('PMD.EagerlyLoadedDescribeSObjectResult')
 @IsTest
 private class RAA_ParentControlledAnalyzerTest {
     @IsTest

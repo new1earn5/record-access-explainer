@@ -1,6 +1,8 @@
 @IsTest
 private class RAA_AnalysisRepositoryTest {
+    // '707000000000001AAA' below is a well-formed but nonexistent AsyncApexJob id fixture.
     @IsTest
+    @SuppressWarnings('PMD.AvoidHardcodingId')
     static void createFindUpdateAndMarkAnalysisLifecycle() {
         Account acct = new Account(Name = 'RAA Repo Account');
         insert acct;

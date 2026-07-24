@@ -9,7 +9,7 @@ population, reports Salesforce's own computed effective access for every user (v
 sharing mechanisms it can prove are responsible: ownership, role hierarchy, direct and group
 shares, sharing rules, permission bypasses, teams, territories, and controlled-by-parent chains.
 
-This project was built, deployed to a live scratch org, and test-verified (144/144 Apex tests,
+This project was built, deployed to a live scratch org, and test-verified (147/147 Apex tests,
 42/42 LWC Jest tests passing) during generation. Every SOQL/Schema behavior described below —
 including several platform restrictions that are easy to get wrong — was confirmed against a real
 org, not assumed.
@@ -443,16 +443,29 @@ npm run lint
 # runtime on PATH, since the Apex formatter shells out to a Java-based parser
 npm run format:check   # verify only, exits non-zero on drift
 npm run format          # rewrite in place
+
+# Salesforce Code Analyzer / PMD over every Apex class (config: code-analyzer.yml) — also
+# requires a Java runtime; install once with `sf plugins install code-analyzer@latest`
+npm run analyze:apex
 ```
 
-At last verification: **144/144 Apex tests passing, 84% org-wide coverage; 42/42 LWC Jest tests
-passing across 7 component suites; zero ESLint errors; the full tree Prettier-clean.** Every class
-directly involved in the request/response path, persistence, and reason logic is at or above 85%;
-the exceptions (`RAA_TerritoryAnalyzer`, `RAA_TeamAnalyzer` — explained in §5;
-`RAA_RestrictionRuleChecker`, `RAA_RecurringScanScheduler`) reflect branches that require a
-platform feature or a second scheduler firing that this particular org/test run could not
-exercise, not untested logic paths — see §8's per-feature notes for exactly which branch is
-affected in each case.
+At last verification: **147/147 Apex tests passing, 84% org-wide coverage; 42/42 LWC Jest tests
+passing across 7 component suites; zero ESLint errors; the full tree Prettier-clean; zero Code
+Analyzer findings at High severity or above.** Every class directly involved in the
+request/response path, persistence, and reason logic is at or above 85%; the exceptions
+(`RAA_TerritoryAnalyzer`, `RAA_TeamAnalyzer` — explained in §5; `RAA_RestrictionRuleChecker`,
+`RAA_RecurringScanScheduler`) reflect branches that require a platform feature or a second
+scheduler firing that this particular org/test run could not exercise, not untested logic paths —
+see §8's per-feature notes for exactly which branch is affected in each case.
+
+`code-analyzer.yml` deliberately disables a handful of PMD rules that are style/design
+preferences this project has consciously chosen against elsewhere (full ApexDoc headers,
+`System.runAs` on every test, boolean method parameters) rather than correctness or security
+concerns — each disabled rule says why in the file itself. Every rule left enabled either has zero
+findings or is suppressed inline at the specific site with `@SuppressWarnings('PMD.RuleName')`
+and a comment explaining why (most commonly: the elevated `without sharing` pipeline is
+deliberately CRUD/FLS-unchecked by design — see §1 — or a dynamic SOQL identifier is Schema
+describe-derived, never client input).
 
 ### Continuous Integration
 
@@ -460,6 +473,9 @@ affected in each case.
 
 - **`lint-and-jest`** (always runs, no Salesforce org required): `npm ci`, ESLint, Prettier check,
   and the full Jest suite with coverage.
+- **`apex-static-analysis`** (always runs, no Salesforce org required, only a JDK): Salesforce
+  Code Analyzer against every Apex class with `code-analyzer.yml`, failing the build on any High
+  severity or above finding.
 - **`apex`** (deploy to a fresh scratch org and run the full Apex suite): gated behind a
   repository secret named `SFDX_AUTH_URL_DEVHUB` and skipped entirely until it's configured, so
   the workflow never hard-fails for a fork or a clone that hasn't set it up yet. To enable it:
@@ -664,7 +680,7 @@ page, 7 Lightning web components, and 5 custom labels.
 - Unsupported objects handled gracefully: `supportsUserRecordAccess` probe before a scan starts.
 - Restriction-rule and attribution limitations disclosed in the UI and here, and (§8) actively
   checked at scan time where the platform allows it, rather than only stated as a standing caveat.
-- No `SeeAllData=true` anywhere; 144/144 Apex tests and 42/42 LWC Jest tests passing against a live
+- No `SeeAllData=true` anywhere; 147/147 Apex tests and 42/42 LWC Jest tests passing against a live
   scratch org.
 - Metadata deploys successfully to a clean org — verified live, not assumed: multiple real defects
   were found and fixed this way across both the original build and the §8 additions, including an

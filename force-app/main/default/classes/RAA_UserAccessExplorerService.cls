@@ -10,9 +10,16 @@
  * synchronous Apex transaction would risk the governor limits that make this feature intentionally
  * synchronous and fast in the first place.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: part of the elevated scan pipeline (see
+// README.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
+// controller's permission gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_UserAccessExplorerService {
     private static final Integer CHUNK_SIZE = 200;
 
+    // The UserRecordAccess query below runs once per CHUNK_SIZE-bounded chunk, not once per
+    // record - the standard bulk-chunking pattern, not an unbounded per-record query.
+    @SuppressWarnings('PMD.OperationWithLimitsInLoop')
     public List<RAA_UserRecordAccessSummaryDTO> scanUserAcrossRecords(
         Id userId,
         String objectApiName,
@@ -101,9 +108,15 @@ public without sharing class RAA_UserAccessExplorerService {
         return results[0].reasons;
     }
 
+    // describe.getName() and nameField below come from Schema describes, never client input,
+    // so this is not an injection risk; the query itself runs once per CHUNK_SIZE-bounded chunk.
+    // DEFERRED below already skips eagerly loading child-relationship metadata, which nothing
+    // here reads - PMD's rule doesn't recognize that argument as a mitigation.
+    @SuppressWarnings('PMD.ApexSOQLInjection,PMD.OperationWithLimitsInLoop,PMD.EagerlyLoadedDescribeSObjectResult')
     private Map<Id, String> resolveDisplayNames(Schema.SObjectType sObjectType, List<Id> recordIds) {
         Map<Id, String> names = new Map<Id, String>();
-        Schema.DescribeSObjectResult describe = sObjectType.getDescribe();
+        // DEFERRED skips eagerly loading child-relationship metadata, which nothing here reads.
+        Schema.DescribeSObjectResult describe = sObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
         Map<String, Schema.SObjectField> fieldMap = describe.fields.getMap();
 
         String nameField;

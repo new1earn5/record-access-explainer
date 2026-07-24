@@ -38,7 +38,9 @@ private class RAA_BulkScanQueueableTest {
         System.assert(finalRun.RAA_Status__c == 'Completed' || finalRun.RAA_Status__c == 'Completed with Warnings');
     }
 
+    // '001000000000000AAA' below is a well-formed but nonexistent Account id fixture.
     @IsTest
+    @SuppressWarnings('PMD.AvoidHardcodingId')
     static void recordsAFailedAnalysisWithoutAbortingOtherRecords() {
         Account acct = new Account(Name = 'RAA Bulk Valid Account');
         insert acct;
@@ -101,10 +103,13 @@ private class RAA_BulkScanQueueableTest {
         Test.startTest();
         // A test method allows only one Test.startTest()/Test.stopTest() pair, and chaining a
         // Queueable from inside another Queueable's execute() always throws inside a test's
-        // synchronous flush - so the chained hop is simulated by calling execute() directly a
-        // second time, the same processing the real chained job would perform.
-        new RAA_BulkScanQueueable(firstChunk, batchRunId, UserInfo.getUserId(), false, false).execute(null);
-        new RAA_BulkScanQueueable(secondChunk, batchRunId, UserInfo.getUserId(), false, false).execute(null);
+        // synchronous flush - so the chained hop is simulated by enqueueing both chunks directly
+        // from the test method (two independent top-level jobs, not a chain) rather than relying
+        // on RAA_BulkScanQueueable's own chaining, which is guarded off under Test.isRunningTest().
+        // A direct .execute(null) call was tried here previously, but System.attachFinalizer
+        // requires a genuine Queueable execution context and rejects a directly-invoked one.
+        System.enqueueJob(new RAA_BulkScanQueueable(firstChunk, batchRunId, UserInfo.getUserId(), false, false));
+        System.enqueueJob(new RAA_BulkScanQueueable(secondChunk, batchRunId, UserInfo.getUserId(), false, false));
         Test.stopTest();
 
         List<RAA_Analysis__c> children = repo.getAnalysesForBatchRun(batchRunId);

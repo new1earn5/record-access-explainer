@@ -3,6 +3,10 @@
  * and via permission set groups). Used by both RAA_PermissionAnalyzer and RAA_FieldAccessService
  * so the same PermissionSetAssignment query shape exists in exactly one place.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: reads PermissionSetAssignment metadata
+// about another user (the whole point of this class), reached only through the with-sharing
+// controller's permission gate - the running operator's own FLS is irrelevant.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_PermissionSetLookup {
     public List<PermissionSetAssignment> getAssignments(Set<Id> userIds) {
         if (userIds == null || userIds.isEmpty()) {

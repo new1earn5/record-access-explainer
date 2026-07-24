@@ -17,13 +17,20 @@ public without sharing class RAA_RecordMetadataResolver {
         public SObject targetRecord;
     }
 
+    // The object/field identifiers concatenated into the dynamic query below come from
+    // objectDescribe.fields.getMap() and objectDescribe.getName() - Schema describes, never
+    // client input - so this is not an injection risk despite the static pattern match.
+    // DEFERRED below already skips eagerly loading child-relationship metadata, which nothing
+    // here reads - PMD's rule doesn't recognize that argument as a mitigation.
+    @SuppressWarnings('PMD.ApexSOQLInjection,PMD.EagerlyLoadedDescribeSObjectResult')
     public ResolvedRecord resolve(Id recordId) {
         Schema.SObjectType sObjectType = recordId.getSObjectType();
         if (sObjectType == null) {
             throw new RAA_AppException('The supplied ID does not correspond to a known Salesforce object.');
         }
 
-        Schema.DescribeSObjectResult objectDescribe = sObjectType.getDescribe();
+        // DEFERRED skips eagerly loading child-relationship metadata, which nothing here reads.
+        Schema.DescribeSObjectResult objectDescribe = sObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
 
         if (objectDescribe.isCustomSetting()) {
             throw new RAA_AppException(
@@ -80,10 +87,14 @@ public without sharing class RAA_RecordMetadataResolver {
     }
 
     /** Confirms UserRecordAccess can be evaluated for this object by issuing a minimal probe query. */
+    // UserRecordAccess requires at least one Has*Access field whenever RecordId is selected
+    // without other columns, so this probe mirrors the real provider's shape. Only whether this
+    // throws matters, not the rows themselves - a bare SOQL expression isn't a valid Apex
+    // statement on its own, so the result is still captured, just unread.
+    // UserRecordAccess is a computed system object with no meaningful CRUD/FLS concept.
+    @SuppressWarnings('PMD.UnusedLocalVariable,PMD.ApexCRUDViolation')
     public Boolean supportsUserRecordAccess(Id recordId) {
         try {
-            // UserRecordAccess requires at least one Has*Access field whenever RecordId is
-            // selected without other columns, so this probe mirrors the real provider's shape.
             List<UserRecordAccess> probe = [
                 SELECT RecordId, HasReadAccess, MaxAccessLevel
                 FROM UserRecordAccess

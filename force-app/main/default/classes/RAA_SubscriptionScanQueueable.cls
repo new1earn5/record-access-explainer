@@ -16,6 +16,16 @@ public without sharing class RAA_SubscriptionScanQueueable implements Queueable 
         this.remainingSubscriptionIds = remainingSubscriptionIds;
     }
 
+    // Database.executeBatch below runs inside a loop bounded to CHUNK_SIZE (5) iterations -
+    // exactly the platform's own 5-executeBatch-per-transaction ceiling, not an unbounded loop.
+    //
+    // Deliberately no Finalizer, unlike RAA_BulkScanQueueable: an uncaught exception here simply
+    // leaves whichever subscriptions in this chunk didn't reach setPendingAnalysis() with
+    // RAA_Pending_Analysis__c still null, which is exactly the state RAA_RecurringScanScheduler
+    // already treats as "ready to start" - they're retried automatically on the next scheduled
+    // firing with no recovery code needed. A bulk run has no such next-cycle safety net, which is
+    // why that one needs one.
+    @SuppressWarnings('PMD.OperationWithLimitsInLoop,PMD.QueueableWithoutFinalizer,PMD.EmptyCatchBlock')
     public void execute(QueueableContext qc) {
         RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
         RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();

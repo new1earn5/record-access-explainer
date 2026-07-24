@@ -4,6 +4,10 @@
  * persist and read this package-owned audit data regardless of the running context's own
  * CRUD/FLS on it.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: this is the persistence layer for the
+// elevated scan pipeline (see README.md §1, "Batch Apex runs in system mode"), reached only
+// through the with-sharing controller's permission and per-record visibility gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_SubscriptionRepository {
     public Id createSubscription(
         Id recordId,

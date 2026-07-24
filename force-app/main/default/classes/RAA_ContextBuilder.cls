@@ -115,6 +115,10 @@ public without sharing class RAA_ContextBuilder {
         return context;
     }
 
+    // All identifiers concatenated into the query below (object/field API names) come from
+    // RAA_ShareObjectResolver, which derives them from Schema describes - never from client
+    // input - so this dynamic SOQL is not an injection risk despite the static pattern match.
+    @SuppressWarnings('PMD.ApexSOQLInjection')
     private List<SObject> queryShareRows(RAA_ShareObjectResolver.ShareObjectInfo shareInfo, Id recordId) {
         Set<String> fields = new Set<String>{
             'Id',

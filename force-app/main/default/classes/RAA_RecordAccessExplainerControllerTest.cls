@@ -135,7 +135,9 @@ private class RAA_RecordAccessExplainerControllerTest {
         Test.stopTest();
     }
 
+    // '707000000000003AAA' below is a well-formed but nonexistent AsyncApexJob id fixture.
     @IsTest
+    @SuppressWarnings('PMD.AvoidHardcodingId')
     static void cancelAnalysisSucceedsForRunningScan() {
         RAA_PermissionChecker.testOverride = true;
 

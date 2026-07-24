@@ -7,6 +7,10 @@
  * notification is sent on the scheduled run *after* the one that started the scan, once that
  * scan has had time to complete - by design, so this never blocks on a long-running scan.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: a scheduled job operating on the
+// package's own subscription/analysis data (see README.md §1, "Batch Apex runs in system
+// mode"), not reachable from the client.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_RecurringScanScheduler implements Schedulable {
     @TestVisible
     private static final Integer MAX_SUBSCRIPTIONS_PER_RUN = 200;
@@ -40,6 +44,8 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         }
     }
 
+    // The empty catch below (sendChangeNotification) is deliberate: see its own inline comment.
+    @SuppressWarnings('PMD.EmptyCatchBlock')
     @TestVisible
     private void processCompletedCycle(
         RAA_Scan_Subscription__c subscription,

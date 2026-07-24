@@ -28,6 +28,8 @@ public class RAA_AnalysisContext {
 
     public List<String> warnings = new List<String>();
 
+    // RAA_ContextBuilder constructs an instance empty, then sets every field directly.
+    @SuppressWarnings('PMD.EmptyStatementBlock')
     public RAA_AnalysisContext() {
     }
 

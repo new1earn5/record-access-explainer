@@ -8,11 +8,19 @@
  * Only evaluated when the owner is a User with an assigned role; queue ownership and roleless
  * owners are handled by RAA_OwnershipAnalyzer instead.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: part of the elevated scan pipeline (see
+// README.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
+// controller's permission and per-record visibility gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_RoleHierarchyAnalyzer implements RAA_IReasonAnalyzer {
     public String getAnalyzerName() {
         return 'Role Hierarchy';
     }
 
+    // The UserRole query below has no WHERE/LIMIT because role-hierarchy ancestor/descendant
+    // resolution fundamentally needs the full parent-chain graph - an arbitrary LIMIT would
+    // silently produce wrong hierarchy answers in larger orgs, which is worse than this.
+    @SuppressWarnings('PMD.AvoidNonRestrictiveQueries')
     public Map<Id, List<RAA_AccessReasonDTO>> analyze(RAA_AnalysisContext context, Set<Id> userIds) {
         Map<Id, List<RAA_AccessReasonDTO>> results = new Map<Id, List<RAA_AccessReasonDTO>>();
 

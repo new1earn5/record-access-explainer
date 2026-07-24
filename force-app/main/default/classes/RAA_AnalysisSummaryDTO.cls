@@ -37,9 +37,6 @@ public class RAA_AnalysisSummaryDTO {
     @AuraEnabled
     public Boolean potentiallyIncomplete;
 
-    public RAA_AnalysisSummaryDTO() {
-    }
-
     public RAA_AnalysisSummaryDTO(RAA_Analysis__c analysis) {
         this.analysisId = analysis.Id;
         this.recordId = analysis.RAA_Record_Id__c;

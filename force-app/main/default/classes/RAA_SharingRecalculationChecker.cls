@@ -5,6 +5,9 @@
  * one - still far more useful than the static "may not be reflected yet" disclaimer alone, since
  * it tells an auditor definitively when a scan's results might already be stale.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: reads AsyncApexJob, a system object with
+// no meaningful FLS concept, reached only through the with-sharing controller's permission gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_SharingRecalculationChecker {
     public Boolean isRecalculationInProgress() {
         List<AggregateResult> results = [

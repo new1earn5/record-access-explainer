@@ -92,6 +92,8 @@ public without sharing class RAA_AnalysisOrchestratorService {
         return dtos;
     }
 
+    // The empty catch below (System.abortJob) is deliberate: see its own inline comment.
+    @SuppressWarnings('PMD.EmptyCatchBlock')
     public RAA_AnalysisSummaryDTO cancelAnalysis(Id analysisId) {
         RAA_Analysis__c analysis = repository.getAnalysis(analysisId);
         if (analysis == null) {
@@ -160,7 +162,8 @@ public without sharing class RAA_AnalysisOrchestratorService {
         Boolean includeExternal = includeExternalUsers != null ? includeExternalUsers : settings.defaultIncludeExternal;
         Boolean includeInactive = includeInactiveUsers != null ? includeInactiveUsers : settings.defaultIncludeInactive;
 
-        String objectApiName = sharedType.getDescribe().getName();
+        // DEFERRED skips eagerly loading child-relationship metadata, which nothing here reads.
+        String objectApiName = sharedType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).getName();
         Id batchRunId = repository.createBatchRun(
             objectApiName,
             recordIds.size(),
@@ -206,6 +209,12 @@ public without sharing class RAA_AnalysisOrchestratorService {
         return new RAA_UserAccessExplorerService().getAccessReasons(userId, recordId);
     }
 
+    // The object name concatenated into the dynamic query below is the resolved SObjectType's
+    // own canonical getDescribe().getName() - never the raw client-supplied objectApiName
+    // string directly - so an unrecognized object name is rejected by the null check above
+    // before any query is built, not smuggled through. DEFERRED already skips eagerly loading
+    // child-relationship metadata that nothing here reads.
+    @SuppressWarnings('PMD.ApexSOQLInjection,PMD.EagerlyLoadedDescribeSObjectResult')
     private List<Id> resolveCandidateRecordIds(String objectApiName, List<String> rawRecordIds, Integer limitCount) {
         List<Id> candidateIds = new List<Id>();
         if (rawRecordIds != null && !rawRecordIds.isEmpty()) {
@@ -218,10 +227,13 @@ public without sharing class RAA_AnalysisOrchestratorService {
                 throw new RAA_AppException('"' + objectApiName + '" is not a recognized object.');
             }
             Integer effectiveLimit = limitCount != null && limitCount > 0 ? limitCount : settings.maxRecordsPerUserScan;
+            // DEFERRED skips eagerly loading child-relationship metadata, which nothing here reads.
             for (
                 SObject record : Database.query(
                     'SELECT Id FROM ' +
-                        String.escapeSingleQuotes(sObjectType.getDescribe().getName()) +
+                        String.escapeSingleQuotes(
+                            sObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).getName()
+                        ) +
                         ' LIMIT :effectiveLimit'
                 )
             ) {

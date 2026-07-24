@@ -46,6 +46,9 @@ public with sharing class RAA_SettingsService {
         return value == null ? fallback : Integer.valueOf(value);
     }
 
+    // RAA_Settings__mdt is a Custom Metadata Type - metadata, not data - so it is not subject to
+    // CRUD/FLS/sharing enforcement at all; WITH USER_MODE has no meaning here.
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     private static RAA_Settings__mdt loadSettings() {
         if (cachedSettings == null) {
             List<RAA_Settings__mdt> rows = [

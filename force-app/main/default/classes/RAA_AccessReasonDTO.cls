@@ -33,6 +33,9 @@ public class RAA_AccessReasonDTO implements Comparable {
     @AuraEnabled
     public String evidence;
 
+    // Used by analyzers that build an instance field-by-field rather than through the
+    // reason-copying constructor below.
+    @SuppressWarnings('PMD.EmptyStatementBlock')
     public RAA_AccessReasonDTO() {
     }
 

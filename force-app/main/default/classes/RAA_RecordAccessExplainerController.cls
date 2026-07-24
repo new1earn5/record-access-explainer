@@ -282,7 +282,7 @@ public with sharing class RAA_RecordAccessExplainerController {
         } catch (RAA_AppException e) {
             throw toAuraException(e.getMessage());
         }
-        List<RAA_Analysis__c> visible = [SELECT Id FROM RAA_Analysis__c WHERE Id = :analysisId LIMIT 1];
+        List<RAA_Analysis__c> visible = [SELECT Id FROM RAA_Analysis__c WHERE Id = :analysisId WITH USER_MODE LIMIT 1];
         if (visible.isEmpty()) {
             throw toAuraException('The requested analysis could not be found, or you do not have access to it.');
         }
@@ -299,7 +299,13 @@ public with sharing class RAA_RecordAccessExplainerController {
         if (batchRunId.getSObjectType() != RAA_Batch_Run__c.SObjectType) {
             throw toAuraException('The supplied ID does not refer to an RAA Batch Run record.');
         }
-        List<RAA_Batch_Run__c> visible = [SELECT Id FROM RAA_Batch_Run__c WHERE Id = :batchRunId LIMIT 1];
+        List<RAA_Batch_Run__c> visible = [
+            SELECT Id
+            FROM RAA_Batch_Run__c
+            WHERE Id = :batchRunId
+            WITH USER_MODE
+            LIMIT 1
+        ];
         if (visible.isEmpty()) {
             throw toAuraException('The requested bulk run could not be found, or you do not have access to it.');
         }
@@ -320,6 +326,7 @@ public with sharing class RAA_RecordAccessExplainerController {
             SELECT Id
             FROM RAA_Scan_Subscription__c
             WHERE Id = :subscriptionId
+            WITH USER_MODE
             LIMIT 1
         ];
         if (visible.isEmpty()) {

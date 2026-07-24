@@ -11,6 +11,10 @@
  * and never per user, so cost scales with graph depth (bounded by RAA_Settings__mdt) rather
  * than with population size.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: part of the elevated scan pipeline (see
+// README.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
+// controller's permission and per-record visibility gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_GroupGraphResolver {
     public static final Set<String> UNRESOLVABLE_TYPES = new Set<String>{
         'RoleAndSubordinates',
@@ -49,6 +53,10 @@ public without sharing class RAA_GroupGraphResolver {
         return resultsByUser;
     }
 
+    // The GroupMember query below runs once per BFS level (bulk-loaded for that whole level's
+    // groups), not once per group or per member - correct bulk-safe traversal, bounded by
+    // maxDepth levels rather than by population size.
+    @SuppressWarnings('PMD.OperationWithLimitsInLoop')
     private void resolveFromSingleRoot(
         Id rootId,
         Group rootGroup,

@@ -9,6 +9,13 @@
  * multiplying that by every user in a scan would make the data model unmanageable. It is instead
  * computed live, on demand, for a single user at a time.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: reads FieldPermissions/PermissionSet
+// metadata about another user's access (the whole point of this service), reached only through
+// the with-sharing controller's permission gate - the running operator's own FLS is irrelevant.
+// getDescribe() below is called with DEFERRED, which already skips eagerly loading
+// child-relationship metadata that nothing here reads - PMD's rule doesn't recognize that
+// argument as a mitigation.
+@SuppressWarnings('PMD.ApexCRUDViolation,PMD.EagerlyLoadedDescribeSObjectResult')
 public without sharing class RAA_FieldAccessService {
     private final RAA_PermissionSetLookup permissionSetLookup;
 
@@ -27,7 +34,9 @@ public without sharing class RAA_FieldAccessService {
             throw new RAA_AppException('"' + objectApiName + '" is not a recognized object.');
         }
 
-        Map<String, Schema.SObjectField> fieldMap = sObjectType.getDescribe().fields.getMap();
+        // DEFERRED skips eagerly loading child-relationship metadata, which nothing here reads.
+        Map<String, Schema.SObjectField> fieldMap = sObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED)
+            .fields.getMap();
 
         List<PermissionSetAssignment> assignments = permissionSetLookup.getAssignments(new Set<Id>{ userId });
         Set<Id> permissionSetIds = permissionSetLookup.permissionSetIds(assignments);

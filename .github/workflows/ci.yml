@@ -30,6 +30,28 @@ jobs:
       - name: LWC Jest tests
         run: npm run test:unit:coverage
 
+  apex-static-analysis:
+    name: Salesforce Code Analyzer (Apex)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Salesforce CLI and Code Analyzer
+        run: |
+          npm install --global @salesforce/cli
+          sf plugins install code-analyzer@latest
+
+      # code-analyzer.yml disables only style/design rules this project has deliberately chosen
+      # against elsewhere (see the file's own comments); every rule left enabled is a real,
+      # currently-clean gate. High severity or above fails the build.
+      - name: Run Code Analyzer against production and test Apex
+        run: sf code-analyzer run --config-file code-analyzer.yml --workspace force-app/main/default/classes --rule-selector Recommended --severity-threshold High
+
   apex:
     name: Deploy to scratch org and run Apex tests
     runs-on: ubuntu-latest

@@ -31,7 +31,20 @@ public without sharing class RAA_BulkScanQueueable implements Queueable {
         this.includeInactiveUsers = includeInactiveUsers;
     }
 
+    // Database.executeBatch below runs inside a loop bounded to CHUNK_SIZE (5) iterations -
+    // exactly the platform's own 5-executeBatch-per-transaction ceiling, not an unbounded loop.
+    @SuppressWarnings('PMD.OperationWithLimitsInLoop')
     public void execute(QueueableContext qc) {
+        System.attachFinalizer(
+            new RAA_BulkScanFailureFinalizer(
+                batchRunId,
+                remainingRecordIds,
+                requestingUserId,
+                includeExternalUsers,
+                includeInactiveUsers
+            )
+        );
+
         RAA_AnalysisRepository repository = new RAA_AnalysisRepository();
         RAA_SettingsService settings = new RAA_SettingsService();
         RAA_RecordMetadataResolver resolver = new RAA_RecordMetadataResolver();

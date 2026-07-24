@@ -2,7 +2,7 @@
 private class RAA_UserPopulationBuilderTest {
     @TestSetup
     static void setup() {
-        User active = RAA_TestDataFactory.createUser('Pop', 'Active');
+        RAA_TestDataFactory.createUser('Pop', 'Active');
         User inactive = RAA_TestDataFactory.createUser('Pop', 'Inactive');
         inactive.IsActive = false;
         update inactive;

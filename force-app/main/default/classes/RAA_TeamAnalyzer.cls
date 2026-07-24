@@ -59,6 +59,9 @@ public without sharing class RAA_TeamAnalyzer implements RAA_IReasonAnalyzer {
         return results;
     }
 
+    // Every call site passes hardcoded literal object/field names for the well-known standard
+    // team objects (see analyze() above) - never client input - so this is not an injection risk.
+    @SuppressWarnings('PMD.ApexSOQLInjection')
     private void analyzeTeam(
         RAA_AnalysisContext context,
         Set<Id> userIds,

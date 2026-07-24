@@ -17,6 +17,10 @@
  * a specific result, muting is not represented here; permission-set-group-derived reasons should
  * be treated as the group's nominal (not necessarily muting-adjusted) effective permissions.
  */
+// Deliberately without sharing and CRUD/FLS-unchecked: part of the elevated scan pipeline (see
+// README.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
+// controller's permission and per-record visibility gate.
+@SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_PermissionAnalyzer implements RAA_IReasonAnalyzer {
     public String getAnalyzerName() {
         return 'Permissions';

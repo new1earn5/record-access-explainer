@@ -64,7 +64,9 @@ private class RAA_AnalysisOrchestratorServiceTest {
         System.assertNotEquals(null, summary.analysisId, 'Confirming the duplicate scan should allow it to proceed.');
     }
 
+    // '707000000000002AAA' below is a well-formed but nonexistent AsyncApexJob id fixture.
     @IsTest
+    @SuppressWarnings('PMD.AvoidHardcodingId')
     static void cancelBeforeCompletionMarksAnalysisCancelled() {
         Account acct = new Account(Name = 'RAA Cancel Account');
         insert acct;
