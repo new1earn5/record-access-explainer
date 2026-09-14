@@ -52,6 +52,25 @@ jobs:
       - name: Run Code Analyzer against production and test Apex
         run: sf code-analyzer run --config-file code-analyzer.yml --workspace force-app/main/default/classes --rule-selector Recommended --severity-threshold High
 
+  check-devhub-secret:
+    name: Check for Dev Hub secret
+    runs-on: ubuntu-latest
+    outputs:
+      has-devhub: ${{ steps.check.outputs.has-devhub }}
+    steps:
+      - id: check
+        env:
+          SFDX_AUTH_URL_DEVHUB: ${{ secrets.SFDX_AUTH_URL_DEVHUB }}
+        # Job-level `if:` cannot reference the secrets context directly (GitHub Actions rejects
+        # the whole workflow file with "Unrecognized named-value: 'secrets'" if it does), so the
+        # presence check has to happen in a step here and get passed down via a job output.
+        run: |
+          if [ -n "$SFDX_AUTH_URL_DEVHUB" ]; then
+            echo "has-devhub=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-devhub=false" >> "$GITHUB_OUTPUT"
+          fi
+
   apex:
     name: Deploy to scratch org and run Apex tests
     runs-on: ubuntu-latest
@@ -59,8 +78,8 @@ jobs:
     # "Continuous Integration"). Until then this job is skipped rather than failing the workflow,
     # so lint-and-jest still gates pull requests on its own. Secrets are unavailable to
     # pull_request workflows from forks, so this also safely skips for external contributors.
-    if: ${{ secrets.SFDX_AUTH_URL_DEVHUB != '' }}
-    needs: lint-and-jest
+    if: ${{ needs.check-devhub-secret.outputs.has-devhub == 'true' }}
+    needs: [lint-and-jest, check-devhub-secret]
     steps:
       - uses: actions/checkout@v4
 

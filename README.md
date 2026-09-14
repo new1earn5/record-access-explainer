@@ -1,5 +1,8 @@
 # Record Access Explainer
 
+[![CI](https://github.com/new1earn5/record-access-explainer/actions/workflows/ci.yml/badge.svg)](https://github.com/new1earn5/record-access-explainer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A Salesforce administrator/auditor application that answers one question in depth: **"Which
 users have effective access to this record, and why?"**
 
@@ -19,6 +22,14 @@ analysis history diffing, field-level security tracing, a live sharing-recalcula
 best-effort Restriction Rule detection, a Risk Insights view ranking already-scanned records, a
 deterministic plain-English scan summary, and optional scheduled recurring scans with email and/or
 Chatter change alerts — see §8.
+
+|                                                                                                                 |                                                                                           |
+| --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ![Results grid](docs/screenshots/results-grid.jpg)                                                              | ![Access reasons](docs/screenshots/access-reasons.jpg)                                    |
+| Per-user access results for a scanned record, with export, plain-English summary, and previous-scan comparison. | Drill-down into _why_ a user has access — grant path, source, and confidence, per reason. |
+
+![Risk Insights](docs/screenshots/risk-insights.jpg)
+_Risk Insights ranks every record you've already scanned by external users, bypass holders, and unresolved reasons — no new scan required._
 
 ---
 
