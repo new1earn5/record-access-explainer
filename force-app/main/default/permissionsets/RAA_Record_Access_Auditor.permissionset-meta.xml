@@ -12,6 +12,14 @@
         <apexClass>RAA_RecordAccessExplainerController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>RAA_ScanInvocable</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>RAA_ScanRestResource</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
 
     <customMetadataTypeAccesses>
         <name>RAA_Settings__mdt</name>
