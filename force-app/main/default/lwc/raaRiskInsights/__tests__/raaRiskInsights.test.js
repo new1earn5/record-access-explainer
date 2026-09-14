@@ -19,6 +19,7 @@ const SAMPLE_INSIGHT = {
     recordDisplayName: 'Acme Corp',
     completedAt: '2026-07-20T00:00:00.000Z',
     usersWithAccess: 12,
+    guestUserCount: 0,
     externalUserCount: 3,
     bypassHolderCount: 1,
     unresolvedCount: 0,
@@ -63,6 +64,27 @@ describe('c-raa-risk-insights', () => {
         expect(datatable).not.toBeNull();
         expect(datatable.data).toHaveLength(1);
         expect(datatable.data[0].riskScore).toBe(11);
+    });
+
+    it('highlights the Guest Users cell only when guestUserCount is non-zero', async () => {
+        getRiskInsights.mockResolvedValue([
+            SAMPLE_INSIGHT,
+            {
+                ...SAMPLE_INSIGHT,
+                analysisId: 'a00000000000002',
+                guestUserCount: 2
+            }
+        ]);
+        const element = createComponent();
+        await flushPromises();
+
+        const datatable = element.shadowRoot.querySelector(
+            'lightning-datatable'
+        );
+        expect(datatable.data[0].guestUserCellClass).toBe('');
+        expect(datatable.data[1].guestUserCellClass).toContain(
+            'slds-text-color_destructive'
+        );
     });
 
     it('dispatches viewanalysis when the View Analysis row action is triggered', async () => {

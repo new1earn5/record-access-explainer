@@ -6,10 +6,18 @@
  * RAA_Analysis__c is Private OWD, this is the same set of analyses that user could already see
  * one at a time, just ranked instead of requiring them to know which record to check.
  *
- * Three signals feed the score, each independently exposed on the DTO so the ranking is never an
+ * Four signals feed the score, each independently exposed on the DTO so the ranking is never an
  * opaque number:
- *   - externalUserCount: users with UserType other than 'Standard' who have access - the same
- *     internal/external distinction RAA_UserPopulationBuilder already uses for scan population.
+ *   - guestUserCount: users with UserType = 'Guest' who have access - the Salesforce Guest User
+ *     license backing public Experience Cloud sites and Sites. Weighted highest and reported
+ *     separately from externalUserCount (not double-counted) because Guest User record access
+ *     misconfiguration is the single most common real-world cause of public Salesforce data
+ *     exposure incidents - it deserves its own signal, not to be buried inside a generic
+ *     "external users" count an admin might reasonably expect (e.g. genuine partner/customer
+ *     portal users).
+ *   - externalUserCount: users with UserType other than 'Standard' or 'Guest' who have access -
+ *     the same internal/external distinction RAA_UserPopulationBuilder already uses for scan
+ *     population, minus Guest (see above).
  *   - bypassHolderCount: distinct users whose access includes a reason in the "Permission"
  *     category (View/Modify All Data or View/Modify All Records) - a sharing-model bypass.
  *   - unresolvedCount: users whose access RAA_ReasonAggregator could not fully attribute to a
@@ -26,6 +34,7 @@ public without sharing class RAA_RiskInsightsService {
     @TestVisible
     private static final Integer MAX_RESULTS_RETURNED = 50;
 
+    private static final Integer GUEST_USER_WEIGHT = 5;
     private static final Integer EXTERNAL_USER_WEIGHT = 3;
     private static final Integer BYPASS_HOLDER_WEIGHT = 2;
     private static final Integer UNRESOLVED_WEIGHT = 1;
@@ -41,6 +50,7 @@ public without sharing class RAA_RiskInsightsService {
             analysisIds.add(analysis.Id);
         }
 
+        Map<Id, Integer> guestCountByAnalysis = new Map<Id, Integer>();
         Map<Id, Integer> externalCountByAnalysis = new Map<Id, Integer>();
         Map<Id, Integer> unresolvedCountByAnalysis = new Map<Id, Integer>();
         for (RAA_Access_Result__c result : [
@@ -48,7 +58,9 @@ public without sharing class RAA_RiskInsightsService {
             FROM RAA_Access_Result__c
             WHERE RAA_Analysis__c IN :analysisIds
         ]) {
-            if (result.RAA_User_Type__c != 'Standard') {
+            if (result.RAA_User_Type__c == 'Guest') {
+                increment(guestCountByAnalysis, result.RAA_Analysis__c);
+            } else if (result.RAA_User_Type__c != 'Standard') {
                 increment(externalCountByAnalysis, result.RAA_Analysis__c);
             }
             if (result.RAA_Has_Unresolved_Reason__c) {
@@ -80,12 +92,14 @@ public without sharing class RAA_RiskInsightsService {
             dto.usersWithAccess = analysis.RAA_Users_With_Access__c == null
                 ? 0
                 : Integer.valueOf(analysis.RAA_Users_With_Access__c);
+            dto.guestUserCount = countOf(guestCountByAnalysis, analysis.Id);
             dto.externalUserCount = countOf(externalCountByAnalysis, analysis.Id);
             dto.bypassHolderCount = bypassUsersByAnalysis.containsKey(analysis.Id)
                 ? bypassUsersByAnalysis.get(analysis.Id).size()
                 : 0;
             dto.unresolvedCount = countOf(unresolvedCountByAnalysis, analysis.Id);
             dto.riskScore =
+                dto.guestUserCount * GUEST_USER_WEIGHT +
                 dto.externalUserCount * EXTERNAL_USER_WEIGHT +
                 dto.bypassHolderCount * BYPASS_HOLDER_WEIGHT +
                 dto.unresolvedCount * UNRESOLVED_WEIGHT;

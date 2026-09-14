@@ -16,6 +16,11 @@ public without sharing class RAA_PlainEnglishSummaryService {
         List<String> sentences = new List<String>();
         sentences.add(openingSentence(recordDescription, results));
 
+        String guestUsers = guestUserSentence(results);
+        if (guestUsers != null) {
+            sentences.add(guestUsers);
+        }
+
         String accessLevels = accessLevelSentence(results);
         if (accessLevels != null) {
             sentences.add(accessLevels);
@@ -83,6 +88,24 @@ public without sharing class RAA_PlainEnglishSummaryService {
             clauses.add(entry.label + ' (' + pluralCount(entry.count, 'user', 'users') + ')');
         }
         return clauses.isEmpty() ? null : 'Access is primarily explained by ' + joinWithAnd(clauses) + '.';
+    }
+
+    // Reported ahead of and separately from the general access-level breakdown: Guest User
+    // record access is the single most common real-world cause of public Salesforce data
+    // exposure, and deserves to stand out rather than being folded into a generic access-level
+    // count an admin might skim past.
+    private String guestUserSentence(List<RAA_AccessResultDTO> results) {
+        Integer guestCount = 0;
+        for (RAA_AccessResultDTO result : results) {
+            if (result.userType == 'Guest') {
+                guestCount++;
+            }
+        }
+        if (guestCount == 0) {
+            return null;
+        }
+        return pluralCount(guestCount, 'Guest User has', 'Guest Users have') +
+            ' access to this record - verify this is intentional, since Guest User access is what backs public Experience Cloud sites and Sites, and is a common source of unintended public data exposure.';
     }
 
     private String unresolvedSentence(List<RAA_AccessResultDTO> results) {

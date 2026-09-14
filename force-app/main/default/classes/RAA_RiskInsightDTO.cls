@@ -19,6 +19,8 @@ public class RAA_RiskInsightDTO {
     @AuraEnabled
     public Integer usersWithAccess;
     @AuraEnabled
+    public Integer guestUserCount;
+    @AuraEnabled
     public Integer externalUserCount;
     @AuraEnabled
     public Integer bypassHolderCount;

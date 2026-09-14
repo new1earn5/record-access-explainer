@@ -78,14 +78,73 @@ private class RAA_RiskInsightsServiceTest {
         System.assertEquals(1, insights.size());
         RAA_RiskInsightDTO dto = insights[0];
         System.assertEquals(analysisId, dto.analysisId);
+        System.assertEquals(0, dto.guestUserCount, 'No Guest users were included in this scan.');
         System.assertEquals(1, dto.externalUserCount, 'One user was updated to a non-Standard UserType.');
         System.assertEquals(1, dto.unresolvedCount, 'One user has an Unresolved-category reason.');
         System.assertEquals(1, dto.bypassHolderCount, 'One user has a Permission-category reason.');
         System.assertEquals(
             3 + 2 + 1,
             dto.riskScore,
-            'Score is externalUserCount*3 + bypassHolderCount*2 + unresolvedCount*1.'
+            'Score is guestUserCount*5 + externalUserCount*3 + bypassHolderCount*2 + unresolvedCount*1.'
         );
+    }
+
+    @IsTest
+    static void guestUsersAreWeightedHighestAndNotDoubleCountedAsExternal() {
+        Account acct = new Account(Name = 'RAA Risk Guest Account');
+        insert acct;
+
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Risk Guest Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        User guestLikeUser = RAA_TestDataFactory.createUser('Risk', 'GuestLike');
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id = :guestLikeUser.Id]
+        );
+
+        RAA_ReasonAggregator.AggregatedUserResult guestResult = new RAA_ReasonAggregator.AggregatedUserResult();
+        guestResult.userId = guestLikeUser.Id;
+        guestResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(guestLikeUser.Id);
+        guestResult.reasons = new List<RAA_AccessReasonDTO>{
+            RAA_TestDataFactory.buildReason('Org-Wide Default', 'High')
+        };
+
+        repo.saveResults(analysisId, new List<RAA_ReasonAggregator.AggregatedUserResult>{ guestResult }, userInfoMap);
+        repo.markCompleted(analysisId, false, null, null);
+
+        // Same denormalized-snapshot technique as the test above: simulate a Guest User without
+        // needing a real Guest User license/site set up in the test org.
+        update new RAA_Access_Result__c(
+            Id = [
+                SELECT Id
+                FROM RAA_Access_Result__c
+                WHERE RAA_Analysis__c = :analysisId AND RAA_User__c = :guestLikeUser.Id
+                LIMIT 1
+            ]
+            .Id,
+            RAA_User_Type__c = 'Guest'
+        );
+
+        Test.startTest();
+        List<RAA_RiskInsightDTO> insights = new RAA_RiskInsightsService().getRiskInsights(UserInfo.getUserId());
+        Test.stopTest();
+
+        System.assertEquals(1, insights.size());
+        RAA_RiskInsightDTO dto = insights[0];
+        System.assertEquals(1, dto.guestUserCount, 'The Guest user should be counted.');
+        System.assertEquals(
+            0,
+            dto.externalUserCount,
+            'A Guest user must not also be counted as a generic external user - the two signals are mutually exclusive.'
+        );
+        System.assertEquals(5, dto.riskScore, 'guestUserCount(1) * GUEST_USER_WEIGHT(5).');
     }
 
     @IsTest

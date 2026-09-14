@@ -23,6 +23,15 @@ const COLUMNS = [
         initialWidth: 110
     },
     {
+        label: 'Guest Users',
+        fieldName: 'guestUserCount',
+        type: 'number',
+        sortable: true,
+        cellAttributes: {
+            class: { fieldName: 'guestUserCellClass' }
+        }
+    },
+    {
         label: 'External Users',
         fieldName: 'externalUserCount',
         type: 'number',
@@ -65,7 +74,10 @@ const COLUMNS = [
 /**
  * Ranks records the current user has already scanned by risk signals already present in that
  * scan's own results - nothing here triggers a new scan. See RAA_RiskInsightsService for exactly
- * how riskScore is computed from the three columns shown alongside it.
+ * how riskScore is computed from the four columns shown alongside it. Guest Users is
+ * highlighted (destructive text) whenever non-zero, since Guest User record access
+ * misconfiguration is the highest-weighted signal and the one most worth an admin's immediate
+ * attention.
  */
 export default class RaaRiskInsights extends LightningElement {
     insights = [];
@@ -84,7 +96,13 @@ export default class RaaRiskInsights extends LightningElement {
         this.isLoading = true;
         getRiskInsights()
             .then((result) => {
-                this.insights = result;
+                this.insights = result.map((row) => ({
+                    ...row,
+                    guestUserCellClass:
+                        row.guestUserCount > 0
+                            ? 'slds-text-color_destructive slds-text-title_bold'
+                            : ''
+                }));
             })
             .catch((error) => this.showError(error))
             .finally(() => {

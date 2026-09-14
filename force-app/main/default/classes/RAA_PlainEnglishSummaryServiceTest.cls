@@ -60,6 +60,64 @@ private class RAA_PlainEnglishSummaryServiceTest {
     }
 
     @IsTest
+    static void callsOutGuestUserAccessDistinctlyAndAheadOfAccessLevels() {
+        RAA_AnalysisSummaryDTO summary = new RAA_AnalysisSummaryDTO();
+        summary.recordDisplayName = 'Public Site Account';
+        summary.objectApiName = 'Account';
+
+        RAA_AccessResultDTO guestOne = new RAA_AccessResultDTO();
+        guestOne.userFullName = 'Site Guest User';
+        guestOne.userType = 'Guest';
+        guestOne.maxAccessLevel = 'Read';
+        guestOne.overallConfidence = 'High';
+        guestOne.hasUnresolvedReason = false;
+        guestOne.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Org-Wide Default', 'High') };
+
+        RAA_AccessResultDTO internalOwner = new RAA_AccessResultDTO();
+        internalOwner.userFullName = 'Owner User';
+        internalOwner.userType = 'Standard';
+        internalOwner.maxAccessLevel = 'Full Access';
+        internalOwner.overallConfidence = 'High';
+        internalOwner.hasUnresolvedReason = false;
+        internalOwner.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+
+        String text = new RAA_PlainEnglishSummaryService()
+            .buildSummary(summary, new List<RAA_AccessResultDTO>{ guestOne, internalOwner });
+
+        System.assert(
+            text.contains('1 Guest User has access to this record'),
+            'Guest User access should be called out explicitly. Got: ' + text
+        );
+        System.assert(
+            text.indexOf('Guest User has access') < text.indexOf('By access level'),
+            'The Guest User callout should appear ahead of the general access-level breakdown.'
+        );
+    }
+
+    @IsTest
+    static void omitsGuestUserSentenceWhenNoGuestUsersHaveAccess() {
+        RAA_AnalysisSummaryDTO summary = new RAA_AnalysisSummaryDTO();
+        summary.recordDisplayName = 'Internal Only Account';
+        summary.objectApiName = 'Account';
+
+        RAA_AccessResultDTO internalOwner = new RAA_AccessResultDTO();
+        internalOwner.userFullName = 'Owner User';
+        internalOwner.userType = 'Standard';
+        internalOwner.maxAccessLevel = 'Full Access';
+        internalOwner.overallConfidence = 'High';
+        internalOwner.hasUnresolvedReason = false;
+        internalOwner.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+
+        String text = new RAA_PlainEnglishSummaryService()
+            .buildSummary(summary, new List<RAA_AccessResultDTO>{ internalOwner });
+
+        System.assert(
+            !text.contains('Guest User'),
+            'No Guest User sentence should appear when there are none. Got: ' + text
+        );
+    }
+
+    @IsTest
     static void usesSingularPhrasingForOneUser() {
         RAA_AnalysisSummaryDTO summary = new RAA_AnalysisSummaryDTO();
         summary.recordDisplayName = 'Solo Account';
