@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Slack_Webhook_URL__c</fullName>
+    <externalId>false</externalId>
+    <label>Slack Webhook URL</label>
+    <length>175</length>
+    <maskChar>asterisk</maskChar>
+    <maskType>all</maskType>
+    <type>EncryptedText</type>
+    <description>Slack Incoming Webhook URL (https://hooks.slack.com/services/...) to post to when
+        Post To Slack is checked and a change is detected. Stored encrypted; only
+        hooks.slack.com is an allowed callout target (see the RAA_Slack_Webhooks Remote Site
+        Setting) so this field cannot be used to make the scheduler call out to an arbitrary
+        host.</description>
+    <inlineHelpText>Slack Incoming Webhook URL. Must start with https://hooks.slack.com/.</inlineHelpText>
+</CustomField>

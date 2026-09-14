@@ -14,7 +14,9 @@ private class RAA_SubscriptionScanQueueableTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
 
         Test.startTest();
@@ -41,7 +43,9 @@ private class RAA_SubscriptionScanQueueableTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
         delete new RAA_Scan_Subscription__c(Id = subscriptionId);
 

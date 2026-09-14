@@ -55,7 +55,7 @@ private class RAA_RiskInsightsServiceTest {
             },
             userInfoMap
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         // RAA_Access_Result__c.RAA_User_Type__c is a denormalized snapshot, not a live lookup, so
         // this simulates an external/Experience Cloud user without needing a real one to exist in
@@ -102,7 +102,7 @@ private class RAA_RiskInsightsServiceTest {
             false,
             false
         );
-        repo.markCompleted(olderAnalysisId, false, null);
+        repo.markCompleted(olderAnalysisId, false, null, null);
         // Force the older analysis's completion timestamp earlier than the one created next.
         update new RAA_Analysis__c(Id = olderAnalysisId, RAA_Completed_At__c = System.now().addDays(-1));
 
@@ -114,7 +114,7 @@ private class RAA_RiskInsightsServiceTest {
             false,
             false
         );
-        repo.markCompleted(newerAnalysisId, false, null);
+        repo.markCompleted(newerAnalysisId, false, null, null);
 
         Test.startTest();
         List<RAA_RiskInsightDTO> insights = new RAA_RiskInsightsService().getRiskInsights(UserInfo.getUserId());
@@ -147,7 +147,7 @@ private class RAA_RiskInsightsServiceTest {
             false,
             false
         );
-        repo.markCompleted(lowRiskAnalysisId, false, null);
+        repo.markCompleted(lowRiskAnalysisId, false, null, null);
 
         Id highRiskAnalysisId = repo.createAnalysis(
             highRiskAcct.Id,
@@ -170,7 +170,7 @@ private class RAA_RiskInsightsServiceTest {
             new List<RAA_ReasonAggregator.AggregatedUserResult>{ bypassResult },
             userInfoMap
         );
-        repo.markCompleted(highRiskAnalysisId, false, null);
+        repo.markCompleted(highRiskAnalysisId, false, null, null);
 
         // Belongs to a different requester entirely - must never appear regardless of score.
         User otherUser = RAA_TestDataFactory.createUser('Risk', 'OtherOwner');
@@ -182,7 +182,7 @@ private class RAA_RiskInsightsServiceTest {
             false,
             false
         );
-        repo.markCompleted(otherUsersAnalysisId, false, null);
+        repo.markCompleted(otherUsersAnalysisId, false, null, null);
 
         Test.startTest();
         List<RAA_RiskInsightDTO> insights = new RAA_RiskInsightsService().getRiskInsights(UserInfo.getUserId());

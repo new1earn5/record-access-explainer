@@ -13,7 +13,9 @@ private class RAA_SubscriptionRepositoryTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
         Test.stopTest();
 
@@ -42,5 +44,33 @@ private class RAA_SubscriptionRepositoryTest {
 
         repo.deleteSubscription(subscriptionId);
         System.assertEquals(null, repo.getSubscription(subscriptionId));
+    }
+
+    @IsTest
+    static void createSubscriptionWithSlackFields() {
+        RAA_SubscriptionRepository repo = new RAA_SubscriptionRepository();
+
+        Test.startTest();
+        Id subscriptionId = repo.createSubscription(
+            UserInfo.getUserId(),
+            'User',
+            'Test Sub',
+            UserInfo.getUserId(),
+            false,
+            false,
+            true,
+            false,
+            true,
+            'https://hooks.slack.com/services/T000/B000/XXXX'
+        );
+        Test.stopTest();
+
+        RAA_Scan_Subscription__c fetched = repo.getSubscription(subscriptionId);
+        System.assertEquals(true, fetched.RAA_Post_To_Slack__c);
+        System.assertEquals('https://hooks.slack.com/services/T000/B000/XXXX', fetched.RAA_Slack_Webhook_URL__c);
+
+        List<RAA_Scan_Subscription__c> active = repo.getActiveSubscriptions(200);
+        System.assertEquals(1, active.size());
+        System.assertEquals(true, active[0].RAA_Post_To_Slack__c);
     }
 }

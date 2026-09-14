@@ -24,6 +24,7 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
     private Integer processedCount = 0;
     private Integer usersWithAccessCount = 0;
     private List<String> warnings = new List<String>();
+    private List<String> hygieneNotes = new List<String>();
 
     private final RAA_AnalysisRepository repository = new RAA_AnalysisRepository();
     private final RAA_ReasonAggregator aggregator = new RAA_ReasonAggregator();
@@ -57,10 +58,11 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
     public void execute(Database.BatchableContext bc, List<Id> scope) {
         Set<Id> userIds = new Set<Id>(scope);
         List<String> chunkWarnings = new List<String>();
+        List<String> chunkHygieneNotes = new List<String>();
 
         List<RAA_ReasonAggregator.AggregatedUserResult> aggregated;
         try {
-            aggregated = aggregator.analyzeBatch(recordId, userIds, chunkWarnings);
+            aggregated = aggregator.analyzeBatch(recordId, userIds, chunkWarnings, chunkHygieneNotes);
         } catch (Exception e) {
             warnings.add('A chunk of ' + scope.size() + ' user(s) could not be analyzed: ' + sanitize(e.getMessage()));
             processedCount += scope.size();
@@ -80,6 +82,7 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
         usersWithAccessCount += outcome.usersWithAccessSaved;
         warnings.addAll(chunkWarnings);
         warnings.addAll(outcome.errors);
+        hygieneNotes.addAll(chunkHygieneNotes);
 
         processedCount += scope.size();
         repository.updateProgress(analysisId, processedCount, usersWithAccessCount);
@@ -109,7 +112,8 @@ public without sharing class RAA_AccessScanBatch implements Database.Batchable<I
         repository.markCompleted(
             analysisId,
             hasWarnings,
-            String.join(new List<String>(new Set<String>(warnings)), '\n')
+            String.join(new List<String>(new Set<String>(warnings)), '\n'),
+            String.join(new List<String>(new Set<String>(hygieneNotes)), '\n')
         );
         publishStatusEvent(hasWarnings ? 'Completed with Warnings' : 'Completed', true);
     }

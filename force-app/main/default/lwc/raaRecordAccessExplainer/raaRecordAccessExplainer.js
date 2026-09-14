@@ -299,6 +299,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
             : this.summary.warnings;
     }
 
+    get showSharingHygieneNotes() {
+        return !!(this.summary && this.summary.sharingHygieneNotes);
+    }
+
     get canCancel() {
         return this.summary && !this.isTerminal;
     }

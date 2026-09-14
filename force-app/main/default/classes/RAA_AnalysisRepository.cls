@@ -95,6 +95,7 @@ public without sharing class RAA_AnalysisRepository {
                 RAA_Include_External_Users__c,
                 RAA_Include_Inactive_Users__c,
                 RAA_Warnings__c,
+                RAA_Sharing_Hygiene_Notes__c,
                 RAA_Error_Details__c,
                 RAA_Is_Complete__c,
                 RAA_Batch_Run__c
@@ -127,6 +128,7 @@ public without sharing class RAA_AnalysisRepository {
                 RAA_Is_Complete__c,
                 RAA_Users_With_Access__c,
                 RAA_Warnings__c,
+                RAA_Sharing_Hygiene_Notes__c,
                 RAA_Error_Details__c
             FROM RAA_Analysis__c
             WHERE RAA_Batch_Run__c = :batchRunId
@@ -196,13 +198,14 @@ public without sharing class RAA_AnalysisRepository {
         );
     }
 
-    public void markCompleted(Id analysisId, Boolean hasWarnings, String warningsText) {
+    public void markCompleted(Id analysisId, Boolean hasWarnings, String warningsText, String hygieneNotesText) {
         update new RAA_Analysis__c(
             Id = analysisId,
             RAA_Status__c = hasWarnings ? 'Completed with Warnings' : 'Completed',
             RAA_Completed_At__c = System.now(),
             RAA_Is_Complete__c = true,
-            RAA_Warnings__c = truncate(warningsText, 32768)
+            RAA_Warnings__c = truncate(warningsText, 32768),
+            RAA_Sharing_Hygiene_Notes__c = truncate(hygieneNotesText, 32768)
         );
     }
 

@@ -153,6 +153,11 @@
         <editable>true</editable>
     </fieldPermissions>
     <fieldPermissions>
+        <field>RAA_Analysis__c.RAA_Sharing_Hygiene_Notes__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
         <field>RAA_Analysis__c.RAA_Error_Details__c</field>
         <readable>true</readable>
         <editable>true</editable>
@@ -382,6 +387,16 @@
     </fieldPermissions>
     <fieldPermissions>
         <field>RAA_Scan_Subscription__c.RAA_Post_To_Chatter__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Post_To_Slack__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>RAA_Scan_Subscription__c.RAA_Slack_Webhook_URL__c</field>
         <readable>true</readable>
         <editable>true</editable>
     </fieldPermissions>

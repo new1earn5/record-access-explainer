@@ -54,7 +54,10 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         RAA_AnalysisDiffService diffService,
         RAA_SubscriptionRepository subscriptionRepo
     ) {
-        Boolean wantsAnyNotification = subscription.RAA_Notify_On_Change__c || subscription.RAA_Post_To_Chatter__c;
+        Boolean wantsAnyNotification =
+            subscription.RAA_Notify_On_Change__c ||
+            subscription.RAA_Post_To_Chatter__c ||
+            subscription.RAA_Post_To_Slack__c;
         if (subscription.RAA_Last_Analysis__c != null && wantsAnyNotification) {
             try {
                 RAA_AnalysisDiffDTO diff = diffService.compare(subscription.RAA_Last_Analysis__c, pendingAnalysis.Id);
@@ -64,6 +67,9 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
                     }
                     if (subscription.RAA_Post_To_Chatter__c) {
                         postChatterUpdate(subscription, diff);
+                    }
+                    if (subscription.RAA_Post_To_Slack__c) {
+                        postSlackUpdate(subscription, diff);
                     }
                 }
             } catch (Exception e) {
@@ -117,11 +123,58 @@ public without sharing class RAA_RecurringScanScheduler implements Schedulable {
         }
     }
 
+    // A failed Slack callout (bad/revoked webhook, Slack outage, etc.) must never block the
+    // email/Chatter notifications already sent above or the baseline advance in the caller's
+    // own catch - same defensive posture as postChatterUpdate.
+    @SuppressWarnings('PMD.EmptyCatchBlock')
+    private void postSlackUpdate(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
+        if (String.isBlank(subscription.RAA_Slack_Webhook_URL__c)) {
+            return;
+        }
+        try {
+            RAA_SlackNotifier.postMessage(subscription.RAA_Slack_Webhook_URL__c, buildSlackBody(subscription, diff));
+        } catch (Exception e) {
+            // Webhook may be invalid, revoked, or unreachable; nothing further to do here.
+        }
+    }
+
     private String buildChatterBody(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
         List<String> lines = new List<String>();
         lines.add(
             'Record Access Explainer detected an access change on this record: ' +
                 diff.usersAdded +
+                ' user(s) gained access, ' +
+                diff.usersRemoved +
+                ' user(s) lost access, ' +
+                diff.usersChanged +
+                ' user(s) had their access change.'
+        );
+        Integer previewCount = Math.min(5, diff.changes.size());
+        for (Integer i = 0; i < previewCount; i++) {
+            RAA_UserAccessChangeDTO change = diff.changes[i];
+            lines.add('- ' + change.changeType + ': ' + change.userFullName);
+        }
+        if (diff.changes.size() > previewCount) {
+            lines.add(
+                '...and ' +
+                    (diff.changes.size() - previewCount) +
+                    ' more. See Record Access Explainer for full details.'
+            );
+        }
+        return String.join(lines, '\n');
+    }
+
+    private String buildSlackBody(RAA_Scan_Subscription__c subscription, RAA_AnalysisDiffDTO diff) {
+        List<String> lines = new List<String>();
+        lines.add(
+            'Record Access Explainer detected an access change for "' +
+                subscription.RAA_Record_Display_Name__c +
+                '" (' +
+                subscription.RAA_Object_API_Name__c +
+                ').'
+        );
+        lines.add(
+            diff.usersAdded +
                 ' user(s) gained access, ' +
                 diff.usersRemoved +
                 ' user(s) lost access, ' +

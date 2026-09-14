@@ -58,7 +58,12 @@ public without sharing class RAA_ReasonAggregator {
         };
     }
 
-    public List<AggregatedUserResult> analyzeBatch(Id recordId, Set<Id> userIds, List<String> warningsOut) {
+    public List<AggregatedUserResult> analyzeBatch(
+        Id recordId,
+        Set<Id> userIds,
+        List<String> warningsOut,
+        List<String> hygieneNotesOut
+    ) {
         List<AggregatedUserResult> output = new List<AggregatedUserResult>();
         if (userIds == null || userIds.isEmpty()) {
             return output;
@@ -80,6 +85,9 @@ public without sharing class RAA_ReasonAggregator {
         if (usersWithAccess.isEmpty()) {
             if (warningsOut != null) {
                 warningsOut.addAll(context.warnings);
+            }
+            if (hygieneNotesOut != null) {
+                hygieneNotesOut.addAll(context.hygieneNotes);
             }
             return output;
         }
@@ -126,6 +134,9 @@ public without sharing class RAA_ReasonAggregator {
 
         if (warningsOut != null) {
             warningsOut.addAll(context.warnings);
+        }
+        if (hygieneNotesOut != null) {
+            hygieneNotesOut.addAll(context.hygieneNotes);
         }
         return output;
     }

@@ -21,6 +21,7 @@ const COLUMNS = [
     { label: 'Active', fieldName: 'isActive', type: 'boolean', sortable: true },
     { label: 'Notify On Change', fieldName: 'notifyOnChange', type: 'boolean' },
     { label: 'Post To Chatter', fieldName: 'postToChatter', type: 'boolean' },
+    { label: 'Post To Slack', fieldName: 'postToSlack', type: 'boolean' },
     { label: 'Last Run', fieldName: 'lastRunAt', type: 'date', sortable: true },
     {
         type: 'action',
@@ -47,6 +48,8 @@ export default class RaaSubscriptions extends LightningElement {
     includeInactiveUsers = false;
     notifyOnChange = true;
     postToChatter = false;
+    postToSlack = false;
+    slackWebhookUrl = '';
     validationMessage = '';
     isSaving = false;
     columns = COLUMNS;
@@ -92,11 +95,28 @@ export default class RaaSubscriptions extends LightningElement {
         this.postToChatter = event.target.checked;
     }
 
+    handlePostToSlackChange(event) {
+        this.postToSlack = event.target.checked;
+    }
+
+    handleSlackWebhookUrlChange(event) {
+        this.slackWebhookUrl = event.target.value;
+        this.validationMessage = '';
+    }
+
     handleCreate() {
         const recordId = (this.recordIdInput || '').trim();
         if (!/^[a-zA-Z0-9]{15}$|^[a-zA-Z0-9]{18}$/.test(recordId)) {
             this.validationMessage =
                 'Enter a valid 15 or 18 character record ID.';
+            return;
+        }
+        if (
+            this.postToSlack &&
+            !(this.slackWebhookUrl || '').startsWith('https://hooks.slack.com/')
+        ) {
+            this.validationMessage =
+                'Slack Webhook URL must start with https://hooks.slack.com/.';
             return;
         }
         this.validationMessage = '';
@@ -106,10 +126,13 @@ export default class RaaSubscriptions extends LightningElement {
             includeExternalUsers: this.includeExternalUsers,
             includeInactiveUsers: this.includeInactiveUsers,
             notifyOnChange: this.notifyOnChange,
-            postToChatter: this.postToChatter
+            postToChatter: this.postToChatter,
+            postToSlack: this.postToSlack,
+            slackWebhookUrl: this.postToSlack ? this.slackWebhookUrl : null
         })
             .then(() => {
                 this.recordIdInput = '';
+                this.slackWebhookUrl = '';
                 this.showToast('Success', 'Subscription created.', 'success');
                 this.loadSubscriptions();
             })

@@ -5,7 +5,7 @@ private class RAA_CleanupSchedulerTest {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
 
         Id oldAnalysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Old', UserInfo.getUserId(), false, false);
-        repo.markCompleted(oldAnalysisId, false, null);
+        repo.markCompleted(oldAnalysisId, false, null, null);
         update new RAA_Analysis__c(Id = oldAnalysisId, RAA_Completed_At__c = System.now().addDays(-100));
 
         Id recentAnalysisId = repo.createAnalysis(
@@ -16,7 +16,7 @@ private class RAA_CleanupSchedulerTest {
             false,
             false
         );
-        repo.markCompleted(recentAnalysisId, false, null);
+        repo.markCompleted(recentAnalysisId, false, null, null);
 
         Id incompleteAnalysisId = repo.createAnalysis(
             UserInfo.getUserId(),
@@ -52,7 +52,7 @@ private class RAA_CleanupSchedulerTest {
     static void zeroRetentionDisablesCleanup() {
         RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
         Id oldAnalysisId = repo.createAnalysis(UserInfo.getUserId(), 'User', 'Old', UserInfo.getUserId(), false, false);
-        repo.markCompleted(oldAnalysisId, false, null);
+        repo.markCompleted(oldAnalysisId, false, null, null);
         update new RAA_Analysis__c(Id = oldAnalysisId, RAA_Completed_At__c = System.now().addDays(-500));
 
         Test.startTest();

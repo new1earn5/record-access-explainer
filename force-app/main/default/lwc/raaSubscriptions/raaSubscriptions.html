@@ -61,7 +61,27 @@
                     onchange={handlePostToChatterChange}
                 ></lightning-input>
             </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                <lightning-input
+                    type="checkbox"
+                    label="Post to Slack when access changes"
+                    checked={postToSlack}
+                    onchange={handlePostToSlackChange}
+                ></lightning-input>
+            </div>
         </div>
+        <template if:true={postToSlack}>
+            <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                    <lightning-input
+                        label="Slack Webhook URL"
+                        value={slackWebhookUrl}
+                        onchange={handleSlackWebhookUrlChange}
+                        placeholder="https://hooks.slack.com/services/..."
+                    ></lightning-input>
+                </div>
+            </div>
+        </template>
         <div class="slds-m-top_small">
             <lightning-button
                 variant="brand"

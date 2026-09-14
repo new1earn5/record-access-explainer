@@ -396,6 +396,42 @@ describe('c-raa-record-access-explainer', () => {
         );
     });
 
+    it('shows sharing hygiene notes separately from the warning banner', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        startAnalysis.mockResolvedValue({
+            analysisId: 'a00000000000001',
+            status: 'Completed',
+            totalUsers: 1,
+            processedUsers: 1,
+            usersWithAccess: 1,
+            isComplete: true,
+            warnings: null,
+            potentiallyIncomplete: false,
+            sharingHygieneNotes:
+                'A sharing rule grants access to "Some Group" on this record, but none of the users included in this scan are members of it.',
+            objectApiName: 'Account',
+            recordDisplayName: 'Acme Corp'
+        });
+        getResults.mockResolvedValue([]);
+
+        const input = element.shadowRoot.querySelector(
+            '[data-id="record-id-input"]'
+        );
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change', { detail: {} }));
+        element.shadowRoot.querySelector('[data-id="analyze-button"]').click();
+        await flushPromises();
+        await flushPromises();
+
+        expect(element.shadowRoot.textContent).toContain('Sharing Hygiene');
+        expect(element.shadowRoot.textContent).toContain('Some Group');
+        expect(element.shadowRoot.textContent).not.toContain(
+            'Potentially Incomplete'
+        );
+    });
+
     it('shows a sanitized error message when the server call fails', async () => {
         const element = createComponent();
         await flushPromises();

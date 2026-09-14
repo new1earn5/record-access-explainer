@@ -275,9 +275,14 @@ public without sharing class RAA_AnalysisOrchestratorService {
         Boolean includeInactiveUsers,
         Boolean notifyOnChange,
         Boolean postToChatter,
+        Boolean postToSlack,
+        String slackWebhookUrl,
         Id subscriberId
     ) {
         Id recordId = RAA_IdValidationUtil.normalizeRecordId(rawRecordId);
+        if (postToSlack == true) {
+            RAA_SlackNotifier.validateWebhookUrl(slackWebhookUrl);
+        }
         RAA_RecordMetadataResolver.ResolvedRecord resolved = metadataResolver.resolve(recordId);
         return new RAA_SubscriptionRepository()
             .createSubscription(
@@ -288,7 +293,9 @@ public without sharing class RAA_AnalysisOrchestratorService {
                 includeExternalUsers == true,
                 includeInactiveUsers == true,
                 notifyOnChange != false,
-                postToChatter == true
+                postToChatter == true,
+                postToSlack == true,
+                slackWebhookUrl
             );
     }
 

@@ -28,6 +28,7 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
         }
 
         Set<Id> groupPrincipalIds = new Set<Id>();
+        Set<Id> ruleGroupPrincipalIds = new Set<Id>();
         for (SObject row : context.shareRows) {
             String rowCause = (String) row.get(context.shareRowCauseField);
             if (rowCause == 'Team') {
@@ -36,6 +37,9 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
             Id principalId = (Id) row.get(context.shareUserOrGroupField);
             if (principalId != null && principalId.getSObjectType() == Group.SObjectType) {
                 groupPrincipalIds.add(principalId);
+                if (rowCause == 'Rule') {
+                    ruleGroupPrincipalIds.add(principalId);
+                }
             }
         }
 
@@ -86,7 +90,51 @@ public without sharing class RAA_ShareRowAnalyzer implements RAA_IReasonAnalyzer
             }
         }
 
+        flagOrphanedRuleTargets(context, ruleGroupPrincipalIds, groupPaths, groupInfo, userIds);
+
         return results;
+    }
+
+    // A sharing rule's target group/role appears here with zero matching paths when none of the
+    // *scanned* users are members of it (directly or through nested group membership). This is
+    // scoped to the scanned population, not the whole org - if profile/user-type filters were
+    // applied to this scan, a rule that only benefits filtered-out users would be flagged too.
+    // The warning text says so; this is a signal to investigate, not a rule the org doesn't need.
+    // Rule name isn't available from the share row (see class header comment), so this is
+    // reported by the rule's target group/role, which is the most specific handle we actually have.
+    private void flagOrphanedRuleTargets(
+        RAA_AnalysisContext context,
+        Set<Id> ruleGroupPrincipalIds,
+        Map<Id, List<RAA_GroupPathDTO>> groupPaths,
+        Map<Id, Group> groupInfo,
+        Set<Id> userIds
+    ) {
+        if (ruleGroupPrincipalIds.isEmpty()) {
+            return;
+        }
+        Set<Id> principalsWithAMatch = new Set<Id>();
+        for (Id userId : groupPaths.keySet()) {
+            if (!userIds.contains(userId)) {
+                continue;
+            }
+            for (RAA_GroupPathDTO path : groupPaths.get(userId)) {
+                principalsWithAMatch.add(path.principalId);
+            }
+        }
+        for (Id principalId : ruleGroupPrincipalIds) {
+            if (principalsWithAMatch.contains(principalId)) {
+                continue;
+            }
+            Group principalGroup = groupInfo.get(principalId);
+            String principalName = principalGroup != null ? principalGroup.Name : String.valueOf(principalId);
+            context.hygieneNotes.add(
+                'A sharing rule grants access to "' +
+                    principalName +
+                    '" on this record, but none of the users included in this scan are members of it ' +
+                    '(directly or through nested groups). If this scan wasn\'t filtered by profile or ' +
+                    'user type, this sharing rule may no longer have any beneficiaries.'
+            );
+        }
     }
 
     private RAA_AccessReasonDTO buildDirectUserReason(

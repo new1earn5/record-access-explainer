@@ -103,7 +103,7 @@ private class RAA_AnalysisOrchestratorServiceTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         try {
             new RAA_AnalysisOrchestratorService().cancelAnalysis(analysisId);
@@ -216,6 +216,8 @@ private class RAA_AnalysisOrchestratorServiceTest {
             false,
             true,
             false,
+            false,
+            null,
             UserInfo.getUserId()
         );
         Test.stopTest();
@@ -230,6 +232,32 @@ private class RAA_AnalysisOrchestratorServiceTest {
 
         service.deleteSubscription(subscriptionId);
         System.assertEquals(0, service.listMySubscriptions(UserInfo.getUserId()).size());
+    }
+
+    @IsTest
+    static void createSubscriptionRejectsInvalidSlackWebhookUrl() {
+        Account acct = new Account(Name = 'RAA Orchestrator Slack Validation Account');
+        insert acct;
+
+        RAA_AnalysisOrchestratorService service = new RAA_AnalysisOrchestratorService();
+
+        Test.startTest();
+        try {
+            service.createSubscription(
+                String.valueOf(acct.Id),
+                false,
+                false,
+                true,
+                false,
+                true,
+                'https://evil.example.com/steal',
+                UserInfo.getUserId()
+            );
+            System.assert(false, 'Expected RAA_AppException for an invalid Slack webhook URL');
+        } catch (RAA_AppException e) {
+            System.assert(e.getMessage().contains('hooks.slack.com'));
+        }
+        Test.stopTest();
     }
 
     @IsTest
@@ -269,7 +297,7 @@ private class RAA_AnalysisOrchestratorServiceTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         Test.startTest();
         List<RAA_RiskInsightDTO> insights = new RAA_AnalysisOrchestratorService().getRiskInsights(UserInfo.getUserId());
@@ -293,7 +321,7 @@ private class RAA_AnalysisOrchestratorServiceTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         Test.startTest();
         String summaryText = new RAA_AnalysisOrchestratorService().getPlainEnglishSummary(analysisId);

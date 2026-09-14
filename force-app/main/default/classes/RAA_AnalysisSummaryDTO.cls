@@ -33,6 +33,8 @@ public class RAA_AnalysisSummaryDTO {
     @AuraEnabled
     public String warnings;
     @AuraEnabled
+    public String sharingHygieneNotes;
+    @AuraEnabled
     public String errorDetails;
     @AuraEnabled
     public Boolean potentiallyIncomplete;
@@ -63,6 +65,7 @@ public class RAA_AnalysisSummaryDTO {
         this.includeExternalUsers = analysis.RAA_Include_External_Users__c;
         this.includeInactiveUsers = analysis.RAA_Include_Inactive_Users__c;
         this.warnings = analysis.RAA_Warnings__c;
+        this.sharingHygieneNotes = analysis.RAA_Sharing_Hygiene_Notes__c;
         this.errorDetails = analysis.RAA_Error_Details__c;
         this.potentiallyIncomplete = String.isNotBlank(analysis.RAA_Warnings__c);
     }

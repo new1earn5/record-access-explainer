@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Sharing_Hygiene_Notes__c</fullName>
+    <externalId>false</externalId>
+    <label>Sharing Hygiene Notes</label>
+    <length>32768</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>10</visibleLines>
+    <description>Deliberately separate from RAA_Warnings__c: these are informational findings
+        about the sharing configuration itself (for example, a sharing rule whose target group
+        has no members among the scanned users), not signs that the scan was incomplete or
+        something went wrong. Kept apart so the UI never conflates the two.</description>
+    <inlineHelpText>Informational notes about the sharing configuration found during this scan (not scan warnings/errors).</inlineHelpText>
+</CustomField>

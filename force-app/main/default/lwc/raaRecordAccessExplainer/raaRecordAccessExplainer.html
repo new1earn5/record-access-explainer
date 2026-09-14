@@ -252,6 +252,24 @@
                         </div>
                     </template>
 
+                    <!-- Sharing hygiene notes: deliberately NOT the warning banner above - these
+                         are informational findings about the sharing configuration, not signs
+                         anything went wrong with the scan. -->
+                    <template if:true={showSharingHygieneNotes}>
+                        <div
+                            class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info slds-m-top_medium"
+                            role="alert"
+                        >
+                            <lightning-icon
+                                icon-name="utility:info"
+                                size="x-small"
+                                class="slds-m-right_x-small"
+                            ></lightning-icon>
+                            <strong>Sharing Hygiene:</strong>
+                            {summary.sharingHygieneNotes}
+                        </div>
+                    </template>
+
                     <!-- Results -->
                     <template if:true={showResults}>
                         <div

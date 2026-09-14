@@ -230,7 +230,9 @@ public with sharing class RAA_RecordAccessExplainerController {
         Boolean includeExternalUsers,
         Boolean includeInactiveUsers,
         Boolean notifyOnChange,
-        Boolean postToChatter
+        Boolean postToChatter,
+        Boolean postToSlack,
+        String slackWebhookUrl
     ) {
         enforceRunPermission();
         try {
@@ -241,6 +243,8 @@ public with sharing class RAA_RecordAccessExplainerController {
                     includeInactiveUsers,
                     notifyOnChange,
                     postToChatter,
+                    postToSlack,
+                    slackWebhookUrl,
                     UserInfo.getUserId()
                 );
         } catch (RAA_AppException e) {

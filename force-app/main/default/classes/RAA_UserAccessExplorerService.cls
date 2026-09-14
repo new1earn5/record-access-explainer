@@ -97,10 +97,13 @@ public without sharing class RAA_UserAccessExplorerService {
     public List<RAA_AccessReasonDTO> getAccessReasons(Id userId, Id recordId) {
         RAA_ReasonAggregator aggregator = new RAA_ReasonAggregator();
         List<String> warnings = new List<String>();
+        // hygieneNotesOut is deliberately null here: that signal means "no member of the
+        // scanned population," which is meaningless noise against a population of exactly one.
         List<RAA_ReasonAggregator.AggregatedUserResult> results = aggregator.analyzeBatch(
             recordId,
             new Set<Id>{ userId },
-            warnings
+            warnings,
+            null
         );
         if (results.isEmpty()) {
             return new List<RAA_AccessReasonDTO>();

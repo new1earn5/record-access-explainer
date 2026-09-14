@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RAA_Post_To_Slack__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Post To Slack</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+    <description>When true, a recurring run that detects a change also posts a message to the
+        configured Slack Webhook URL, alongside (not instead of) email/Chatter if those are also
+        set.</description>
+    <inlineHelpText>Whether to post to Slack (via Slack Webhook URL) when access changes are detected.</inlineHelpText>
+</CustomField>

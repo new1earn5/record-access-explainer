@@ -125,7 +125,9 @@ describe('c-raa-subscriptions', () => {
             includeExternalUsers: false,
             includeInactiveUsers: false,
             notifyOnChange: true,
-            postToChatter: false
+            postToChatter: false,
+            postToSlack: false,
+            slackWebhookUrl: null
         });
         expect(listMySubscriptions).toHaveBeenCalledTimes(2);
     });
@@ -150,6 +152,94 @@ describe('c-raa-subscriptions', () => {
 
         expect(createSubscription).toHaveBeenCalledWith(
             expect.objectContaining({ postToChatter: true })
+        );
+    });
+
+    it('shows the Slack webhook URL field only when the Slack checkbox is checked', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        expect(
+            [...element.shadowRoot.querySelectorAll('lightning-input')].find(
+                (el) => el.label === 'Slack Webhook URL'
+            )
+        ).toBeUndefined();
+
+        const slackCheckbox = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Post to Slack when access changes');
+        slackCheckbox.checked = true;
+        slackCheckbox.dispatchEvent(new CustomEvent('change'));
+        await flushPromises();
+
+        expect(
+            [...element.shadowRoot.querySelectorAll('lightning-input')].find(
+                (el) => el.label === 'Slack Webhook URL'
+            )
+        ).not.toBeUndefined();
+    });
+
+    it('rejects a Slack webhook URL that is not a hooks.slack.com URL', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        const input = recordIdInput(element);
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change'));
+
+        const slackCheckbox = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Post to Slack when access changes');
+        slackCheckbox.checked = true;
+        slackCheckbox.dispatchEvent(new CustomEvent('change'));
+        await flushPromises();
+
+        const urlInput = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Slack Webhook URL');
+        urlInput.value = 'https://evil.example.com/steal';
+        urlInput.dispatchEvent(new CustomEvent('change'));
+
+        createButton(element).click();
+        await flushPromises();
+
+        expect(element.shadowRoot.textContent).toContain(
+            'Slack Webhook URL must start with https://hooks.slack.com/'
+        );
+        expect(createSubscription).not.toHaveBeenCalled();
+    });
+
+    it('includes postToSlack and the webhook URL when the Slack checkbox is checked', async () => {
+        createSubscription.mockResolvedValue('s00000000000001');
+        const element = createComponent();
+        await flushPromises();
+
+        const input = recordIdInput(element);
+        input.value = '001000000000001AAA';
+        input.dispatchEvent(new CustomEvent('change'));
+
+        const slackCheckbox = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Post to Slack when access changes');
+        slackCheckbox.checked = true;
+        slackCheckbox.dispatchEvent(new CustomEvent('change'));
+        await flushPromises();
+
+        const urlInput = [
+            ...element.shadowRoot.querySelectorAll('lightning-input')
+        ].find((el) => el.label === 'Slack Webhook URL');
+        urlInput.value = 'https://hooks.slack.com/services/T000/B000/XXXX';
+        urlInput.dispatchEvent(new CustomEvent('change'));
+
+        createButton(element).click();
+        await flushPromises();
+
+        expect(createSubscription).toHaveBeenCalledWith(
+            expect.objectContaining({
+                postToSlack: true,
+                slackWebhookUrl:
+                    'https://hooks.slack.com/services/T000/B000/XXXX'
+            })
         );
     });
 

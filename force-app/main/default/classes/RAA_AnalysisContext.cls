@@ -27,6 +27,9 @@ public class RAA_AnalysisContext {
     public String grantPathPrefix;
 
     public List<String> warnings = new List<String>();
+    /** Informational sharing-configuration findings - never mixed into warnings (see that
+     * field's own comment); these don't mean the scan was incomplete. */
+    public List<String> hygieneNotes = new List<String>();
 
     // RAA_ContextBuilder constructs an instance empty, then sets every field directly.
     @SuppressWarnings('PMD.EmptyStatementBlock')

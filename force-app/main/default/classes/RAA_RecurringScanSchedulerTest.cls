@@ -14,7 +14,9 @@ private class RAA_RecurringScanSchedulerTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
 
         Test.startTest();
@@ -58,7 +60,9 @@ private class RAA_RecurringScanSchedulerTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
 
         RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
@@ -123,13 +127,13 @@ private class RAA_RecurringScanSchedulerTest {
             new List<RAA_ReasonAggregator.AggregatedUserResult>(),
             new Map<Id, User>()
         );
-        analysisRepo.markCompleted(baselineAnalysisId, false, null);
+        analysisRepo.markCompleted(baselineAnalysisId, false, null, null);
         analysisRepo.saveResults(
             pendingAnalysisId,
             new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult },
             userInfoMap
         );
-        analysisRepo.markCompleted(pendingAnalysisId, false, null);
+        analysisRepo.markCompleted(pendingAnalysisId, false, null, null);
 
         RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
         Id subscriptionId = subscriptionRepo.createSubscription(
@@ -140,7 +144,9 @@ private class RAA_RecurringScanSchedulerTest {
             false,
             false,
             true,
-            false
+            false,
+            false,
+            null
         );
         subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
         update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
@@ -200,13 +206,13 @@ private class RAA_RecurringScanSchedulerTest {
             new List<RAA_ReasonAggregator.AggregatedUserResult>(),
             new Map<Id, User>()
         );
-        analysisRepo.markCompleted(baselineAnalysisId, false, null);
+        analysisRepo.markCompleted(baselineAnalysisId, false, null, null);
         analysisRepo.saveResults(
             pendingAnalysisId,
             new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult },
             userInfoMap
         );
-        analysisRepo.markCompleted(pendingAnalysisId, false, null);
+        analysisRepo.markCompleted(pendingAnalysisId, false, null, null);
 
         RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
         // notifyOnChange is deliberately false here, to isolate Chatter from the email path
@@ -219,7 +225,9 @@ private class RAA_RecurringScanSchedulerTest {
             false,
             false,
             false,
-            true
+            true,
+            false,
+            null
         );
         subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
         update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
@@ -244,5 +252,199 @@ private class RAA_RecurringScanSchedulerTest {
             posts[0].Body.contains('access change'),
             'The Chatter post should summarize the detected change.'
         );
+    }
+
+    @IsTest
+    static void completedCycleWithChangesPostsToSlackWhenEnabled() {
+        Account acct = new Account(Name = 'RAA Recurring Slack Account');
+        insert acct;
+
+        RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
+        Id baselineAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        Id pendingAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        User addedUser = RAA_TestDataFactory.createUser('Slack', 'Added');
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id = :addedUser.Id]
+        );
+
+        RAA_ReasonAggregator.AggregatedUserResult addedResult = new RAA_ReasonAggregator.AggregatedUserResult();
+        addedResult.userId = addedUser.Id;
+        addedResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(addedUser.Id);
+        addedResult.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+
+        analysisRepo.saveResults(
+            baselineAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>(),
+            new Map<Id, User>()
+        );
+        analysisRepo.markCompleted(baselineAnalysisId, false, null, null);
+        analysisRepo.saveResults(
+            pendingAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult },
+            userInfoMap
+        );
+        analysisRepo.markCompleted(pendingAnalysisId, false, null, null);
+
+        RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
+        // notifyOnChange/postToChatter are deliberately false here, to isolate Slack from the
+        // paths already covered by the email and Chatter tests above.
+        Id subscriptionId = subscriptionRepo.createSubscription(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Account',
+            UserInfo.getUserId(),
+            false,
+            false,
+            false,
+            false,
+            true,
+            'https://hooks.slack.com/services/T000/B000/XXXX'
+        );
+        subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
+        update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
+
+        SlackCalloutMock mock = new SlackCalloutMock();
+        Test.setMock(HttpCalloutMock.class, mock);
+
+        Test.startTest();
+        new RAA_RecurringScanScheduler().execute(null);
+        Test.stopTest();
+
+        RAA_Scan_Subscription__c afterCycle = subscriptionRepo.getSubscription(subscriptionId);
+        System.assertEquals(
+            pendingAnalysisId,
+            afterCycle.RAA_Last_Analysis__c,
+            'The baseline should advance to the analysis that was just diffed, regardless of the Slack post outcome.'
+        );
+
+        System.assertEquals(1, mock.requestsReceived, 'The Slack webhook should have been called exactly once.');
+        System.assertEquals('https://hooks.slack.com/services/T000/B000/XXXX', mock.lastEndpoint);
+        System.assert(
+            mock.lastBody.contains('access change'),
+            'The Slack message body should summarize the detected change.'
+        );
+        System.assert(
+            mock.lastBody.contains('RAA Recurring Slack Account'),
+            'Unlike the Chatter post (which is already on the record), the Slack message must name the record.'
+        );
+    }
+
+    @IsTest
+    static void completedCycleSkipsSlackWhenWebhookCalloutFails() {
+        Account acct = new Account(Name = 'RAA Recurring Slack Failure Account');
+        insert acct;
+
+        RAA_AnalysisRepository analysisRepo = new RAA_AnalysisRepository();
+        Id baselineAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Failure Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+        Id pendingAnalysisId = analysisRepo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Failure Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        User addedUser = RAA_TestDataFactory.createUser('SlackFail', 'Added');
+        Map<Id, User> userInfoMap = new Map<Id, User>(
+            [SELECT Id, Name, Username, UserType, IsActive, Profile.Name FROM User WHERE Id = :addedUser.Id]
+        );
+
+        RAA_ReasonAggregator.AggregatedUserResult addedResult = new RAA_ReasonAggregator.AggregatedUserResult();
+        addedResult.userId = addedUser.Id;
+        addedResult.effectiveAccess = RAA_TestDataFactory.readOnlyAccess(addedUser.Id);
+        addedResult.reasons = new List<RAA_AccessReasonDTO>{ RAA_TestDataFactory.buildReason('Ownership', 'High') };
+
+        analysisRepo.saveResults(
+            baselineAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>(),
+            new Map<Id, User>()
+        );
+        analysisRepo.markCompleted(baselineAnalysisId, false, null, null);
+        analysisRepo.saveResults(
+            pendingAnalysisId,
+            new List<RAA_ReasonAggregator.AggregatedUserResult>{ addedResult },
+            userInfoMap
+        );
+        analysisRepo.markCompleted(pendingAnalysisId, false, null, null);
+
+        RAA_SubscriptionRepository subscriptionRepo = new RAA_SubscriptionRepository();
+        Id subscriptionId = subscriptionRepo.createSubscription(
+            acct.Id,
+            'Account',
+            'RAA Recurring Slack Failure Account',
+            UserInfo.getUserId(),
+            false,
+            false,
+            false,
+            false,
+            true,
+            'https://hooks.slack.com/services/T000/B000/XXXX'
+        );
+        subscriptionRepo.setPendingAnalysis(subscriptionId, pendingAnalysisId);
+        update new RAA_Scan_Subscription__c(Id = subscriptionId, RAA_Last_Analysis__c = baselineAnalysisId);
+
+        Test.setMock(HttpCalloutMock.class, new SlackCalloutMock(500));
+
+        Test.startTest();
+        new RAA_RecurringScanScheduler().execute(null);
+        Test.stopTest();
+
+        // A failed Slack callout must never prevent the baseline from advancing - same
+        // contract as a failed email send or a failed Chatter post.
+        RAA_Scan_Subscription__c afterCycle = subscriptionRepo.getSubscription(subscriptionId);
+        System.assertEquals(
+            pendingAnalysisId,
+            afterCycle.RAA_Last_Analysis__c,
+            'The baseline should still advance even though the Slack callout failed.'
+        );
+    }
+
+    private class SlackCalloutMock implements HttpCalloutMock {
+        Integer statusCode;
+        Integer requestsReceived = 0;
+        String lastEndpoint;
+        String lastBody;
+
+        SlackCalloutMock() {
+            this(200);
+        }
+
+        SlackCalloutMock(Integer statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        public HttpResponse respond(HttpRequest request) {
+            requestsReceived++;
+            lastEndpoint = request.getEndpoint();
+            lastBody = request.getBody();
+
+            HttpResponse response = new HttpResponse();
+            response.setStatusCode(statusCode);
+            response.setBody('{"ok":true}');
+            return response;
+        }
     }
 }

@@ -81,7 +81,7 @@ private class RAA_AnalysisDiffServiceTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         RAA_AnalysisDiffDTO diff = new RAA_AnalysisDiffService().compareToPreviousAnalysis(analysisId);
 

@@ -13,7 +13,7 @@ private class RAA_AnalysisRepositoryTest {
         RAA_Analysis__c active = repo.findActiveAnalysisForRecord(acct.Id);
         repo.markBatchStarted(analysisId, '707000000000001AAA', 5);
         repo.updateProgress(analysisId, 3, 2);
-        repo.markCompleted(analysisId, true, 'One warning occurred.');
+        repo.markCompleted(analysisId, true, 'One warning occurred.', null);
         Test.stopTest();
 
         RAA_Analysis__c finalRow = repo.getAnalysis(analysisId);
@@ -26,6 +26,43 @@ private class RAA_AnalysisRepositoryTest {
 
         RAA_Analysis__c stillActive = repo.findActiveAnalysisForRecord(acct.Id);
         System.assertEquals(null, stillActive, 'A completed analysis should no longer be considered active.');
+    }
+
+    @IsTest
+    static void sharingHygieneNotesArePersistedSeparatelyFromWarnings() {
+        Account acct = new Account(Name = 'RAA Repo Hygiene Account');
+        insert acct;
+        RAA_AnalysisRepository repo = new RAA_AnalysisRepository();
+
+        Id analysisId = repo.createAnalysis(
+            acct.Id,
+            'Account',
+            'RAA Repo Hygiene Account',
+            UserInfo.getUserId(),
+            false,
+            false
+        );
+
+        Test.startTest();
+        repo.markCompleted(analysisId, false, null, 'A sharing rule target has no scanned members.');
+        Test.stopTest();
+
+        RAA_Analysis__c finalRow = repo.getAnalysis(analysisId);
+        System.assertEquals(
+            'Completed',
+            finalRow.RAA_Status__c,
+            'A hygiene note alone must never flip the status to "Completed with Warnings".'
+        );
+        System.assertEquals(null, finalRow.RAA_Warnings__c);
+        System.assertEquals('A sharing rule target has no scanned members.', finalRow.RAA_Sharing_Hygiene_Notes__c);
+
+        RAA_AnalysisSummaryDTO summary = new RAA_AnalysisSummaryDTO(finalRow);
+        System.assertEquals(
+            false,
+            summary.potentiallyIncomplete,
+            'potentiallyIncomplete is driven by warnings only, not sharing hygiene notes.'
+        );
+        System.assertEquals('A sharing rule target has no scanned members.', summary.sharingHygieneNotes);
     }
 
     @IsTest

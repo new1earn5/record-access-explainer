@@ -172,7 +172,7 @@ private class RAA_RecordAccessExplainerControllerTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         try {
             RAA_RecordAccessExplainerController.cancelAnalysis(String.valueOf(analysisId));
@@ -318,7 +318,9 @@ private class RAA_RecordAccessExplainerControllerTest {
                 false,
                 false,
                 true,
-                false
+                false,
+                false,
+                null
             );
         }
 
@@ -354,7 +356,7 @@ private class RAA_RecordAccessExplainerControllerTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         Test.startTest();
         List<RAA_RiskInsightDTO> insights = RAA_RecordAccessExplainerController.getRiskInsights();
@@ -379,7 +381,7 @@ private class RAA_RecordAccessExplainerControllerTest {
             false,
             false
         );
-        repo.markCompleted(analysisId, false, null);
+        repo.markCompleted(analysisId, false, null, null);
 
         Test.startTest();
         String summaryText = RAA_RecordAccessExplainerController.getPlainEnglishSummary(String.valueOf(analysisId));

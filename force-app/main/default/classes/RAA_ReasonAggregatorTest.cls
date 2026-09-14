@@ -28,6 +28,7 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             acct.Id,
             new Set<Id>{ hasAccess.Id, noAccess.Id },
+            new List<String>(),
             new List<String>()
         );
         Test.stopTest();
@@ -63,6 +64,7 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             acct.Id,
             new Set<Id>{ u.Id },
+            new List<String>(),
             new List<String>()
         );
 
@@ -89,6 +91,7 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             acct.Id,
             new Set<Id>{ u.Id },
+            new List<String>(),
             new List<String>()
         );
 
@@ -123,7 +126,8 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             acct.Id,
             new Set<Id>{ u.Id },
-            warnings
+            warnings,
+            new List<String>()
         );
 
         System.assertEquals(1, output.size());
@@ -155,6 +159,7 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             acct.Id,
             new Set<Id>{ u.Id },
+            new List<String>(),
             new List<String>()
         );
 
@@ -175,6 +180,7 @@ private class RAA_ReasonAggregatorTest {
         List<RAA_ReasonAggregator.AggregatedUserResult> output = aggregator.analyzeBatch(
             UserInfo.getUserId(),
             new Set<Id>(),
+            new List<String>(),
             new List<String>()
         );
         System.assertEquals(0, output.size());

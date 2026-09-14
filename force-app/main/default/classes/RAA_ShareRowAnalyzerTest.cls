@@ -110,6 +110,60 @@ private class RAA_ShareRowAnalyzerTest {
     }
 
     @IsTest
+    static void flagsHygieneNoteForRuleTargetWithNoScannedMembers() {
+        User target = [SELECT Id FROM User WHERE LastName = 'Target' LIMIT 1];
+        Group emptyGroup = new Group(Name = 'RAA Empty Rule Target', Type = 'Regular');
+        insert emptyGroup;
+        // Deliberately no GroupMember inserted for emptyGroup - target is not a member.
+        AccountShare shareRow = new AccountShare(
+            UserOrGroupId = emptyGroup.Id,
+            AccountAccessLevel = 'Read',
+            RowCause = 'Rule'
+        );
+
+        RAA_AnalysisContext context = buildContext(new List<SObject>{ shareRow });
+
+        Test.startTest();
+        Map<Id, List<RAA_AccessReasonDTO>> results = new RAA_ShareRowAnalyzer()
+            .analyze(context, new Set<Id>{ target.Id });
+        Test.stopTest();
+
+        System.assert(
+            !results.containsKey(target.Id),
+            'The scanned user is not a member of the rule target, so no reason should be produced.'
+        );
+        System.assertEquals(1, context.hygieneNotes.size(), 'A hygiene note should flag the orphaned rule target.');
+        System.assert(
+            context.hygieneNotes[0].contains('RAA Empty Rule Target'),
+            'The hygiene note should name the specific group/role the rule targets.'
+        );
+        System.assert(
+            context.warnings.isEmpty(),
+            'This must never be reported as a scan warning - it is an informational finding, not an incomplete scan.'
+        );
+    }
+
+    @IsTest
+    static void doesNotFlagHygieneNoteWhenRuleTargetHasAScannedMember() {
+        Group sharedGroup = [SELECT Id FROM Group WHERE Name = 'RAA Share Group' LIMIT 1];
+        User target = [SELECT Id FROM User WHERE LastName = 'Target' LIMIT 1];
+        AccountShare shareRow = new AccountShare(
+            UserOrGroupId = sharedGroup.Id,
+            AccountAccessLevel = 'Read',
+            RowCause = 'Rule'
+        );
+
+        RAA_AnalysisContext context = buildContext(new List<SObject>{ shareRow });
+
+        new RAA_ShareRowAnalyzer().analyze(context, new Set<Id>{ target.Id });
+
+        System.assert(
+            context.hygieneNotes.isEmpty(),
+            'The rule target has a scanned member, so no hygiene note should be raised.'
+        );
+    }
+
+    @IsTest
     static void returnsNothingWhenNoShareObjectAvailable() {
         RAA_AnalysisContext context = new RAA_AnalysisContext();
         context.shareObjectApiName = null;
