@@ -1,0 +1,63 @@
+<template>
+    <div class="slds-p-around_medium">
+        <div
+            class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info slds-m-bottom_medium"
+            role="alert"
+        >
+            Finds Profiles and Permission Sets that grant View All Records,
+            Modify All Records, or full object-level CRUD on the objects you
+            choose, limited to ones with at least one currently active user.
+            This is a schema/setup-level scan - no record is read, and nothing
+            here is saved.
+        </div>
+
+        <lightning-input
+            data-id="object-names-input"
+            label="Object API Names (comma-separated)"
+            value={objectNamesInput}
+            onchange={handleObjectNamesChange}
+            placeholder="e.g. Account, Contact, Opportunity"
+        ></lightning-input>
+        <template if:true={validationMessage}>
+            <p class="slds-text-color_error slds-m-top_xx-small">
+                {validationMessage}
+            </p>
+        </template>
+
+        <div class="slds-m-top_small">
+            <lightning-button
+                data-id="scan-button"
+                variant="brand"
+                label="Scan"
+                onclick={handleScan}
+                disabled={isScanning}
+            ></lightning-button>
+        </div>
+
+        <template if:true={isScanning}>
+            <lightning-spinner
+                alternative-text="Scanning"
+                size="medium"
+            ></lightning-spinner>
+        </template>
+
+        <template if:true={showEmptyState}>
+            <p
+                class="slds-text-body_regular slds-text-color_weak slds-m-top_medium"
+            >
+                No Profile or Permission Set with View All, Modify All, or full
+                CRUD on the requested object(s) has any currently active user.
+            </p>
+        </template>
+
+        <template if:true={showResults}>
+            <lightning-datatable
+                key-field="rowKey"
+                data={results}
+                columns={columns}
+                hide-checkbox-column
+                class="slds-m-top_medium"
+            ></lightning-datatable>
+        </template>
+    </div>
+</template>

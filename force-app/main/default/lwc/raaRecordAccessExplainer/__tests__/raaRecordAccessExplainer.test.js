@@ -506,6 +506,18 @@ describe('c-raa-record-access-explainer', () => {
         ).not.toBeNull();
     });
 
+    it('switches to org-wide access mode', async () => {
+        const element = createComponent();
+        await flushPromises();
+
+        element.shadowRoot.querySelector('[data-mode="orgWideAccess"]').click();
+        await flushPromises();
+
+        expect(
+            element.shadowRoot.querySelector('c-raa-org-wide-access')
+        ).not.toBeNull();
+    });
+
     it('switches back to single mode and loads the analysis when a risk insights row is opened', async () => {
         const element = createComponent();
         await flushPromises();

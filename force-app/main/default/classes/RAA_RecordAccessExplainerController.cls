@@ -297,6 +297,24 @@ public with sharing class RAA_RecordAccessExplainerController {
         }
     }
 
+    /**
+     * Feature: standalone org-wide oversharing scan. Independent of the record-scan pipeline -
+     * calls RAA_OrgWideAccessService directly rather than through
+     * RAA_AnalysisOrchestratorService, since nothing here concerns a specific record or
+     * RAA_Analysis__c row.
+     */
+    @AuraEnabled
+    public static List<RAA_OrgWideAccessDTO> scanOrgWideAccess(List<String> objectApiNames) {
+        enforceRunPermission();
+        try {
+            return new RAA_OrgWideAccessService().scanObjectPermissions(objectApiNames);
+        } catch (RAA_AppException e) {
+            throw toAuraException(e.getMessage());
+        } catch (Exception e) {
+            throw toAuraException(genericErrorMessage());
+        }
+    }
+
     private static void enforceRunPermission() {
         if (!RAA_PermissionChecker.hasRunPermission()) {
             throw toAuraException(

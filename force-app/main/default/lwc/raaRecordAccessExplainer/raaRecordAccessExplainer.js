@@ -236,6 +236,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
         return this.activeMode === 'riskInsights';
     }
 
+    get isOrgWideAccessMode() {
+        return this.activeMode === 'orgWideAccess';
+    }
+
     get showScanForm() {
         return this.permissionChecked && this.hasPermission && !this.analysisId;
     }
@@ -674,6 +678,10 @@ export default class RaaRecordAccessExplainer extends LightningElement {
 
     get riskInsightsModeVariant() {
         return this.isRiskInsightsMode ? 'brand' : 'neutral';
+    }
+
+    get orgWideAccessModeVariant() {
+        return this.isOrgWideAccessMode ? 'brand' : 'neutral';
     }
 
     // Shared by both raaBulkScan's and raaRiskInsights' "View Analysis" row action - both dispatch

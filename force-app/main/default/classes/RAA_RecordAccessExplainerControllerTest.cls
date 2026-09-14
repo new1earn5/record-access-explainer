@@ -367,6 +367,37 @@ private class RAA_RecordAccessExplainerControllerTest {
     }
 
     @IsTest
+    static void scanOrgWideAccessRequiresPermissionAndDelegatesToTheService() {
+        RAA_PermissionChecker.testOverride = true;
+
+        Test.startTest();
+        List<RAA_OrgWideAccessDTO> results = RAA_RecordAccessExplainerController.scanOrgWideAccess(
+            new List<String>{ 'Account' }
+        );
+        Test.stopTest();
+
+        Boolean foundAdminModifyAll = false;
+        for (RAA_OrgWideAccessDTO dto : results) {
+            if (dto.principalType == 'Profile' && dto.hasModifyAllRecords == true) {
+                foundAdminModifyAll = true;
+            }
+        }
+        System.assert(foundAdminModifyAll, 'Should delegate to RAA_OrgWideAccessService and return real results.');
+    }
+
+    @IsTest
+    static void scanOrgWideAccessBlocksUnauthorizedUsers() {
+        RAA_PermissionChecker.testOverride = false;
+
+        try {
+            RAA_RecordAccessExplainerController.scanOrgWideAccess(new List<String>{ 'Account' });
+            System.assert(false, 'Expected an exception for a user without the run permission.');
+        } catch (AuraHandledException e) {
+            System.assert(e.getMessage().contains('permission'));
+        }
+    }
+
+    @IsTest
     static void getPlainEnglishSummaryRequiresPermissionAndVisibility() {
         RAA_PermissionChecker.testOverride = true;
         Account acct = new Account(Name = 'RAA Controller Summary Account');

@@ -79,6 +79,12 @@
                         variant={riskInsightsModeVariant}
                         onclick={handleModeChange}
                     ></lightning-button>
+                    <lightning-button
+                        label="Org-Wide Access"
+                        data-mode="orgWideAccess"
+                        variant={orgWideAccessModeVariant}
+                        onclick={handleModeChange}
+                    ></lightning-button>
                 </div>
 
                 <template if:true={isBulkMode}>
@@ -99,6 +105,10 @@
                     <c-raa-risk-insights
                         onviewanalysis={handleViewAnalysis}
                     ></c-raa-risk-insights>
+                </template>
+
+                <template if:true={isOrgWideAccessMode}>
+                    <c-raa-org-wide-access></c-raa-org-wide-access>
                 </template>
 
                 <template if:true={isSingleMode}>
