@@ -41,6 +41,9 @@
         <members>RAA_IReasonAnalyzer</members>
         <members>RAA_IdValidationUtil</members>
         <members>RAA_IdValidationUtilTest</members>
+        <members>RAA_OrgWideAccessDTO</members>
+        <members>RAA_OrgWideAccessService</members>
+        <members>RAA_OrgWideAccessServiceTest</members>
         <members>RAA_OrgWideDefaultAnalyzer</members>
         <members>RAA_OrgWideDefaultAnalyzerTest</members>
         <members>RAA_OwnershipAnalyzer</members>
@@ -70,6 +73,10 @@
         <members>RAA_RiskInsightsServiceTest</members>
         <members>RAA_RoleHierarchyAnalyzer</members>
         <members>RAA_RoleHierarchyAnalyzerTest</members>
+        <members>RAA_ScanInvocable</members>
+        <members>RAA_ScanInvocableTest</members>
+        <members>RAA_ScanRestResource</members>
+        <members>RAA_ScanRestResourceTest</members>
         <members>RAA_SettingsDTO</members>
         <members>RAA_SettingsService</members>
         <members>RAA_SettingsServiceTest</members>
@@ -77,8 +84,11 @@
         <members>RAA_ShareObjectResolverTest</members>
         <members>RAA_ShareRowAnalyzer</members>
         <members>RAA_ShareRowAnalyzerTest</members>
+        <members>RAA_SharingChangeMonitor</members>
+        <members>RAA_SharingChangeMonitorTest</members>
         <members>RAA_SharingRecalculationChecker</members>
         <members>RAA_SharingRecalculationCheckerTest</members>
+        <members>RAA_SlackNotifier</members>
         <members>RAA_SubscriptionDTO</members>
         <members>RAA_SubscriptionRepository</members>
         <members>RAA_SubscriptionRepositoryTest</members>
@@ -145,6 +155,7 @@
         <members>raaSubscriptions</members>
         <members>raaRiskInsights</members>
         <members>raaPlainEnglishSummary</members>
+        <members>raaOrgWideAccess</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -154,6 +165,10 @@
         <members>RAA_App_Title</members>
         <members>RAA_Generic_Error</members>
         <name>CustomLabel</name>
+    </types>
+    <types>
+        <members>RAA_Slack_Webhooks</members>
+        <name>RemoteSiteSetting</name>
     </types>
     <version>62.0</version>
 </Package>
