@@ -11,9 +11,9 @@ jobs:
     name: Lint, format check, and LWC Jest tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -34,9 +34,9 @@ jobs:
     name: Salesforce Code Analyzer (Apex)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
@@ -81,7 +81,7 @@ jobs:
     if: ${{ needs.check-devhub-secret.outputs.has-devhub == 'true' }}
     needs: [lint-and-jest, check-devhub-secret]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Salesforce CLI
         run: npm install --global @salesforce/cli

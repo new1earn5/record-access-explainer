@@ -33,6 +33,41 @@ _Risk Insights ranks every record you've already scanned by external users, bypa
 
 ---
 
+## Quick Start
+
+Requires the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`).
+
+```bash
+sf org login web --alias my-org
+sf project deploy start --source-dir force-app --target-org my-org
+sf org assign permset --name RAA_Record_Access_Auditor --target-org my-org
+```
+
+Then open the **Record Access Explainer** tab or app in Lightning Experience, enter any record ID,
+and click **Analyze**.
+
+Full deployment options: [§9](#9-deployment-instructions). Permission set / Lightning page setup:
+[§11](#11-permission-set-assignment-instructions)–[§12](#12-lightning-application-setup-instructions).
+Test/lint/format commands: [§10](#10-test-lint-and-format-execution-instructions).
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [1. Architecture Overview](#1-architecture-overview)
+- [2. Data Model](#2-data-model)
+- [3. Security Model](#3-security-model)
+- [4. Supported Access Reasons](#4-supported-access-reasons)
+- [5. Known Limitations](#5-known-limitations)
+- [6. Required Operator Permissions](#6-required-operator-permissions)
+- [7. Effective Access vs. Reason Attribution](#7-effective-access-vs-reason-attribution)
+- [8. Additional Capabilities](#8-additional-capabilities)
+- [9. Deployment Instructions](#9-deployment-instructions)
+- [10. Test, Lint, and Format Execution Instructions](#10-test-lint-and-format-execution-instructions)
+- [11. Permission Set Assignment Instructions](#11-permission-set-assignment-instructions)
+- [12. Lightning Application Setup Instructions](#12-lightning-application-setup-instructions)
+
+---
+
 ## 1. Architecture Overview
 
 ```
