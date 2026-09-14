@@ -33,6 +33,23 @@ _Risk Insights ranks every record you've already scanned by external users, bypa
 
 ---
 
+## Example Applications
+
+- **Before a data-room export or M&A due-diligence pull** — confirm exactly who can see the
+  records being exported, before you export them.
+- **Investigating a suspected data-leak complaint** — scan the record in question and get every
+  user with access, ranked and explained, instead of manually cross-referencing role hierarchy,
+  sharing rules, and permission sets by hand.
+- **Verifying least-privilege after a role hierarchy or sharing rule change** — re-scan a
+  previously-analyzed record and diff the result (§8) to confirm the change had the intended
+  effect and nothing else.
+- **Pre-empting an internal or customer security review** — run Risk Insights across already-
+  scanned records to surface external users and View/Modify All bypass holders before an auditor
+  finds them first.
+- **Onboarding a new admin to a legacy sharing model** — point them at a record and let the
+  plain-English summary (§8) explain the sharing setup instead of reverse-engineering it from
+  Setup.
+
 ## Quick Start
 
 Requires the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`).
@@ -46,12 +63,20 @@ sf org assign permset --name RAA_Record_Access_Auditor --target-org my-org
 Then open the **Record Access Explainer** tab or app in Lightning Experience, enter any record ID,
 and click **Analyze**.
 
+**Or, to spin up a disposable scratch org with a sample record already scanned in one command:**
+
+```bash
+./scripts/setup-dev-org.sh          # macOS/Linux
+.\scripts\setup-dev-org.ps1         # Windows PowerShell
+```
+
 Full deployment options: [§9](#9-deployment-instructions). Permission set / Lightning page setup:
 [§11](#11-permission-set-assignment-instructions)–[§12](#12-lightning-application-setup-instructions).
 Test/lint/format commands: [§10](#10-test-lint-and-format-execution-instructions).
 
 ## Table of Contents
 
+- [Example Applications](#example-applications)
 - [Quick Start](#quick-start)
 - [1. Architecture Overview](#1-architecture-overview)
 - [2. Data Model](#2-data-model)
@@ -370,6 +395,22 @@ built by correlating share rows, groups, roles, permission sets, teams, territor
 chains after the fact. It is inherently an approximation of the sharing engine's internal logic,
 not the sharing engine itself. The UI and every reason record distinguish the two clearly, and a
 reason's confidence level (High / Medium / Low) tells you how directly it was proven.
+
+### vs. Salesforce's native Sharing button
+
+Every Salesforce admin already has a built-in way to see _some_ of this: open a record, click
+**Sharing**, then **Expand List**, and Salesforce shows a per-user reason label (Owner, Role,
+Manual, a specific sharing rule, and so on). Record Access Explainer is not a replacement for
+that — it's what it doesn't cover:
+
+- It only lists users the object's **share table** actually names. Access coming purely from
+  object/field permissions (a profile or permission set with "View All"/"Modify All" on the
+  object), from an org-wide default of Public Read/Write, or from Controlled-by-Parent sharing
+  isn't shown there at all — Record Access Explainer detects and attributes all of these.
+- It's one record, one user population, no history. There's no bulk mode, no reverse "by user"
+  lookup, no scan-to-scan diff, and nothing is persisted for later review or export.
+- It gives a reason label, not a confidence rating, a grant path, or a plain-English summary — and
+  there's no ranked view across every record you've looked at (§8's Risk Insights).
 
 ---
 
