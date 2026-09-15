@@ -58,6 +58,8 @@ public without sharing class RAA_SharingChangeMonitor implements Schedulable {
         }
     }
 
+    // CronTrigger is setup metadata, not record data subject to FLS/CRUD.
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     @TestVisible
     private Datetime determineSinceWhen(SchedulableContext sc) {
         if (Test.isRunningTest() && testSinceWhenOverride != null) {
@@ -79,6 +81,9 @@ public without sharing class RAA_SharingChangeMonitor implements Schedulable {
     @TestVisible
     private static final Integer MAX_ROWS_CHECKED = 200;
 
+    // SetupAuditTrail is setup metadata, not record data; this monitor's job is to see admin
+    // changes regardless of the running user's own record-level access.
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     private Boolean hasSharingRelevantChange(Datetime sinceWhen) {
         for (SetupAuditTrail entry : [
             SELECT Action, Section

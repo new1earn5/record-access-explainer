@@ -14,6 +14,10 @@ public without sharing class RAA_OrgWideAccessService {
     @TestVisible
     private static final Integer MAX_OBJECTS_PER_SCAN = 10;
 
+    // ObjectPermissions and PermissionSet are setup metadata, not record data - this scan's
+    // entire purpose is to see grants the running user may not personally hold, so WITH USER_MODE
+    // would be actively wrong here (it would hide the very oversharing this method looks for).
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     public List<RAA_OrgWideAccessDTO> scanObjectPermissions(List<String> rawObjectApiNames) {
         List<String> objectApiNames = normalizeAndValidate(rawObjectApiNames);
 
@@ -112,6 +116,9 @@ public without sharing class RAA_OrgWideAccessService {
         return normalized;
     }
 
+    // User and setup-metadata counts, not record data subject to FLS/CRUD; see the suppression
+    // note on scanObjectPermissions above.
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     private Map<Id, Integer> activeUserCountsByProfile(Set<Id> profileIds) {
         Map<Id, Integer> counts = new Map<Id, Integer>();
         if (profileIds.isEmpty()) {
@@ -128,6 +135,9 @@ public without sharing class RAA_OrgWideAccessService {
         return counts;
     }
 
+    // PermissionSetAssignment is setup metadata, not record data; see the suppression note on
+    // scanObjectPermissions above.
+    @SuppressWarnings('PMD.ApexCRUDViolation')
     private Map<Id, Integer> activeUserCountsByPermissionSet(Set<Id> permSetIds) {
         Map<Id, Integer> counts = new Map<Id, Integer>();
         if (permSetIds.isEmpty()) {
