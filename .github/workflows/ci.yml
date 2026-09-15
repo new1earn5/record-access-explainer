@@ -10,6 +10,8 @@ jobs:
   lint-and-jest:
     name: Lint, format check, and LWC Jest tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
 
@@ -29,6 +31,18 @@ jobs:
 
       - name: LWC Jest tests
         run: npm run test:unit:coverage
+
+      - name: Update coverage badges
+        if: github.event_name == 'push'
+        run: |
+          npm run coverage:badges
+          if ! git diff --quiet -- README.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore: update coverage badges [skip ci]"
+            git push
+          fi
 
   apex-static-analysis:
     name: Salesforce Code Analyzer (Apex)
