@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/new1earn5/record-access-explainer/security/policy
+    about: Incorrect access reporting, a permission bypass, or exposed data — please don't file these publicly.
