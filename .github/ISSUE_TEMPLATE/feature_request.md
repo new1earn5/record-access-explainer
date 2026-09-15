@@ -23,6 +23,6 @@ be nice to have". -->
 
 This project deliberately does not try to account for Restriction Rules beyond best-effort
 detection, and does not claim more certainty than Salesforce's own effective-access computation
-actually gives it (see [README §5 "Known Limitations"](../../README.md#5-known-limitations)). If
+actually gives it (see [§5 "Known Limitations"](../../docs/known-limitations.md#5-known-limitations)). If
 this request would require claiming more certainty than the platform provides, say so here — it
 doesn't rule the request out, but it changes how it'd need to be built.

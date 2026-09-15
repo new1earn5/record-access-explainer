@@ -8,7 +8,7 @@
  * an upsert against the RAA_Unique_Key__c external ID field.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: this is the persistence layer for the
-// elevated scan pipeline (see README.md §1, "Batch Apex runs in system mode"), reached only
+// elevated scan pipeline (see docs/architecture.md §1, "Batch Apex runs in system mode"), reached only
 // through the with-sharing controller's permission and per-record visibility gate.
 @SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_AnalysisRepository {

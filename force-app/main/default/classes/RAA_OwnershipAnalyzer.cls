@@ -4,7 +4,7 @@
  * are directly queryable facts.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: part of the elevated scan pipeline (see
-// README.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
+// docs/architecture.md §1, "Batch Apex runs in system mode"), reached only through the with-sharing
 // controller's permission and per-record visibility gate.
 @SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_OwnershipAnalyzer implements RAA_IReasonAnalyzer {

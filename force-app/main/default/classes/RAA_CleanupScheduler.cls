@@ -9,7 +9,7 @@
  * the no-argument constructor, which reads RAA_Settings__mdt.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: a scheduled job deleting the package's
-// own data (see README.md §1, "Batch Apex runs in system mode"), not reachable from the client.
+// own data (see docs/architecture.md §1, "Batch Apex runs in system mode"), not reachable from the client.
 @SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_CleanupScheduler implements Schedulable {
     @TestVisible

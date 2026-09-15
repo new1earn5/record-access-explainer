@@ -24,7 +24,7 @@
  *     specific mechanism (RAA_Has_Unresolved_Reason__c) - an audit blind spot, not itself a risk.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: reads the elevated pipeline's own
-// package-owned data (see README.md §1, "Batch Apex runs in system mode"), reached only through
+// package-owned data (see docs/architecture.md §1, "Batch Apex runs in system mode"), reached only through
 // the with-sharing controller's permission gate; explicitly scoped to the requesting user's own
 // analyses by RAA_Requested_By__c, not broadened by the lack of a sharing check.
 @SuppressWarnings('PMD.ApexCRUDViolation')

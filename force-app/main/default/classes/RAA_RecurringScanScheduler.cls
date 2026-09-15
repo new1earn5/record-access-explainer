@@ -9,7 +9,7 @@
  * complete - by design, so this never blocks on a long-running scan.
  */
 // Deliberately without sharing and CRUD/FLS-unchecked: a scheduled job operating on the
-// package's own subscription/analysis data (see README.md §1, "Batch Apex runs in system
+// package's own subscription/analysis data (see docs/architecture.md §1, "Batch Apex runs in system
 // mode"), not reachable from the client.
 @SuppressWarnings('PMD.ApexCRUDViolation')
 public without sharing class RAA_RecurringScanScheduler implements Schedulable {

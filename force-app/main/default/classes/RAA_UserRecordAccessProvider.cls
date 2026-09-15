@@ -24,7 +24,7 @@
 public without sharing class RAA_UserRecordAccessProvider implements RAA_IEffectiveAccessProvider {
     // See class-level comment: UserRecordAccess cannot be bulk-queried by a list of users for a
     // single record, so this is the one deliberate, documented exception to bulk-querying every
-    // other data source once per chunk (also disclosed in README.md §1).
+    // other data source once per chunk (also disclosed in docs/architecture.md §1).
     @SuppressWarnings('PMD.OperationWithLimitsInLoop')
     public Map<Id, RAA_EffectiveAccessResult> getEffectiveAccess(Id recordId, Set<Id> userIds) {
         Map<Id, RAA_EffectiveAccessResult> results = new Map<Id, RAA_EffectiveAccessResult>();

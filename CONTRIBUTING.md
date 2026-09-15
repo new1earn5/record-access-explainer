@@ -1,6 +1,7 @@
 # Contributing
 
-Thanks for considering a contribution to Record Access Explainer.
+Thanks for considering a contribution to Record Access Explainer. Participation is governed by
+the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Getting set up
 
@@ -34,7 +35,7 @@ sf apex run test --target-org rae-dev --test-level RunLocalTests --code-coverage
 - Run `npm run format` (Prettier, including Apex via `prettier-plugin-apex`) before committing —
   `format:check` gates CI.
 - Keep `with sharing` / `without sharing` boundaries intentional. If you're touching anything in
-  the scan pipeline, re-read [README §3 "Security Model"](README.md#3-security-model) first — the
+  the scan pipeline, re-read [§3 "Security Model"](docs/security-model.md#3-security-model) first — the
   system-mode/user-mode split there is load-bearing, not incidental.
 
 ## Reporting bugs / suggesting features
@@ -46,7 +47,7 @@ publicly.
 ## Scope note
 
 This project deliberately does **not** try to account for Restriction Rules (best-effort detection
-only — see [README §5 "Known Limitations"](README.md#5-known-limitations)) and does not claim to be
+only — see [§5 "Known Limitations"](docs/known-limitations.md#5-known-limitations)) and does not claim to be
 a replacement for Salesforce's own effective-access computation, only an explanation of it. PRs that
 expand _detected reasons_ are welcome; PRs that make the tool claim more certainty than the
 platform actually gives it will need a strong justification.
