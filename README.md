@@ -2,10 +2,10 @@
 
 [![CI](https://github.com/new1earn5/record-access-explainer/actions/workflows/ci.yml/badge.svg)](https://github.com/new1earn5/record-access-explainer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Statements](#statements#)
-![Branches](#branches#)
-![Functions](#functions#)
-![Lines](#lines#)
+![Statements](https://img.shields.io/badge/statements-79.21%25-red.svg?style=flat)
+![Branches](https://img.shields.io/badge/branches-71.64%25-red.svg?style=flat)
+![Functions](https://img.shields.io/badge/functions-76.81%25-red.svg?style=flat)
+![Lines](https://img.shields.io/badge/lines-78.46%25-red.svg?style=flat)
 
 A Salesforce administrator/auditor application that answers one question in depth: **"Which
 users have effective access to this record, and why?"**
